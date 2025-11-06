@@ -109,7 +109,11 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     file_list(file_args, query_args);
     break;
   case STATE_FILE_SELECT:
-    file_select(file_args, query_args);
+    if (query_args->from_server) {
+      wait_side(query_args);
+    } else {
+      file_select(file_args, query_args);
+    }
     break;
   case STATE_FILE_DOWNLOAD:
     file_download(file_args, query_args);
@@ -166,7 +170,7 @@ int query_extract_from_buf(char *buf, int *buf_used, char **output_line) {
       pos++;
     memmove(buf, buf + pos, *buf_used);
     buf[*buf_used] = 0;
-    if (line[pos-1] == '\r')
+    if (line[pos - 1] == '\r')
       line[--pos] = 0;
     *output_line = line;
   }
@@ -178,7 +182,8 @@ static void wait_side(query_args_t *q_args) {
   int buf_used = q_args->buf_used;
   char *query = NULL;
 
-  if (q_args->state == WAIT_SERVER || q_args->state == WAIT_SERVER_INIT || q_args->from_server) {
+  if (q_args->state == WAIT_SERVER || q_args->state == WAIT_SERVER_INIT ||
+      q_args->from_server) {
     while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
       process_server_command(query, qlen, q_args);
       free(query);

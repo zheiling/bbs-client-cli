@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,21 +22,36 @@ static void fl_clear(fl_item_t **start, fl_item_t **current);
 static void clear_file_in_query(query_args_t *q_args);
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
-  int qlen;
+  uint32_t qlen;
   char *query = NULL;
-  static int idx = 1;
+  static uint32_t idx = 1;
+  static char qbuf[INBUFSIZE * 2];
+  static uint32_t qbuf_used = 0;
 
-  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used), &query))) {
+  if (qbuf_used == 0) qbuf[0] = 0;
+
+  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
+                                        &query))) {
     if (!strcmp("list_end\n", query)) {
       q_args->state = STATE_FILE_SELECT;
       idx = 1;
       break;
     }
-    fl_add(&(f_args->l_current), &(f_args->l_start), query);
+    strcat(qbuf, query);
+    qbuf_used += strlen(qbuf);
+    if (strchr(qbuf, '\n') == NULL) continue;
+    fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
     printf("[%d] [%s | %s]\n%s\n", idx++, f_args->l_current->name,
            f_args->l_current->owner, f_args->l_current->description);
     free(query);
     query = NULL;
+    qbuf_used = 0;
+    qbuf[0] = 0;
+  }
+
+  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
+                                        &query))) {
+    write(STDOUT_FILENO, query, strlen(query));
   }
 }
 
@@ -46,13 +62,16 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   fl_item_t *l_selected; /* from the list */
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
-  int filenum;
-  int qlen;
+  uint32_t filenum;
+  uint32_t pagenum;
+  uint32_t qlen;
   char send_buf[256];
   struct stat st = {0};
-  int sres;
-  if (!(sres = sscanf(buf, "%d", &filenum))) {
-    printf("Number format is not correct!\nPlease try again!\n");
+  
+  if (!(sscanf(buf, "%d", &filenum))) {
+    write(q_args->sd, buf, strlen(buf));
+    q_args->state = STATE_FILE_LIST;
+    fl_clear(&f_args->l_start, &f_args->l_current);
     return;
   }
 
@@ -73,8 +92,8 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   if (stat(DOWNLOADS_DIR, &st) == -1) {
     mkdir(DOWNLOADS_DIR, 0700);
   }
-  char *file_path =
-      malloc(sizeof(DOWNLOADS_DIR) + strlen(l_selected->name) + 2); // + '/' + '\0'
+  char *file_path = malloc(sizeof(DOWNLOADS_DIR) + strlen(l_selected->name) +
+                           2); // + '/' + '\0'
   f_selected->name = NULL;
   sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
   f_selected->name = strdup(l_selected->name);
@@ -97,7 +116,7 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
 
 void file_download(file_args_t *f_args, query_args_t *q_args) {
   fl_item_t *f_selected = &(f_args->f_selected);
-  static int it_count = 0;
+  static uint32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
     it_interval = (f_selected->size / INBUFSIZE / 100) * 10; /* every 10% */
@@ -108,7 +127,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
 
   if (size_rest == 0)
     size_rest = f_selected->size;
-  int qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
+  uint32_t qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
   if (qlen) {
     it_count++;
     if (!(it_count % it_interval)) {
@@ -134,11 +153,12 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   }
 }
 
-int file_upload_request(char *query, query_args_t *q_args) {
+int32_t file_upload_request(char *query, query_args_t *q_args) {
   char qbuf[INBUFSIZE];
-  char fpath[512]; char a_perm;
+  char fpath[512];
+  char a_perm;
   sscanf(query, "file upload \"%s %c", fpath, &a_perm);
-  fpath[strlen(fpath)-1] = 0; // remove \"
+  fpath[strlen(fpath) - 1] = 0; // remove \"
   int fd = open(fpath, O_RDONLY);
   if (fd == -1) {
     perror(fpath);
@@ -163,7 +183,7 @@ int file_upload_request(char *query, query_args_t *q_args) {
   return 0;
 }
 
-int file_upload_start(query_args_t *q_args) {
+int32_t file_upload_start(query_args_t *q_args) {
   char *query;
   query_extract_from_buf(q_args->buf, &(q_args->buf_used), &query);
   if (strcmp(query, "accept")) {
@@ -174,7 +194,7 @@ int file_upload_start(query_args_t *q_args) {
   return 0;
 }
 
-int file_upload(query_args_t *q_args) {
+int32_t file_upload(query_args_t *q_args) {
   /* static size_t it_int = 0;
    static int it_count = 0;
 
@@ -219,19 +239,22 @@ void init_file_args(file_args_t *f_args) {
 
 /* work with file list */
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
-  char fname[128]; size_t fsize; char fowner[32]; int h_len;
+  char fname[128];
+  size_t fsize;
+  char fowner[32];
+  int h_len;
   fl_item_t *fitem = malloc(sizeof(fl_item_t));
   sscanf(line, "%s %zu %s%n", fname, &(fitem->size), fowner, &h_len);
   /* file name */
-  fitem->name = malloc((sizeof(char))*(strlen(fname)+1));
+  fitem->name = malloc((sizeof(char)) * (strlen(fname) + 1));
   strcpy(fitem->name, fname);
   /* file owner */
-  fitem->owner = malloc((sizeof(char))*(strlen(fowner)+1));
+  fitem->owner = malloc((sizeof(char)) * (strlen(fowner) + 1));
   strcpy(fitem->owner, fowner);
   /* file description */
-  int d_len = strlen(line)-h_len;
-  fitem->description = malloc((sizeof(char))*(d_len));
-  strcpy(fitem->description, line + h_len+1); // +1 to escape the dividing \32
+  int d_len = strlen(line) - h_len;
+  fitem->description = malloc((sizeof(char)) * (d_len));
+  strcpy(fitem->description, line + h_len + 1); // +1 to escape the dividing \32
   int i;
   for (i = 0; i < d_len; i++) {
     if (fitem->description[i] == '\a') {
