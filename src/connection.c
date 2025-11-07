@@ -3,12 +3,12 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
-#include <string.h>
 
 void connect_to_server(int sd, params_t *params) {
   struct sockaddr_in server;
@@ -43,46 +43,17 @@ void clear_params(params_t *params) {
 
 void get_missing_params(params_t *params) {
   size_t lsize;
-  char *buf = NULL;
-  struct termios ts_hide, ts_show;
-  struct sockaddr_in addr;
+  char *bufptr = NULL;
 
-  if (isatty(0)) {
-    tcgetattr(0, &ts_show);
-    memcpy(&ts_hide, &ts_show, sizeof(ts_show));
-    ts_hide.c_lflag &= ~ECHO;
-  }
+  struct sockaddr_in addr;
 
   if (!params->addr) {
     printf("host> ");
-    getline(&buf, &lsize, stdin);
-    inet_aton(buf, &(addr.sin_addr));
+    getline(&bufptr, &lsize, stdin);
+    inet_aton(bufptr, &(addr.sin_addr));
     params->addr = addr.sin_addr.s_addr;
-    free(buf);
-    buf = NULL;
-  }
-  if (params->uname == NULL) {
-    printf("login> ");
-    getline(&(params->uname), &lsize, stdin);
-    lsize = strlen(params->uname);
-    params->uname[lsize - 1] = '\0'; /* get rid of '\n' */
-    free(buf);
-    buf = NULL;
-  }
-  if (params->pass == NULL) {
-    if (isatty(0)) {
-      tcsetattr(0, TCSANOW, &ts_hide);
-    }
-    printf("password> ");
-    getline(&(params->pass), &lsize, stdin);
-    if (isatty(0)) {
-      tcsetattr(0, TCSANOW, &ts_show);
-      putchar('\n');
-    }
-    lsize = strlen(params->pass);
-    params->pass[lsize - 1] = '\0'; /* get rid of '\n' */
-    free(buf);
-    buf = NULL;
+    free(bufptr);
+    bufptr = NULL;
   }
 }
 

@@ -17,6 +17,7 @@ typedef struct params {
 enum state {
   WAIT_SERVER_INIT,
   WAIT_SERVER,
+  WAIT_REGISTER,
   WAIT_CLIENT,
   UPLOAD_FILE,
   STATE_FILE_LIST,
@@ -25,6 +26,7 @@ enum state {
   STATE_UPLOAD_PARAMS,
   STATE_UPLOAD_FILE,
   STATE_UPLOAD_REQUESTED,
+  STATE_ASK_USER_BEFORE_LOGIN,
   ERR,
 };
 typedef struct p_file {

@@ -100,6 +100,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
   case WAIT_CLIENT:
+  case WAIT_REGISTER:
     wait_side(query_args);
     break;
   case UPLOAD_FILE:
@@ -134,6 +135,8 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
       print_prompt(query_args->params);
       query_args->state = WAIT_CLIENT;
     }
+    break;
+  case STATE_ASK_USER_BEFORE_LOGIN:
     break;
   }
   return 0;
