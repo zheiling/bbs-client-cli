@@ -13,14 +13,14 @@
 #include <unistd.h>
 
 void ask_uname_and_password(params_t *params);
-void ask_register(params_t *params);
+void ask_register(params_t *params, char *email);
 
 int process_server_command(char *line, int l_len, query_args_t *q_args) {
   int ws_pos = l_len;
   params_t *params = q_args->params;
   const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
-  uint32_t answer;
   char r_buf[INBUFSIZE];
+  uint32_t answer;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -41,11 +41,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
         q_args->state = WAIT_CLIENT;
         break;
       case 3:
-        write(q_args->sd, "register\n", sizeof "register\n");
-        q_args->state = WAIT_REGISTER;
-        ask_register(q_args->params);
-        sprintf(r_buf, "%s %s\n", params->uname, params->pass);
-        write(q_args->sd, r_buf, strlen(r_buf));
+        wait_register(q_args);
         return 3;
       default:
         return -1;
@@ -74,6 +70,20 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
     get_missing_params(params);
     write(q_args->sd, params->uname, strlen(params->uname));
     return 0;
+  }
+
+  /* REGISTER CONFIRMATION */
+  if (q_args->state == WAIT_REGISTER_CONFIRMATION) {
+    if (!strcmp(line, "ok")) {
+      printf("Welcome, %s\n", q_args->params->uname);
+      print_prompt(q_args->params);
+      q_args->state = WAIT_CLIENT;
+      return 0;
+    } else {
+      write(STDOUT_FILENO, line, strlen(line));
+      q_args->state = WAIT_REGISTER;
+      return 1;
+    }
   }
 
   /* DOWNLOAD START */
@@ -167,7 +177,7 @@ void ask_uname_and_password(params_t *params) {
   }
 }
 
-void ask_register(params_t *params) {
+void ask_register(params_t *params, char *email) {
   size_t lsize;
   char *bufptr = NULL;
 
@@ -190,6 +200,7 @@ void ask_register(params_t *params) {
   }
 
   if (params->pass == NULL) {
+    // hides input letters
     if (isatty(0)) {
       tcsetattr(0, TCSANOW, &ts_hide);
     }
@@ -198,7 +209,7 @@ void ask_register(params_t *params) {
         printf("\nERROR: password do not match! Try again!\n");
         free(params->pass);
         params->pass = NULL;
-      } 
+      }
       if (bufptr != NULL) {
         free(bufptr);
         bufptr = NULL;
@@ -207,12 +218,18 @@ void ask_register(params_t *params) {
       getline(&(params->pass), &lsize, stdin);
       printf("\npassword (repeat)> ");
       getline(&(bufptr), &lsize, stdin);
-    } while(strcmp(bufptr, params->pass));
+    } while (strcmp(bufptr, params->pass));
 
+    // shows input letters again
     if (isatty(0)) {
       tcsetattr(0, TCSANOW, &ts_show);
       putchar('\n');
     }
+
+    printf("email> ");
+    fflush(stdout);
+    scanf("%s", email);
+
     lsize = strlen(params->pass);
     params->pass[lsize - 1] = '\0'; /* get rid of '\n' */
     free(bufptr);

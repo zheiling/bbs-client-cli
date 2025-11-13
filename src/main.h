@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include "types.h"
 
 #define LOCAL_PORT 1999
 #define SERVER_PORT 2000
@@ -18,6 +19,7 @@ enum state {
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,
+  WAIT_REGISTER_CONFIRMATION,
   WAIT_CLIENT,
   UPLOAD_FILE,
   STATE_FILE_LIST,
@@ -67,11 +69,13 @@ void get_missing_params(params_t *restrict);
 void connect_to_server(int sd, params_t *params);
 int init_client();
 void close_session(int sd);
+void wait_register(query_args_t *q_args);
 int process_query(query_args_t *query_args, file_args_t *file_args);
 void query_loop(int sd, params_t *);
 int query_extract_from_buf(char *buf, int *buf_used, char **output_line);
 int process_client_command(char *line, int l_len, query_args_t *q_args);
 int process_server_command(char *line, int l_len, query_args_t *q_args);
+void ask_register(params_t *params, char *email);
 
 void clear_params(params_t *params);
 

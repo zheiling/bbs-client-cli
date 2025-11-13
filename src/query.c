@@ -93,6 +93,16 @@ void query_loop(int sd, params_t *params) {
   }
 }
 
+void wait_register(query_args_t *q_args) {
+  params_t *params = q_args->params;
+  char r_buf[INBUFSIZE];
+  q_args->state = WAIT_REGISTER_CONFIRMATION;
+  char email[EMAIL_LEN];
+  ask_register(q_args->params, email);
+  sprintf(r_buf, "register %s %s %s\n", params->uname, params->pass, email);
+  write(q_args->sd, r_buf, strlen(r_buf) - 1);
+}
+
 int process_query(query_args_t *query_args, file_args_t *file_args) {
   query_args->buf[query_args->buf_used] = 0;
 
@@ -100,7 +110,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
   case WAIT_CLIENT:
-  case WAIT_REGISTER:
+  case WAIT_REGISTER_CONFIRMATION:
     wait_side(query_args);
     break;
   case UPLOAD_FILE:
@@ -137,6 +147,9 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     }
     break;
   case STATE_ASK_USER_BEFORE_LOGIN:
+    break;
+  case WAIT_REGISTER:
+    wait_register(query_args);
     break;
   }
   return 0;
