@@ -29,7 +29,7 @@ app_t *init_app() {
   _app->action_win = newwin(y_max - 4, action_w_x, 2, menu_w_x + 1);
 
   // dialogue
-  _app->modal.win = NULL;
+  _app->modal.dialogue.win = NULL;
 
   // print decorative bars
   print_bars(_app);
@@ -38,16 +38,16 @@ app_t *init_app() {
   draw_borders(_app);
 
   // init menus
-//   _app->menus = malloc(3 * sizeof(menu_t));
-//   _app->menus[0] = init_menu("(F)ile", 'f');
-//   _app->menus[1] = init_menu("(E)dit", 'e');
-//   _app->menus[2] = init_menu("(A)bout", 'a');
+  //   _app->menus = malloc(3 * sizeof(menu_t));
+  //   _app->menus[0] = init_menu("(F)ile", 'f');
+  //   _app->menus[1] = init_menu("(E)dit", 'e');
+  //   _app->menus[2] = init_menu("(A)bout", 'a');
 
   // set active window by default
-//   _app->active = N_MENU;
+  //   _app->active = N_MENU;
 
   // call the action window content by default
-//   ac_file(_app->action_win, _app->active);
+  //   ac_file(_app->action_win, _app->active);
 
   // refresh the windows
   wnoutrefresh(_app->win);
@@ -70,6 +70,7 @@ void init_nc() {
     start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(MODAL_COLOR_PAIR, COLOR_BLUE, COLOR_WHITE);
   }
 }
 
@@ -94,8 +95,9 @@ void print_bars(app_t *app) {
   }
 
   // add content to the top bar
-  mvwprintw(app->win, 1, 2, "example curses app | ");
-  mvwprintw(app->win, 1, 20, "size %d, %d", app->cur_x, app->cur_y);
+  mvwprintw(app->win, 1, 2, "example cprint_barsurses app | ");
+  mvwprintw(app->win, 1, sizeof "example cprint_barsurses app | " + 1,
+            "size %d, %d", app->cur_x, app->cur_y);
 
   // add content to the bottom bar
   mvwprintw(app->win, app->cur_y - 2, 2, "F1 - Help | F9 - Quit");

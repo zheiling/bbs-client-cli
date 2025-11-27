@@ -1,4 +1,7 @@
+#include "client.h"
+#include "connection.h"
 #include "main.h"
+#include "query.h"
 #include "ui.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -19,7 +22,6 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   int ws_pos = l_len;
   params_t *params = q_args->params;
   const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
-  char r_buf[INBUFSIZE];
   uint32_t answer;
 
   char *cptr = strchr(line, ' ');

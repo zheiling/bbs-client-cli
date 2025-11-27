@@ -1,4 +1,8 @@
+#include "file_processor.h"
+#include "connection.h"
+#include "client.h"
 #include "main.h"
+#include "server.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -19,6 +23,7 @@ static void init_query_args(query_args_t *q_args, int sd, char *buf,
                             enum state state, int buf_used, params_t *params);
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);
+int process_query(query_args_t *query_args, file_args_t *file_args);
 
 void query_loop(int sd, params_t *params) {
   fd_set readfds;
@@ -26,7 +31,6 @@ void query_loop(int sd, params_t *params) {
   size_t qlen;
   int sr;
   char buf[INBUFSIZE];
-  char *bufs = buf;
   static file_args_t file_args;
   static query_args_t query_args;
 
@@ -114,7 +118,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     wait_side(query_args);
     break;
   case UPLOAD_FILE:
-  case ERR:
+  case STATE_ERR:
     break;
   case STATE_FILE_LIST:
     file_list(file_args, query_args);

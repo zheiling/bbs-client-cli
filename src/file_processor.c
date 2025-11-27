@@ -1,4 +1,6 @@
+#include "client.h"
 #include "main.h"
+#include "query.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -58,17 +60,16 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
 void file_select(file_args_t *f_args, query_args_t *q_args) {
   char *buf = q_args->buf;
   fl_item_t *l_start = f_args->l_start;
-  fl_item_t *l_current = f_args->l_current;
+  // fl_item_t *l_current = f_args->l_current;
   fl_item_t *l_selected; /* from the list */
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
   uint32_t filenum;
-  uint32_t pagenum;
   uint32_t qlen;
   char send_buf[256];
   struct stat st = {0};
   
-  if (!(sscanf(buf, "%d", &filenum))) {
+  if (!(sscanf(buf, "%u", &filenum))) {
     write(q_args->sd, buf, strlen(buf));
     q_args->state = STATE_FILE_LIST;
     fl_clear(&f_args->l_start, &f_args->l_current);
@@ -240,7 +241,6 @@ void init_file_args(file_args_t *f_args) {
 /* work with file list */
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
   char fname[128];
-  size_t fsize;
   char fowner[32];
   int h_len;
   fl_item_t *fitem = malloc(sizeof(fl_item_t));

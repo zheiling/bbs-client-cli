@@ -2,9 +2,14 @@
 #define N_APP_H
 
 #include <ncurses.h>
+#include "widget/dialogue.h"
 
 typedef enum {
-  none = 0,
+  MODAL_COLOR_PAIR = 3,
+} color;
+
+typedef enum {
+  none_active = 0,
   login = 1,
 } dialogue_e;
 
@@ -14,7 +19,7 @@ typedef struct {
   WINDOW *action_win;
   struct {
     dialogue_e active;
-    WINDOW *win;
+    dialogue_t dialogue;
   } modal;
   
   //   menu_bar_t *menu_bar;

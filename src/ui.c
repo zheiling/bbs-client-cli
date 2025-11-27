@@ -3,7 +3,6 @@
 #include <unistd.h>
 
 uint32_t print_ask_list(char title[], const char *options[]) {
-  char *option;
   char c;
   uint32_t i, answer;
 

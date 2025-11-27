@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "ui/app.h"
+#include "ui/widget/dialogue.h"
 #include <ncurses.h>
 
 void event_loop(app_t *app);
@@ -24,6 +25,11 @@ int main(int argc, char **argv) {
   wrefresh(app->menu_win);
   wrefresh(app->action_win);
 
+  // temporal
+  app->modal.active = login;
+  dialogue_t *dialogue = init_dialogue("Login");
+  draw_dialogue(dialogue, app->cur_x, app->cur_y);
+
   event_loop(app);
 
   destroy_app(app);
@@ -37,6 +43,11 @@ void event_loop(app_t *app) {
 
   for (;;) {
     c = wgetch(app->win);
+
+    // if (app->modal.active != none_active) {
+    //   modal_event_loop(c, app);
+    //   continue;
+    // }
 
     switch (c) {
     // 113 is q key. This exits the program

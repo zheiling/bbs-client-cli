@@ -10,10 +10,13 @@ OBJS := $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 UI_SRCS := $(wildcard $(SRC_DIR)/ui/*.c $(SRC_DIR)/ui/**/*.c)
 OBJS += $(UI_SRCS:$(SRC_DIR)/ui/%.c=$(OBJ_DIR)/ui/%.o)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/main.h
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/ui/%.o: $(SRC_DIR)/ui/%.c $(SRC_DIR)/ui/%.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/ui/widget/%.o: $(SRC_DIR)/ui/widget/%.c $(SRC_DIR)/ui/widget/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 bbs-client: $(OBJS)
