@@ -10,6 +10,7 @@
 #define INBUFSIZE 1024
 #define DOWNLOADS_DIR "./Downloads"
 #define DIALOGUE_TITLE 64
+#define DIALOGUE_TEXT 128
 
 typedef struct params {
   unsigned short port;

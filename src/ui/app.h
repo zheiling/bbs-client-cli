@@ -6,6 +6,7 @@
 
 typedef enum {
   MODAL_COLOR_PAIR = 3,
+  MODAL_BORDER_COLOR_PAIR = 4,
 } color;
 
 typedef enum {

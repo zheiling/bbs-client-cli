@@ -27,7 +27,10 @@ int main(int argc, char **argv) {
 
   // temporal
   app->modal.active = login;
-  dialogue_t *dialogue = init_dialogue("Login");
+  dialogue_t *dialogue = init_dialogue("Login",
+                                       "Select your login "
+                                       "option",
+                                       50, 20);
   draw_dialogue(dialogue, app->cur_x, app->cur_y);
 
   event_loop(app);
