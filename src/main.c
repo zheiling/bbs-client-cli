@@ -1,16 +1,17 @@
-#include "main.h"
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdlib.h>
+#include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+#include <ncurses.h>
 
 #include "ui/app.h"
 #include "ui/widget/dialogue.h"
-#include <ncurses.h>
+#include "ui/modals/login.h"
+
 
 void event_loop(app_t *app);
 
@@ -27,10 +28,8 @@ int main(int argc, char **argv) {
 
   // temporal
   app->modal.active = login;
-  dialogue_t *dialogue = init_dialogue("Login",
-                                       "Select your login "
-                                       "option",
-                                       50, 20);
+  
+  dialogue_t *dialogue = init_login_modal();
   draw_dialogue(dialogue, app->cur_x, app->cur_y);
 
   event_loop(app);

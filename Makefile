@@ -19,6 +19,9 @@ $(OBJ_DIR)/ui/%.o: $(SRC_DIR)/ui/%.c $(SRC_DIR)/ui/%.h
 $(OBJ_DIR)/ui/widget/%.o: $(SRC_DIR)/ui/widget/%.c $(SRC_DIR)/ui/widget/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/ui/modals/%.o: $(SRC_DIR)/ui/modals/%.c $(SRC_DIR)/ui/modals/%.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 bbs-client: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $(BIN_DIR)/$@
 

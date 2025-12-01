@@ -1,3 +1,3 @@
 TODO:
-- [ ] More universal Makefile
+- [x] More universal Makefile
 - [ ] Check and fix registration and login

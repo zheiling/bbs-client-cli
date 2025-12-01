@@ -1,5 +1,6 @@
 #include "dialogue.h"
 #include "../app.h"
+#include "group.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -9,7 +10,7 @@ dialogue_t *init_dialogue(const char title[], const char text[],
                           const uint32_t width, const uint32_t height) {
   dialogue_t *dialogue = malloc(sizeof(dialogue_t));
   dialogue->win = 0;
-  dialogue->buttons = NULL;
+  dialogue->ch_group = NULL;
   dialogue->w.x = width;
   dialogue->w.y = height;
   strcpy(dialogue->w.title, title);
@@ -23,7 +24,6 @@ int32_t draw_dialogue(dialogue_t *d, uint32_t cur_x, uint32_t cur_y) {
 
   d->win = newwin(d->w.y, d->w.x, d->w.m_y, d->w.m_x);
 
-  color_set(MODAL_COLOR_PAIR, NULL);
   wattrset(d->win, COLOR_PAIR(MODAL_COLOR_PAIR) | A_BOLD | A_REVERSE);
 
   /* background */
@@ -43,6 +43,8 @@ int32_t draw_dialogue(dialogue_t *d, uint32_t cur_x, uint32_t cur_y) {
   /* text */
   print_multiline_text(d->win, d->text, d->w.x, 1, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
+  // temp!!!
+  draw_group(d->win, d->ch_group, 1, 4);
   wrefresh(d->win);
 
   return 0;

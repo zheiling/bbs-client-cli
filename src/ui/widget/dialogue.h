@@ -4,11 +4,12 @@
 #include <ncurses.h>
 #include "../widget.h"
 #include "button.h"
+#include "group.h"
 
 typedef struct {
   WINDOW *win;
   widget_t w;
-  button_t *buttons; // ! should be NULL-terminated
+  group_t *ch_group;
   char text[DIALOGUE_TEXT];
 } dialogue_t;
 
