@@ -8,7 +8,7 @@ main.o: src/main.c src/ui/app.h src/ui/widget/dialogue.h \
  src/ui/widget/../../types.h src/ui/widget/button.h \
  src/ui/widget/../../main.h src/ui/widget/group.h \
  src/ui/widget/dialogue.h src/ui/modals/login.h \
- src/ui/modals/../widget/dialogue.h
+ src/ui/modals/../widget/dialogue.h src/ui/modals/../app.h
 modal.o: src/modal.c src/ui/app.h src/ui/widget/dialogue.h \
  src/ui/widget/../widget.h src/ui/widget/../../main.h \
  src/ui/widget/../../types.h src/ui/widget/button.h \

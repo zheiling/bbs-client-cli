@@ -4,6 +4,19 @@
 #include <stdint.h>
 #include <string.h>
 
+extern uint32_t m_id;
+
+void init_widget(widget_t *w, WINDOW **win, char *title, uint32_t parent_id) {
+  w->id = m_id++;
+  w->x = 0;
+  w->y = 0;
+  w->m_x = 0;
+  w->m_y = 0;
+  w->parent_win = win;
+  w->parent_id = parent_id;
+  strcpy(w->title, title);
+}
+
 int32_t get_max_line_len(const char *text) {
   uint32_t nl_pos = 0;  // new line position
   uint32_t c_start = 0; // current line start position

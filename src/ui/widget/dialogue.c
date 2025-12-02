@@ -18,13 +18,14 @@ dialogue_t *init_dialogue(const char title[], const char text[],
   return dialogue;
 }
 
-int32_t draw_dialogue(dialogue_t *d, uint32_t cur_x, uint32_t cur_y) {
+int32_t draw_dialogue(void *app, dialogue_t *d, uint32_t cur_x, uint32_t cur_y) {
+  app_t *_app = (app_t *) app;
   d->w.m_x = (cur_x - d->w.x) / 2;
   d->w.m_y = (cur_y - d->w.y) / 2;
 
   d->win = newwin(d->w.y, d->w.x, d->w.m_y, d->w.m_x);
 
-  wattrset(d->win, COLOR_PAIR(MODAL_COLOR_PAIR) | A_BOLD | A_REVERSE);
+  wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
 
   /* background */
   for (int xp = 1; xp < d->w.x; xp++) {
@@ -43,14 +44,18 @@ int32_t draw_dialogue(dialogue_t *d, uint32_t cur_x, uint32_t cur_y) {
   /* text */
   print_multiline_text(d->win, d->text, d->w.x, 1, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
-  // temp!!!
-  draw_group(d->win, d->ch_group, 1, 4);
+  d->ch_group->w.m_x = (d->w.x - d->ch_group->w.x) / 2;
+  d->ch_group->w.m_y = 4;
+  draw_group(d->win, d->ch_group);
   wrefresh(d->win);
 
   return 0;
 };
 
 void destroy_active_dialogue(dialogue_t *d) {
+  if (d->ch_group) {
+    destroy_group(d->ch_group);
+  }
   delwin(d->win);
   free(d->win);
   d->win = NULL;

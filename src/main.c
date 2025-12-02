@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <sys/select.h>
@@ -12,6 +13,7 @@
 #include "ui/widget/dialogue.h"
 #include "ui/modals/login.h"
 
+uint32_t m_id = 0;
 
 void event_loop(app_t *app);
 
@@ -29,8 +31,8 @@ int main(int argc, char **argv) {
   // temporal
   app->modal.active = login;
   
-  dialogue_t *dialogue = init_login_modal();
-  draw_dialogue(dialogue, app->cur_x, app->cur_y);
+  init_login_modal(app);
+  draw_dialogue(app, &(app->modal.dialogue), app->cur_x, app->cur_y);
 
   event_loop(app);
 

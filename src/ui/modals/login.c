@@ -1,5 +1,7 @@
+#include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct {
@@ -9,20 +11,25 @@ typedef struct {
 
 /* TODO: improve init process (make it more readable) */
 
-dialogue_t *init_login_modal() {
-  group_el_t children[] = {{.type = w_button},
-                           {.type = w_button},
-                           {.type = w_button},
-                           {.type = w_end}};
+dialogue_t *init_login_modal(app_t *app) {
+  if (app == NULL)
+    return NULL;
+  group_el_init_t children[] = {{.type = w_button, .label = "Anonymous"},
+                                {.type = w_button, .label = "User"},
+                                {.type = w_button, .label = "Register"},
+                                {.type = w_end}};
 
   dialogue_t *d = init_dialogue("Login",
                                 "Select your login "
                                 "option",
                                 50, 20);
-  d->ch_group = init_group(children);
-  group_bt_t *ch_btns = (group_bt_t *)d->ch_group->elements;
-  strcpy(ch_btns[0].element->w.title, "Anonymous");
-  strcpy(ch_btns[1].element->w.title, "User");
-  strcpy(ch_btns[2].element->w.title, "Register");
-  return d;
+
+  memcpy(&(app->modal.dialogue), d, sizeof(dialogue_t));
+  free(d);
+  app->modal.dialogue.ch_group =
+      init_group(&(app->modal.dialogue.win), d->w.id, children, horizontal);
+  group_bt_t *ch_btns = (group_bt_t *)app->modal.dialogue.ch_group->elements;
+  ch_btns[0].element->is_hovered = 1;
+
+  return NULL;
 }

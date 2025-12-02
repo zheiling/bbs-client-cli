@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include <stddef.h>
+#include <stdint.h>
 #include "types.h"
 
 #define LOCAL_PORT 1999
