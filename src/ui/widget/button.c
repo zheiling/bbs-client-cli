@@ -7,9 +7,9 @@
 #include "../widget.h"
 #include "button.h"
 
-button_t *init_button(WINDOW **win, uint32_t parent_id, char *label) {
+button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
   button_t *btn = malloc(sizeof(button_t));
-  init_widget(&(btn->w), win, label, parent_id);
+  init_widget(&(btn->w), w_parent,  win, label);
   btn->is_disabled = 0;
   btn->is_focused = 0;
   btn->is_hovered = 0;
@@ -23,8 +23,8 @@ button_t *init_button(WINDOW **win, uint32_t parent_id, char *label) {
 int32_t draw_button(button_t *btn) {
   char title[DIALOGUE_TITLE + 6];
   WINDOW *win = *(btn->w.parent_win);
-  uint32_t cur_y = btn->w.m_y;
-  uint32_t cur_x = btn->w.m_x;
+  uint32_t margin_y = btn->w.m_y + btn->w.w_parent->m_y;
+  uint32_t margin_x = btn->w.m_x + btn->w.w_parent->m_x;
 
   if (btn->is_focused) {
     sprintf(title, "[< %s >]", btn->w.title);
@@ -38,7 +38,7 @@ int32_t draw_button(button_t *btn) {
     wattrset(win, COLOR_PAIR(0) | A_REVERSE);
   }
 
-  mvwprintw(win, cur_y, cur_x, "%s", title);
+  mvwprintw(win, margin_y, margin_x, "%s", title);
 
   wattroff(win, A_BOLD | A_REVERSE);
   return strlen(title);

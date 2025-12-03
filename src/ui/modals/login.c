@@ -1,6 +1,7 @@
 #include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
+#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -21,13 +22,12 @@ dialogue_t *init_login_modal(app_t *app) {
 
   dialogue_t *d = init_dialogue("Login",
                                 "Select your login "
-                                "option",
-                                50, 20);
+                                "option");
 
   memcpy(&(app->modal.dialogue), d, sizeof(dialogue_t));
   free(d);
   app->modal.dialogue.ch_group =
-      init_group(&(app->modal.dialogue.win), d->w.id, children, horizontal);
+      init_group(&(app->modal.dialogue.win), &(d->w), children, horizontal);
   group_bt_t *ch_btns = (group_bt_t *)app->modal.dialogue.ch_group->elements;
   ch_btns[0].element->is_hovered = 1;
 

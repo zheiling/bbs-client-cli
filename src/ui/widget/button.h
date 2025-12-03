@@ -14,7 +14,7 @@ typedef struct {
   callback_t *callback;
 } button_t;
 
-button_t *init_button(WINDOW **win, uint32_t parent_id, char *label);
+button_t *init_button(WINDOW **win, widget_t *w_parent, char *label);
 int32_t draw_button(button_t *btn);
 void destroy_button(button_t *btn);
 #endif

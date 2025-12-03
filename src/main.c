@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   app->modal.active = login;
   
   init_login_modal(app);
-  draw_dialogue(app, &(app->modal.dialogue), app->cur_x, app->cur_y);
+  draw_dialogue(app, &(app->modal.dialogue));
 
   event_loop(app);
 

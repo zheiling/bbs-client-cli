@@ -6,22 +6,23 @@
 
 extern uint32_t m_id;
 
-void init_widget(widget_t *w, WINDOW **win, char *title, uint32_t parent_id) {
+void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   w->id = m_id++;
   w->x = 0;
   w->y = 0;
   w->m_x = 0;
   w->m_y = 0;
   w->parent_win = win;
-  w->parent_id = parent_id;
+  w->w_parent = w_parent;
   strcpy(w->title, title);
 }
 
-int32_t get_max_line_len(const char *text) {
+int32_t get_max_line_len(const char *text, uint32_t *line_count) {
   uint32_t nl_pos = 0;  // new line position
   uint32_t c_start = 0; // current line start position
   uint32_t c_len = 0;   // current line length
   uint32_t m_len = 0;   // max length
+  uint32_t line_num = 1;
   for (int i = 0; text[i] != '\0'; i++, c_len++) {
     if (text[i] == '\n') {
       if (i - nl_pos > c_len || !m_len) {
@@ -30,8 +31,10 @@ int32_t get_max_line_len(const char *text) {
       nl_pos = i;
       c_start = i + 1;
       c_len = 0;
+      line_num++;
     }
   }
+  if (line_count != NULL) *line_count = line_num;
   if (c_len > m_len) {
     return c_len;
   } else {
@@ -62,7 +65,7 @@ uint32_t print_multiline_text(WINDOW *win, const char *text,
   char l_buf[DIALOGUE_TEXT];
 
   if (attrs & PMT_POS_CENTER) {
-    m_line_len = get_max_line_len(text);
+    m_line_len = get_max_line_len(text, NULL);
   }
 
   for (; text[i]; i++, c_line_len++) {

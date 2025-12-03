@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-group_t *init_group(WINDOW **win, uint32_t par_id, group_el_init_t *children,
+group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction direction) {
   group_t *group = malloc(sizeof(group_t));
 
@@ -12,8 +12,8 @@ group_t *init_group(WINDOW **win, uint32_t par_id, group_el_init_t *children,
   uint32_t count = 0;
   for (; children[count].type != w_end; count++)
     ;
-  count++; /* TODO: improve counting */
   group->elements = calloc(count, sizeof(group_el_t));
+  group->w.w_parent = w_parent;
   group_el_t *elements = group->elements;
   for (int i = 0; i < count; i++) {
     elements[i].type = children[i].type;
@@ -23,7 +23,7 @@ group_t *init_group(WINDOW **win, uint32_t par_id, group_el_init_t *children,
   for (int i = 0; elements[i].type != w_end; i++) {
     switch (elements[i].type) {
     case w_button:
-      elements[i].element = init_button(win, par_id, children[i].label);
+      elements[i].element = init_button(win, &(group->w), children[i].label);
       if (direction == horizontal) {
         button_t *b = (button_t *)elements[i].element;
         b->w.m_x = group->w.x;
@@ -40,7 +40,7 @@ group_t *init_group(WINDOW **win, uint32_t par_id, group_el_init_t *children,
       break;
     }
   }
-
+  
   return group;
 }
 
