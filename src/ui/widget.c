@@ -14,6 +14,7 @@ void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   w->m_y = 0;
   w->parent_win = win;
   w->w_parent = w_parent;
+  w->callback = NULL;
   strcpy(w->title, title);
 }
 

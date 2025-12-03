@@ -8,12 +8,28 @@
 #include "dialogue.h"
 #include "group.h"
 
+void default_callback(WINDOW *win, void *widget, void *data) {
+  dialogue_t *d = (void *)widget;
+  char key = *((char *)data);
+  switch (key) {
+  case '\t':
+    if (d->ch_group->w_active_id != d->ch_group->last_id) {
+      d->ch_group->w_active_id = d->ch_group->w_active_id + 1;
+    } else {
+      d->ch_group->w_active_id = d->ch_group->first_id;
+    }
+    draw_group(win, d->ch_group);
+    break;
+  }
+}
+
 dialogue_t *init_dialogue(const char title[], const char text[]) {
   dialogue_t *dialogue = malloc(sizeof(dialogue_t));
   dialogue->win = 0;
   dialogue->ch_group = NULL;
   dialogue->w.x = 0;
   dialogue->w.y = 0;
+  dialogue->w.callback = default_callback;
   strcpy(dialogue->w.title, title);
   strcpy(dialogue->text, text);
   return dialogue;
@@ -52,7 +68,9 @@ int32_t draw_dialogue(void *_app, dialogue_t *d) {
   d->w.m_y = (app->cur_y - y) / 2;
 
   /* render window */
-  d->win = newwin(y, x, d->w.m_y, d->w.m_x);
+  if (d->win == NULL) {
+    d->win = newwin(y, x, d->w.m_y, d->w.m_x);
+  }
   wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
 
   /* background */

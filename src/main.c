@@ -1,17 +1,17 @@
+#include <arpa/inet.h>
+#include <ncurses.h>
+#include <netinet/in.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
-#include <ncurses.h>
 
 #include "ui/app.h"
-#include "ui/widget/dialogue.h"
 #include "ui/modals/login.h"
+#include "ui/widget/dialogue.h"
 
 uint32_t m_id = 0;
 
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
   // temporal
   app->modal.active = login;
-  
+
   init_login_modal(app);
   draw_dialogue(app, &(app->modal.dialogue));
 
@@ -47,35 +47,17 @@ void event_loop(app_t *app) {
 
   for (;;) {
     c = wgetch(app->win);
-
-    // if (app->modal.active != none_active) {
-    //   modal_event_loop(c, app);
-    //   continue;
-    // }
-
     switch (c) {
     // 113 is q key. This exits the program
     case 113:
       return;
     case KEY_F(9):
       return;
-    case 'e':
-      // ac_edit(app);
-      break;
-    // 27 is ESC key. Usage of ESC is not recommended, but for now this clears
-    // the menus
-    case 27:
-      // app->menu_bar->selected_menu = -1;
-      break;
-    // 9 or \t is horizontal tab
-    case 9:
-      // if (app->active == N_MENU) {
-      //   app->active = N_ACTION;
-      // } else {
-      //   app->active = N_MENU;
-      // }
-      break;
     default:
+      if (app->modal.active != none_active) {
+        app->modal.dialogue.w.callback(app->modal.dialogue.win,
+                                       &(app->modal.dialogue), (void *)&c);
+      }
       break;
     }
 
@@ -84,6 +66,9 @@ void event_loop(app_t *app) {
     wnoutrefresh(app->win);
     wnoutrefresh(app->menu_win);
     wnoutrefresh(app->action_win);
+    if (app->modal.active != none_active) {
+      wnoutrefresh(app->modal.dialogue.win);
+    }
     doupdate();
   };
 }

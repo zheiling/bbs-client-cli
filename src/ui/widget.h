@@ -21,6 +21,7 @@ typedef struct widget_t {
   uint32_t m_y;
   WINDOW *const* parent_win;
   struct widget_t *w_parent;
+  void (*callback) (WINDOW *win, void *widget, void *data);
 } widget_t;
 
 enum pmt_attrs {
@@ -34,5 +35,4 @@ uint32_t print_multiline_text(WINDOW *win, const char *text,
                               const uint32_t win_width, const uint32_t y,
                               const uint32_t x, const uint16_t attrs);
 
-typedef void (*callback_t) (widget_t*, void*);
 #endif

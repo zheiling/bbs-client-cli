@@ -23,6 +23,8 @@ typedef struct {
   widget_t w;
   uint32_t w_active_id;
   enum g_direction direction;
+  uint32_t count;
+  uint32_t first_id, last_id;
 } group_t;
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
