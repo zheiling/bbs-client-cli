@@ -12,6 +12,11 @@ enum w_type {
   w_group,
 };
 
+typedef struct {
+  WINDOW *win;
+  void *app;
+} callback_args_t;
+
 typedef struct widget_t {
   uint32_t id;
   char title[DIALOGUE_TITLE];
@@ -21,8 +26,10 @@ typedef struct widget_t {
   uint32_t m_y;
   WINDOW *const* parent_win;
   struct widget_t *w_parent;
-  void (*callback) (WINDOW *win, void *widget, void *data);
+  void (*callback) (callback_args_t *args, void *widget, void *data, void *resp_data);
 } widget_t;
+
+typedef void (*callback_t) (callback_args_t *args, void *widget, void *data, void *resp_data);
 
 enum pmt_attrs {
   PMT_POS_CENTER = 01,

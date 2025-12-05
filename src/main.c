@@ -16,6 +16,7 @@
 uint32_t m_id = 0;
 
 void event_loop(app_t *app);
+void app_refresh(app_t *app);
 
 int main(int argc, char **argv) {
   app_t *app;
@@ -32,7 +33,8 @@ int main(int argc, char **argv) {
   app->modal.active = login;
 
   init_login_modal(app);
-  draw_dialogue(app, &(app->modal.dialogue));
+  draw_dialogue(&(app->modal.dialogue));
+  app_refresh(app);
 
   event_loop(app);
 
@@ -45,6 +47,8 @@ int main(int argc, char **argv) {
 void event_loop(app_t *app) {
   int c;
 
+  callback_args_t d_args = {.app = app, .win = NULL};
+
   for (;;) {
     c = wgetch(app->win);
     switch (c) {
@@ -55,22 +59,26 @@ void event_loop(app_t *app) {
       return;
     default:
       if (app->modal.active != none_active) {
-        app->modal.dialogue.w.callback(app->modal.dialogue.win,
-                                       &(app->modal.dialogue), (void *)&c);
+        d_args.win = app->modal.dialogue.win;
+        app->modal.dialogue.w.callback(&d_args, &(app->modal.dialogue),
+                                       (void *)&c, NULL);
       }
       break;
     }
-
-    draw_borders(app);
-
-    wnoutrefresh(app->win);
-    wnoutrefresh(app->menu_win);
-    wnoutrefresh(app->action_win);
-    if (app->modal.active != none_active) {
-      wnoutrefresh(app->modal.dialogue.win);
-    }
-    doupdate();
+    app_refresh(app);
   };
+}
+
+void app_refresh(app_t *app) {
+  draw_borders(app);
+
+  wnoutrefresh(app->win);
+  wnoutrefresh(app->menu_win);
+  wnoutrefresh(app->action_win);
+  if (app->modal.active != none_active) {
+    wnoutrefresh(app->modal.dialogue.win);
+  }
+  doupdate();
 }
 
 // int main(int argc, char *argv[]) {

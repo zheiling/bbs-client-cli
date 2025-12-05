@@ -4,6 +4,35 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+void group_default_callback(callback_args_t *args, void *widget, void *data, void *resp_data) {
+  group_t *g = (void *)widget;
+  char key = *((char *)data);
+  group_resp_t *response = (group_resp_t *) resp_data;
+  switch (key) {
+  case '\t':
+    if (g->active_id != g->last_id) {
+      g->active_id = g->active_id + 1;
+    } else {
+      g->active_id = g->first_id;
+    }
+    if (resp_data != NULL) {
+      response->active_id = g->active_id;
+      response->value = -1;
+    }
+    break;
+  case '\n':
+    if (resp_data != NULL) {
+      for (int i=0; i < g->count; i++) {
+        if (g->elements[i].id == g->active_id) {
+          response->active_id = g->active_id;
+          response->value = i;
+        }
+      }
+    }
+    break;
+  }
+}
+
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction direction) {
   group_t *group = malloc(sizeof(group_t));
@@ -14,6 +43,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     ;
   group->elements = calloc(group->count, sizeof(group_el_t));
   group->w.w_parent = w_parent;
+  group->w.callback = group_default_callback;
   group_el_t *elements = group->elements;
   for (int i = 0; i < group->count; i++) {
     elements[i].type = children[i].type;
@@ -25,9 +55,10 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     switch (elements[i].type) {
     case w_button:
       elements[i].element = init_button(win, &(group->w), children[i].label);
+      button_t *b = (button_t *)elements[i].element;
+      el_id = b->w.id;
+      elements[i].id = b->w.id;
       if (direction == horizontal) {
-        button_t *b = (button_t *)elements[i].element;
-        el_id = b->w.id;
         b->w.m_x = group->w.x;
         b->w.m_y = group->w.m_y;
         group->w.x += b->w.x + 1;
@@ -42,7 +73,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     }
     if (i == 0) {
       group->first_id = el_id;
-      group->w_active_id = el_id;
+      group->active_id = el_id;
     } else {
       group->last_id = el_id;
     }
@@ -57,7 +88,7 @@ void draw_group(WINDOW *win, group_t *group) {
     group_el_t *el = &children[i];
     switch (el->type) {
     case w_button:
-      draw_button((button_t *)el->element, group->w_active_id);
+      draw_button((button_t *)el->element, group->active_id);
       break;
     case w_box:
     case w_group:

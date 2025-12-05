@@ -4,40 +4,36 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "../app.h"
 #include "dialogue.h"
 #include "group.h"
 
-void default_callback(WINDOW *win, void *widget, void *data) {
+
+void dialogue_default_callback(callback_args_t *args, void *widget, void *data,
+                               void *callback) {
   dialogue_t *d = (void *)widget;
   char key = *((char *)data);
   switch (key) {
-  case '\t':
-    if (d->ch_group->w_active_id != d->ch_group->last_id) {
-      d->ch_group->w_active_id = d->ch_group->w_active_id + 1;
-    } else {
-      d->ch_group->w_active_id = d->ch_group->first_id;
-    }
-    draw_group(win, d->ch_group);
-    break;
+  default:
+    d->ch_group->w.callback(args, d->ch_group, data, callback);
+    draw_dialogue(d);
   }
 }
 
-dialogue_t *init_dialogue(const char title[], const char text[]) {
+dialogue_t *init_dialogue(const char title[], const char text[], uint32_t cur_y, uint32_t cur_x) {
   dialogue_t *dialogue = malloc(sizeof(dialogue_t));
   dialogue->win = 0;
   dialogue->ch_group = NULL;
   dialogue->w.x = 0;
   dialogue->w.y = 0;
-  dialogue->w.callback = default_callback;
+  dialogue->cur_y = cur_y;
+  dialogue->cur_x = cur_x;
+  dialogue->w.callback = dialogue_default_callback;
   strcpy(dialogue->w.title, title);
   strcpy(dialogue->text, text);
   return dialogue;
 }
 
-int32_t draw_dialogue(void *_app, dialogue_t *d) {
-  app_t *app = (app_t *)_app;
-
+int32_t draw_dialogue(dialogue_t *d) {
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -64,8 +60,8 @@ int32_t draw_dialogue(void *_app, dialogue_t *d) {
   y += 1; /* when uses box */
   d->w.x = x;
   d->w.y = y;
-  d->w.m_x = (app->cur_x - x) / 2;
-  d->w.m_y = (app->cur_y - y) / 2;
+  d->w.m_y = (d->cur_y - y) / 2;
+  d->w.m_x = (d->cur_x - x) / 2;
 
   /* render window */
   if (d->win == NULL) {
@@ -92,7 +88,6 @@ int32_t draw_dialogue(void *_app, dialogue_t *d) {
   print_multiline_text(d->win, d->text, d->w.x, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
   draw_group(d->win, d->ch_group);
-  wrefresh(d->win);
 
   return 0;
 };
