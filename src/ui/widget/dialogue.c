@@ -1,26 +1,36 @@
 #include <ncurses.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
 #include "dialogue.h"
 #include "group.h"
+#include "../app.h"
 
-
-void dialogue_default_callback(callback_args_t *args, void *widget, void *data,
-                               void *callback) {
-  dialogue_t *d = (void *)widget;
-  char key = *((char *)data);
+void dialogue_default_callback(callback_args_t *args) {
+  dialogue_t *d = (void *)args->widget;
+  char key = *((char *)args->data);
+  app_t *app = (app_t *)args->app;
+  callback_args_t new_args;
+  group_resp_t response;
+  memcpy(&new_args, args, sizeof(callback_args_t));
+  new_args.widget = d->ch_group;
+  new_args.resp_data = &response;
   switch (key) {
   default:
-    d->ch_group->w.callback(args, d->ch_group, data, callback);
-    draw_dialogue(d);
+    d->ch_group->w.callback(&new_args);
+    if (response.value > -1) {
+      d->is_initiated = 0;
+      destroy_dialogue(d);
+      app->modal.type = none;
+    } else {
+      draw_dialogue(d);
+    }
   }
 }
 
-dialogue_t *init_dialogue(const char title[], const char text[], uint32_t cur_y, uint32_t cur_x) {
-  dialogue_t *dialogue = malloc(sizeof(dialogue_t));
+void init_dialogue(dialogue_t *dialogue, const char title[], const char text[], uint32_t cur_y,
+                          uint32_t cur_x) {
   dialogue->win = 0;
   dialogue->ch_group = NULL;
   dialogue->w.x = 0;
@@ -28,12 +38,13 @@ dialogue_t *init_dialogue(const char title[], const char text[], uint32_t cur_y,
   dialogue->cur_y = cur_y;
   dialogue->cur_x = cur_x;
   dialogue->w.callback = dialogue_default_callback;
+  dialogue->is_initiated = 1;
   strcpy(dialogue->w.title, title);
   strcpy(dialogue->text, text);
-  return dialogue;
 }
 
 int32_t draw_dialogue(dialogue_t *d) {
+  if (!d->is_initiated) return -1;
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -92,11 +103,11 @@ int32_t draw_dialogue(dialogue_t *d) {
   return 0;
 };
 
-void destroy_active_dialogue(dialogue_t *d) {
+void destroy_dialogue(dialogue_t *d) {
   if (d->ch_group) {
     destroy_group(d->ch_group);
   }
   delwin(d->win);
-  free(d->win);
   d->win = NULL;
+  d->is_initiated = 0;
 }

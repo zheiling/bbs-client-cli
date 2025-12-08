@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-void group_default_callback(callback_args_t *args, void *widget, void *data, void *resp_data) {
-  group_t *g = (void *)widget;
-  char key = *((char *)data);
-  group_resp_t *response = (group_resp_t *) resp_data;
+void group_default_callback(callback_args_t *args) {
+  group_t *g = (group_t *)args->widget;
+  char key = *((char *)args->data);
+  group_resp_t *response = (group_resp_t *) args->resp_data;
   switch (key) {
   case '\t':
     if (g->active_id != g->last_id) {
@@ -15,13 +15,13 @@ void group_default_callback(callback_args_t *args, void *widget, void *data, voi
     } else {
       g->active_id = g->first_id;
     }
-    if (resp_data != NULL) {
+    if (args->resp_data != NULL) {
       response->active_id = g->active_id;
       response->value = -1;
     }
     break;
   case '\n':
-    if (resp_data != NULL) {
+    if (args->resp_data != NULL) {
       for (int i=0; i < g->count; i++) {
         if (g->elements[i].id == g->active_id) {
           response->active_id = g->active_id;
@@ -41,9 +41,12 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   group->count = 0;
   for (; children[group->count].type != w_end; group->count++)
     ;
-  group->elements = calloc(group->count, sizeof(group_el_t));
   group->w.w_parent = w_parent;
   group->w.callback = group_default_callback;
+  if (group->count == 0) {
+    return group;
+  }
+  group->elements = calloc(group->count, sizeof(group_el_t));
   group_el_t *elements = group->elements;
   for (int i = 0; i < group->count; i++) {
     elements[i].type = children[i].type;
@@ -112,6 +115,8 @@ void destroy_group(group_t *group) {
       break;
     }
   }
-  free(group->elements);
+  if (group->elements != NULL) {
+    free(group->elements);
+  }
   free(group);
 }

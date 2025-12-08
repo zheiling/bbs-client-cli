@@ -23,13 +23,15 @@ app_t *init_app() {
   int action_w_x = x_max - menu_w_x - 2;
 
   // create the menu window
-  _app->menu_win = newwin(y_max - 4, menu_w_x, 2, 1);
+  _app->left_win = newwin(y_max - 4, menu_w_x, 2, 1);
 
   // create the action window
-  _app->action_win = newwin(y_max - 4, action_w_x, 2, menu_w_x + 1);
+  _app->right_win = newwin(y_max - 4, action_w_x, 2, menu_w_x + 1);
 
   // dialogue
   _app->modal.dialogue.win = NULL;
+  _app->modal.dialogue.is_initiated = 0;
+  _app->modal.type = none;
 
   // print decorative bars
   print_bars(_app);
@@ -37,22 +39,10 @@ app_t *init_app() {
   // here goes box borders
   draw_borders(_app);
 
-  // init menus
-  //   _app->menus = malloc(3 * sizeof(menu_t));
-  //   _app->menus[0] = init_menu("(F)ile", 'f');
-  //   _app->menus[1] = init_menu("(E)dit", 'e');
-  //   _app->menus[2] = init_menu("(A)bout", 'a');
-
-  // set active window by default
-  //   _app->active = N_MENU;
-
-  // call the action window content by default
-  //   ac_file(_app->action_win, _app->active);
-
   // refresh the windows
   wnoutrefresh(_app->win);
-  wnoutrefresh(_app->menu_win);
-  wnoutrefresh(_app->action_win);
+  wnoutrefresh(_app->left_win);
+  wnoutrefresh(_app->right_win);
   doupdate();
 
   return _app;
@@ -80,8 +70,8 @@ void draw_borders(app_t *app) {
 
   // refresh the windows
   wnoutrefresh(app->win);
-  wnoutrefresh(app->menu_win);
-  wnoutrefresh(app->action_win);
+  wnoutrefresh(app->left_win);
+  wnoutrefresh(app->right_win);
   doupdate();
 }
 

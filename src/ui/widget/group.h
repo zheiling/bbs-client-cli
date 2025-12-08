@@ -39,6 +39,6 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction dir);
 void draw_group(WINDOW *win, group_t *group);
 void destroy_group(group_t *group);
-void group_default_callback(callback_args_t *args, void *widget, void *data, void *resp_data);
+void group_default_callback(callback_args_t *args);
 
 #endif

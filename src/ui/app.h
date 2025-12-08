@@ -10,23 +10,20 @@ typedef enum {
 } color;
 
 typedef enum {
-  none_active = 0,
+  none = 0,
   login = 1,
 } dialogue_e;
 
 typedef struct {
   WINDOW *win;
-  WINDOW *menu_win;
-  WINDOW *action_win;
+  WINDOW *left_win;
+  WINDOW *right_win;
   struct {
-    dialogue_e active;
+    dialogue_e type;
     dialogue_t dialogue;
   } modal;
-  
-  //   menu_bar_t *menu_bar;
-  //   menu_t *menus;
-  //   active_win_e active;
   int cur_y, cur_x;
+  params_t *params;
 } app_t;
 
 app_t *init_app();

@@ -9,8 +9,11 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include "connection.h"
+#include "main.h"
 #include "ui/app.h"
 #include "ui/modals/login.h"
+#include "ui/widget.h"
 #include "ui/widget/dialogue.h"
 
 uint32_t m_id = 0;
@@ -20,21 +23,21 @@ void app_refresh(app_t *app);
 
 int main(int argc, char **argv) {
   app_t *app;
+  params_t params;
   app = calloc(1, sizeof(app_t));
 
   init_nc();
 
   app = init_app();
+  init_params(&params);
+  app->params = &params;
+  analyze_args(argc, argv, &params);
 
-  wrefresh(app->menu_win);
-  wrefresh(app->action_win);
+  wrefresh(app->left_win);
+  wrefresh(app->right_win);
 
   // temporal
-  app->modal.active = login;
-
-  init_login_modal(app);
-  draw_dialogue(&(app->modal.dialogue));
-  app_refresh(app);
+  app->modal.type = login;
 
   event_loop(app);
 
@@ -44,27 +47,35 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+void app_draw_modal(app_t *app);
+
 void event_loop(app_t *app) {
   int c;
 
-  callback_args_t d_args = {.app = app, .win = NULL};
-
+  callback_args_t d_args = {.app = app,
+                            .win = NULL,
+                            .widget = NULL,
+                            .data = (void *)&c,
+                            .resp_data = NULL};
+  app_draw_modal(app);
+  app_refresh(app);
   for (;;) {
     c = wgetch(app->win);
     switch (c) {
-    // 113 is q key. This exits the program
-    case 113:
+      // 113 is q key. This exits the program
+      case 113:
       return;
-    case KEY_F(9):
+      case KEY_F(9):
       return;
-    default:
-      if (app->modal.active != none_active) {
+      default:
+      if (app->modal.type != none) {
         d_args.win = app->modal.dialogue.win;
-        app->modal.dialogue.w.callback(&d_args, &(app->modal.dialogue),
-                                       (void *)&c, NULL);
+        d_args.widget = &(app->modal.dialogue);
+        app->modal.dialogue.w.callback(&d_args);
       }
       break;
     }
+    app_draw_modal(app);
     app_refresh(app);
   };
 }
@@ -73,12 +84,30 @@ void app_refresh(app_t *app) {
   draw_borders(app);
 
   wnoutrefresh(app->win);
-  wnoutrefresh(app->menu_win);
-  wnoutrefresh(app->action_win);
-  if (app->modal.active != none_active) {
-    wnoutrefresh(app->modal.dialogue.win);
+  wnoutrefresh(app->left_win);
+  wnoutrefresh(app->right_win);
+  if (app->modal.type != none) {
+    if (app->modal.dialogue.is_initiated == 0) {
+      app->modal.type = none;
+    } else {
+      wnoutrefresh(app->modal.dialogue.win);
+    }
   }
   doupdate();
+}
+
+void app_draw_modal(app_t *app) {
+  if (app->modal.type != none && !app->modal.dialogue.is_initiated) {
+    switch (app->modal.type) {
+    case login:
+      init_login_modal(app);
+      break;
+    case none:
+    default:
+      break;
+    }
+    draw_dialogue(&(app->modal.dialogue));
+  }
 }
 
 // int main(int argc, char *argv[]) {

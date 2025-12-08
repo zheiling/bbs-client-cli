@@ -13,12 +13,13 @@ typedef struct {
   uint32_t cur_y;
   uint32_t cur_x;
   char text[DIALOGUE_TEXT];
+  uint32_t is_initiated : 1;
 } dialogue_t;
 
-dialogue_t *init_dialogue(const char title[], const char text[], uint32_t cur_x,
+void init_dialogue(dialogue_t *d, const char title[], const char text[], uint32_t cur_x,
                           uint32_t cur_y);
 int32_t draw_dialogue(dialogue_t *d);
-void destroy_active_dialogue(dialogue_t *d);
-void dialogue_default_callback(callback_args_t *args, void *widget, void *data, void *);
+void destroy_dialogue(dialogue_t *d);
+void dialogue_default_callback(callback_args_t *args);
 
 #endif

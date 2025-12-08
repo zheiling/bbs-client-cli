@@ -4,9 +4,6 @@
 #include "../widget/dialogue.h"
 #include "../app.h"
 
-typedef struct {
-    
-} ilm_action_args;
 dialogue_t *init_login_modal(app_t *app);
 
 #endif

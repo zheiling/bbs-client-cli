@@ -2,19 +2,23 @@
 #define WIDGET_H
 
 #include "../main.h"
-#include <stdint.h>
 #include <ncurses.h>
+#include <stdint.h>
 
 enum w_type {
   w_end,
   w_button,
   w_box,
   w_group,
+  w_input,
 };
 
 typedef struct {
   WINDOW *win;
   void *app;
+  void *widget;
+  void *data;
+  void *resp_data;
 } callback_args_t;
 
 typedef struct widget_t {
@@ -24,12 +28,12 @@ typedef struct widget_t {
   uint32_t y;
   uint32_t m_x;
   uint32_t m_y;
-  WINDOW *const* parent_win;
+  WINDOW *const *parent_win;
   struct widget_t *w_parent;
-  void (*callback) (callback_args_t *args, void *widget, void *data, void *resp_data);
+  void (*callback)(callback_args_t *args);
 } widget_t;
 
-typedef void (*callback_t) (callback_args_t *args, void *widget, void *data, void *resp_data);
+typedef void (*callback_t)(callback_args_t *args);
 
 enum pmt_attrs {
   PMT_POS_CENTER = 01,
