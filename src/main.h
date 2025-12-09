@@ -12,6 +12,7 @@
 #define DOWNLOADS_DIR "./Downloads"
 #define DIALOGUE_TITLE 64
 #define DIALOGUE_TEXT 128
+#define INPUT_TEXT DIALOGUE_TITLE
 
 typedef struct params {
   unsigned short port;

@@ -21,6 +21,16 @@ typedef struct {
   void *resp_data;
 } callback_args_t;
 
+enum rsize {
+  s_auto,
+  s_1,
+  s_1_2,
+  s_1_3,
+  s_2_3,
+  s_1_4,
+  s_3_4,
+};
+
 typedef struct widget_t {
   uint32_t id;
   char title[DIALOGUE_TITLE];
@@ -30,6 +40,7 @@ typedef struct widget_t {
   uint32_t m_y;
   WINDOW *const *parent_win;
   struct widget_t *w_parent;
+  enum rsize rsize;
   void (*callback)(callback_args_t *args);
 } widget_t;
 

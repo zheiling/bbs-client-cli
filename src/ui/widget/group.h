@@ -18,6 +18,7 @@ typedef struct {
 typedef struct {
   enum w_type type;
   char label[DIALOGUE_TITLE];
+  uint32_t length;
 } group_el_init_t;
 
 typedef struct {

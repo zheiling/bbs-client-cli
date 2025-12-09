@@ -24,7 +24,7 @@ void dialogue_default_callback(callback_args_t *args) {
       destroy_dialogue(d);
       app->modal.type = none;
     } else {
-      draw_dialogue(d);
+      draw_dialogue(NULL, d);
     }
   }
 }
@@ -43,7 +43,7 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[], 
   strcpy(dialogue->text, text);
 }
 
-int32_t draw_dialogue(dialogue_t *d) {
+int32_t draw_dialogue(void *e, dialogue_t *d) {
   if (!d->is_initiated) return -1;
   /* count dimensions */
   uint32_t x = 1; /* when uses box */

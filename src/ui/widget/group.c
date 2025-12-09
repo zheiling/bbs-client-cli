@@ -1,5 +1,6 @@
 #include "group.h"
 #include "button.h"
+#include "input.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -7,7 +8,8 @@
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->widget;
   char key = *((char *)args->data);
-  group_resp_t *response = (group_resp_t *) args->resp_data;
+  group_resp_t *response = (group_resp_t *)args->resp_data;
+  input_t *inpt;
   switch (key) {
   case '\t':
     if (g->active_id != g->last_id) {
@@ -22,7 +24,7 @@ void group_default_callback(callback_args_t *args) {
     break;
   case '\n':
     if (args->resp_data != NULL) {
-      for (int i=0; i < g->count; i++) {
+      for (int i = 0; i < g->count; i++) {
         if (g->elements[i].id == g->active_id) {
           response->active_id = g->active_id;
           response->value = i;
@@ -30,6 +32,40 @@ void group_default_callback(callback_args_t *args) {
       }
     }
     break;
+  case '\177':
+    for (int i = 0; i < g->count; i++) {
+      if (g->elements[i].id == g->active_id) {
+        if (g->elements[i].type == w_input) {
+          inpt = (input_t *)g->elements[i].element;
+          if (inpt->value_len) {
+            inpt->value[--inpt->value_len] = '\0';
+          }
+          break;
+        }
+      }
+    }
+    if (args->resp_data != NULL) {
+      response->active_id = g->active_id;
+      response->value = -1;
+    }
+    break;
+  default:
+    for (int i = 0; i < g->count; i++) {
+      if (g->elements[i].id == g->active_id) {
+        if (g->elements[i].type == w_input) {
+          inpt = (input_t *)g->elements[i].element;
+          if (inpt->max_len > inpt->value_len) {
+            inpt->value[inpt->value_len++] = key;
+            inpt->value[inpt->value_len] = '\0';
+          }
+          break;
+        }
+      }
+    }
+    if (args->resp_data != NULL) {
+      response->active_id = g->active_id;
+      response->value = -1;
+    }
   }
 }
 
@@ -53,32 +89,37 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   }
 
   /* init child elements */
-  uint32_t el_id = 0;
   for (int i = 0; i < group->count; i++) {
+    widget_t *w;
     switch (elements[i].type) {
     case w_button:
       elements[i].element = init_button(win, &(group->w), children[i].label);
-      button_t *b = (button_t *)elements[i].element;
-      el_id = b->w.id;
-      elements[i].id = b->w.id;
-      if (direction == horizontal) {
-        b->w.m_x = group->w.x;
-        b->w.m_y = group->w.m_y;
-        group->w.x += b->w.x + 1;
-        if (group->w.y < b->w.y)
-          group->w.y = b->w.y;
-      }
+      w = &(((button_t *)elements[i].element)->w);
       break;
     case w_box:
     case w_group:
     case w_end:
       break;
+    case w_input:
+      elements[i].element =
+          init_input(win, &(group->w), children[i].label, children[i].length);
+      w = &(((input_t *)elements[i].element)->w);
+      break;
+    }
+    // set dimensions
+    elements[i].id = w->id;
+    if (direction == horizontal) {
+      w->m_x = group->w.x;
+      w->m_y = group->w.m_y;
+      group->w.x += w->x + 1;
+      if (group->w.y < w->y)
+        group->w.y = w->y;
     }
     if (i == 0) {
-      group->first_id = el_id;
-      group->active_id = el_id;
+      group->first_id = w->id;
+      group->active_id = w->id;
     } else {
-      group->last_id = el_id;
+      group->last_id = w->id;
     }
   }
 
@@ -97,6 +138,23 @@ void draw_group(WINDOW *win, group_t *group) {
     case w_group:
     case w_end:
       break;
+    case w_input:
+      draw_input((input_t *)el->element, group->active_id);
+      break;
+    }
+  }
+  for (int i = 0; i < group->count; i++) {
+    if (group->elements[i].id == group->active_id &&
+        group->elements[i].type == w_input) {
+      input_t *input = group->elements[i].element;
+      uint32_t margin_y = input->w.m_y + input->w.w_parent->m_y;
+      uint32_t margin_x = input->w.m_x + input->w.w_parent->m_x + 1;
+      if (input->max_len == input->value_len) {
+        wmove(win, margin_y + 1, margin_x + input->value_len);
+      } else {
+        wmove(win, margin_y + 1, margin_x + input->value_len + 1); // x: +1: margin left from the border
+      }
+      curs_set(1);
     }
   }
 }
@@ -112,6 +170,9 @@ void destroy_group(group_t *group) {
     case w_box:
     case w_group:
     case w_end:
+      break;
+    case w_input:
+      destroy_input(el->element);
       break;
     }
   }

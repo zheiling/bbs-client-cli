@@ -12,6 +12,7 @@ typedef enum {
 typedef enum {
   none = 0,
   login = 1,
+  ask_server_addr = 2,
 } dialogue_e;
 
 typedef struct {

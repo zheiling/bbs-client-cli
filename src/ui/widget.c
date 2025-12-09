@@ -5,6 +5,7 @@
 #include <string.h>
 
 extern uint32_t m_id;
+int32_t rsize_to_value(int32_t size, enum rsize rsize);
 
 void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   w->id = m_id++;
@@ -35,7 +36,8 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
       line_num++;
     }
   }
-  if (line_count != NULL) *line_count = line_num;
+  if (line_count != NULL)
+    *line_count = line_num;
   if (c_len > m_len) {
     return c_len;
   } else {
@@ -80,4 +82,23 @@ uint32_t print_multiline_text(WINDOW *win, const char *text,
   PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs)
 
   return 1;
+}
+
+int32_t rsize_to_value(int32_t size, enum rsize rsize) {
+  switch (rsize) {
+  case s_auto:
+    return size;
+  case s_1:
+    return size;
+  case s_1_2:
+    return size / 2;
+  case s_1_3:
+    return size / 3;
+  case s_2_3:
+    return size / 3 * 2;
+  case s_1_4:
+    return size / 4;
+  case s_3_4:
+    return size / 4 * 3;
+  }
 }

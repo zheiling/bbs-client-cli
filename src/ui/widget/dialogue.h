@@ -18,7 +18,7 @@ typedef struct {
 
 void init_dialogue(dialogue_t *d, const char title[], const char text[], uint32_t cur_x,
                           uint32_t cur_y);
-int32_t draw_dialogue(dialogue_t *d);
+int32_t draw_dialogue(void *, dialogue_t *d);
 void destroy_dialogue(dialogue_t *d);
 void dialogue_default_callback(callback_args_t *args);
 

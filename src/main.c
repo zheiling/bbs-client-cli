@@ -12,6 +12,7 @@
 #include "connection.h"
 #include "main.h"
 #include "ui/app.h"
+#include "ui/modals/ask_server_addr.h"
 #include "ui/modals/login.h"
 #include "ui/widget.h"
 #include "ui/widget/dialogue.h"
@@ -37,7 +38,7 @@ int main(int argc, char **argv) {
   wrefresh(app->right_win);
 
   // temporal
-  app->modal.type = login;
+  app->modal.type = ask_server_addr;
 
   event_loop(app);
 
@@ -62,12 +63,12 @@ void event_loop(app_t *app) {
   for (;;) {
     c = wgetch(app->win);
     switch (c) {
-      // 113 is q key. This exits the program
-      case 113:
+    // 113 is q key. This exits the program
+    case 113:
       return;
-      case KEY_F(9):
+    case KEY_F(9):
       return;
-      default:
+    default:
       if (app->modal.type != none) {
         d_args.win = app->modal.dialogue.win;
         d_args.widget = &(app->modal.dialogue);
@@ -102,11 +103,14 @@ void app_draw_modal(app_t *app) {
     case login:
       init_login_modal(app);
       break;
+    case ask_server_addr:
+      init_asa_modal(app);
+      break;
     case none:
     default:
       break;
     }
-    draw_dialogue(&(app->modal.dialogue));
+    draw_dialogue(NULL, &(app->modal.dialogue));
   }
 }
 
