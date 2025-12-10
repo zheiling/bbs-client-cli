@@ -22,13 +22,12 @@ typedef struct {
 } group_el_init_t;
 
 typedef struct {
-  group_el_t *elements;
   widget_t w;
-  uint32_t active_id;
+  group_el_t *elements;
+  uint32_t active_id; // TODO: needs to be removed
   enum g_direction direction;
   uint32_t count;
   uint32_t first_id, last_id;
-  void *action_args;
 } group_t;
 
 typedef struct {
@@ -38,7 +37,7 @@ typedef struct {
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction dir);
-void draw_group(WINDOW *win, group_t *group);
+void draw_group(WINDOW *win, group_t *group, int32_t active_id);
 void destroy_group(group_t *group);
 void group_default_callback(callback_args_t *args);
 

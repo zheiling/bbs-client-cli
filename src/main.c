@@ -110,7 +110,7 @@ void app_draw_modal(app_t *app) {
     default:
       break;
     }
-    draw_dialogue(NULL, &(app->modal.dialogue));
+    draw_dialogue(&(app->modal.dialogue));
   }
 }
 

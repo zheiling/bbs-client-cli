@@ -5,67 +5,59 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+// TODO: refactor
+
+#define MAKE_RESPONSE_M1(args, resp_data, response)                            \
+  if (args->resp_data != NULL) {                                               \
+    response->active_id = g->active_id;                                        \
+    response->value = -1;                                                      \
+  }
+
+#define FIND_ELEMENT(args, element_ptr, element_idx)                           \
+  if (args->resp_data != NULL) {                                               \
+    for (int i = 0; i < g->count; i++) {                                       \
+      if (g->elements[i].id == g->active_id) {                                 \
+        element_ptr = &(g->elements[i]);                                       \
+        element_idx = i;                                                       \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+  }
+
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->widget;
   char key = *((char *)args->data);
   group_resp_t *response = (group_resp_t *)args->resp_data;
-  input_t *inpt;
+  input_t *input;
+  group_el_t *element_ptr;
+  int32_t element_idx = -1;
   switch (key) {
-  case '\t':
-    if (g->active_id != g->last_id) {
-      g->active_id = g->active_id + 1;
-    } else {
-      g->active_id = g->first_id;
-    }
-    if (args->resp_data != NULL) {
-      response->active_id = g->active_id;
-      response->value = -1;
-    }
+  case '\n': /* Enter */
+    FIND_ELEMENT(args, element_ptr, element_idx);
+    response->active_id = g->active_id;
+    response->value = element_idx;
     break;
-  case '\n':
-    if (args->resp_data != NULL) {
-      for (int i = 0; i < g->count; i++) {
-        if (g->elements[i].id == g->active_id) {
-          response->active_id = g->active_id;
-          response->value = i;
-        }
+  case '\177': /* DEL */
+    FIND_ELEMENT(args, element_ptr, element_idx);
+    if (element_ptr->type == w_input) {
+      input = (input_t *)element_ptr->element;
+      if (input->value_len) {
+        input->value[--input->value_len] = '\0';
       }
     }
-    break;
-  case '\177':
-    for (int i = 0; i < g->count; i++) {
-      if (g->elements[i].id == g->active_id) {
-        if (g->elements[i].type == w_input) {
-          inpt = (input_t *)g->elements[i].element;
-          if (inpt->value_len) {
-            inpt->value[--inpt->value_len] = '\0';
-          }
-          break;
-        }
-      }
-    }
-    if (args->resp_data != NULL) {
-      response->active_id = g->active_id;
-      response->value = -1;
-    }
+    MAKE_RESPONSE_M1(args, resp_data, response);
     break;
   default:
-    for (int i = 0; i < g->count; i++) {
-      if (g->elements[i].id == g->active_id) {
-        if (g->elements[i].type == w_input) {
-          inpt = (input_t *)g->elements[i].element;
-          if (inpt->max_len > inpt->value_len) {
-            inpt->value[inpt->value_len++] = key;
-            inpt->value[inpt->value_len] = '\0';
-          }
-          break;
-        }
+    FIND_ELEMENT(args, element_ptr, element_idx);
+    if (element_ptr->type == w_input) {
+      input = (input_t *)element_ptr->element;
+      if (input->max_len > input->value_len) {
+        input->value[input->value_len++] = key;
+        input->value[input->value_len] = '\0';
       }
     }
-    if (args->resp_data != NULL) {
-      response->active_id = g->active_id;
-      response->value = -1;
-    }
+    MAKE_RESPONSE_M1(args, resp_data, response);
+    break;
   }
 }
 
@@ -126,20 +118,20 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   return group;
 }
 
-void draw_group(WINDOW *win, group_t *group) {
+void draw_group(WINDOW *win, group_t *group, int32_t active_id) {
   group_el_t *children = group->elements;
   for (int i = 0; i < group->count; i++) {
     group_el_t *el = &children[i];
     switch (el->type) {
     case w_button:
-      draw_button((button_t *)el->element, group->active_id);
+      draw_button((button_t *)el->element, active_id);
       break;
     case w_box:
     case w_group:
     case w_end:
       break;
     case w_input:
-      draw_input((input_t *)el->element, group->active_id);
+      draw_input((input_t *)el->element, active_id);
       break;
     }
   }
@@ -152,7 +144,9 @@ void draw_group(WINDOW *win, group_t *group) {
       if (input->max_len == input->value_len) {
         wmove(win, margin_y + 1, margin_x + input->value_len);
       } else {
-        wmove(win, margin_y + 1, margin_x + input->value_len + 1); // x: +1: margin left from the border
+        wmove(win, margin_y + 1,
+              margin_x + input->value_len +
+                  1); // x: +1: margin left from the border
       }
       curs_set(1);
     }

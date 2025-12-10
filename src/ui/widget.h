@@ -38,6 +38,10 @@ typedef struct widget_t {
   uint32_t y;
   uint32_t m_x;
   uint32_t m_y;
+  struct {
+    uint32_t y;
+    uint32_t x;
+  } cur;
   WINDOW *const *parent_win;
   struct widget_t *w_parent;
   enum rsize rsize;

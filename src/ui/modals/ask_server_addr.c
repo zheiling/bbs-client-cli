@@ -30,17 +30,26 @@ void asa_modal_group_callback(callback_args_t *args) {
 dialogue_t *init_asa_modal(app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t children[] = {
+  group_el_init_t content[] = {
       {.type = w_input, .label = "Address", .length = 15},
       {.type = w_input, .label = "Port", .length = 5},
       {.type = w_end}};
 
+  group_el_init_t actions[] = {{.type = w_button, .label = "Connect"},
+                               {.type = w_button, .label = "Cancel"},
+                               {.type = w_end}};
+
   init_dialogue(&(app->modal.dialogue), "Connect to server",
                 "There is information needed", app->cur_y, app->cur_x);
-  app->modal.dialogue.ch_group =
-      init_group(&(app->modal.dialogue.win), &(app->modal.dialogue.w), children,
-                 horizontal);
-  app->modal.dialogue.ch_group->w.callback = asa_modal_group_callback;
+  dialogue_t *d = &(app->modal.dialogue);
+
+  d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
+  d->g_content->w.callback = asa_modal_group_callback;  
+  
+  d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
+  d->g_action->w.callback = asa_modal_group_callback;
+
+  dialogue_init_active_id(d);
 
   return NULL;
 }
