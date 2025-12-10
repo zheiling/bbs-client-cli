@@ -33,7 +33,7 @@ deps.mk: $(SRCS)
 	$(CC) -MM $^ > $(SRC_DIR)/$@
 
 clean:
-	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/**/*.o $(BIN_DIR)/bbs-client
+	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/**/*.o $(OBJ_DIR)/ui/**/*.o $(BIN_DIR)/bbs-client
 
 run:
 	$(BIN_DIR)/bbs-client
