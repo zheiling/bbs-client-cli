@@ -13,10 +13,10 @@ app_t *init_app() {
   app_t *_app = calloc(1, sizeof(app_t));
 
   // associate values for screen size
-  _app->cur_y = y_max;
-  _app->cur_x = x_max;
+  _app->coordinates.max_x = _app->coordinates.cur_x = x_max;
+  _app->coordinates.max_y = _app->coordinates.cur_y = y_max;
 
-  _app->win = newwin(_app->cur_y, _app->cur_x, 0, 0);
+  _app->win = newwin(_app->coordinates.cur_y, _app->coordinates.cur_x, 0, 0);
 
   // define the width for each sub window
   int menu_w_x = x_max / 6;
@@ -79,18 +79,18 @@ void print_bars(app_t *app) {
   wattrset(app->win, A_REVERSE);
 
   // print top and bottom bars
-  for (int i = 1; i < app->cur_x - 1; i++) {
+  for (int i = 1; i < app->coordinates.cur_x - 1; i++) {
     mvwprintw(app->win, 1, i, " ");
-    mvwprintw(app->win, app->cur_y - 2, i, " ");
+    mvwprintw(app->win, app->coordinates.cur_y - 2, i, " ");
   }
 
   // add content to the top bar
   mvwprintw(app->win, 1, 2, "example cprint_barsurses app | ");
   mvwprintw(app->win, 1, sizeof "example cprint_barsurses app | " + 1,
-            "size %d, %d", app->cur_x, app->cur_y);
+            "size %d, %d", app->coordinates.cur_x, app->coordinates.cur_y);
 
   // add content to the bottom bar
-  mvwprintw(app->win, app->cur_y - 2, 2, "F1 - Help | F9 - Quit");
+  mvwprintw(app->win, app->coordinates.cur_y - 2, 2, "F1 - Help | F9 - Quit");
 
   wattroff(app->win, A_REVERSE);
 }

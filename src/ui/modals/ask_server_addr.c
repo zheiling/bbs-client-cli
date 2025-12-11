@@ -1,7 +1,11 @@
+#include "../../connection.h"
 #include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
+#include "../widget/input.h"
 #include <ncurses.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct {
@@ -9,20 +13,27 @@ typedef struct {
   enum w_type type;
 } group_bt_t;
 
-void asa_modal_group_callback(callback_args_t *args) {
-  group_resp_t *response = (group_resp_t *)args->resp_data;
-  callback_args_t ch_args;
-  memcpy(&ch_args, args, sizeof(callback_args_t));
-  ch_args.app = NULL;
-  group_default_callback(&ch_args);
-  if (response->value > -1) {
-    switch (response->value) {
+void asa_modal_dialogue_callback(callback_args_t *args) {
+  int32_t response;
+  callback_args_t d_args;
+  app_t *app = args->app;
+  dialogue_t *d = (dialogue_t *)args->widget;
+  memcpy(&d_args, args, sizeof(callback_args_t));
+  d_args.app = NULL;
+  d_args.resp_data = &response;
+  input_t *in_ip = d->g_content->elements[0].element;
+  input_t *in_port = d->g_content->elements[1].element;
+  dialogue_default_callback(&d_args);
+  if (response > -1) {
+    switch (response) {
     case 0:
-      // exit(10);
+      get_ip_port(app->params, in_ip->value, in_port->value);
+      destroy_dialogue(d);
+      app->modal.type = none;
+      break;
     case 1:
-      // exit(11);
-    case 2:
-      // exit(12);
+      destroy_app(app);
+      exit(0);
     }
   }
 }
@@ -35,19 +46,18 @@ dialogue_t *init_asa_modal(app_t *app) {
       {.type = w_input, .label = "Port", .length = 5},
       {.type = w_end}};
 
-  group_el_init_t actions[] = {{.type = w_button, .label = "Connect"},
-                               {.type = w_button, .label = "Cancel"},
-                               {.type = w_end}};
+  group_el_init_t actions[] = {
+      {.type = w_button, .label = "Connect", .is_default = 1},
+      {.type = w_button, .label = "Cancel", .is_default = 0},
+      {.type = w_end}};
 
   init_dialogue(&(app->modal.dialogue), "Connect to server",
-                "There is information needed", app->cur_y, app->cur_x);
+                "There is information needed", &(app->coordinates));
   dialogue_t *d = &(app->modal.dialogue);
 
+  d->w.callback = asa_modal_dialogue_callback;
   d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
-  d->g_content->w.callback = asa_modal_group_callback;  
-  
   d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
-  d->g_action->w.callback = asa_modal_group_callback;
 
   dialogue_init_active_id(d);
 

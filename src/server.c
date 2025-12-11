@@ -1,5 +1,4 @@
 #include "client.h"
-#include "connection.h"
 #include "main.h"
 #include "query.h"
 #include "ui.h"
@@ -69,7 +68,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
     free(params->pass);
     params->uname = NULL;
     params->pass = NULL;
-    get_missing_params(params);
+    // get_missing_params(params);
     write(q_args->sd, params->uname, strlen(params->uname));
     return 0;
   }

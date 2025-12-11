@@ -41,20 +41,11 @@ void clear_params(params_t *params) {
   params->uname = NULL;
 }
 
-void get_missing_params(params_t *params) {
-  size_t lsize;
-  char *bufptr = NULL;
-
+void get_ip_port(params_t *params, char *ip, char *port) {
   struct sockaddr_in addr;
-
-  if (!params->addr) {
-    printf("host> ");
-    getline(&bufptr, &lsize, stdin);
-    inet_aton(bufptr, &(addr.sin_addr));
-    params->addr = addr.sin_addr.s_addr;
-    free(bufptr);
-    bufptr = NULL;
-  }
+  inet_aton(ip, &(addr.sin_addr));
+  params->addr = addr.sin_addr.s_addr;
+  params->port = htons(atoi(port));
 }
 
 void close_session(int sd) { close(sd); }

@@ -7,54 +7,71 @@
 #include "dialogue.h"
 #include "group.h"
 
+#define INCR_ACTIVE_ID(d, current, next)                                       \
+  if (d->active.id != d->current->last_id) {                                   \
+    d->active.id = d->active.id + 1;                                           \
+  } else if (d->next != NULL) {                                                \
+    d->active.id = d->next->first_id;                                          \
+    d->active.type = next;                                                     \
+  } else {                                                                     \
+    d->active.id = d->current->first_id;                                       \
+  }
+
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->widget;
   char key = *((char *)args->data);
   app_t *app = (app_t *)args->app;
   callback_args_t new_args;
-  group_resp_t response;
+  int32_t *resp_value = (int32_t *)args->resp_data;
+  group_el_t *default_element = NULL;
   memcpy(&new_args, args, sizeof(callback_args_t));
-  new_args.widget = d->g_content;
-  new_args.resp_data = &response;
+  new_args.active_id = d->active.id;
+
   switch (key) {
   case '\t':
-    // TODO: active task
     if (d->active.type == g_content) {
-      if (d->active.id != d->g_content->last_id) {
-        d->active.id = d->active.id + 1;
-      } else {
-        d->active.id = d->g_content->first_id;
-      }
+      INCR_ACTIVE_ID(d, g_content, g_action);
+    } else if (d->active.type == g_action) {
+      INCR_ACTIVE_ID(d, g_action, g_content);
     }
+    *resp_value = -1;
+    draw_dialogue(d);
+    break;
+  case '\n':
     if (d->active.type == g_action) {
-      if (d->active.id != d->g_action->last_id) {
-        d->active.id = d->active.id + 1;
-      } else {
-        d->active.id = d->g_action->first_id;
+      new_args.widget = new_args.widget = d->g_action;
+      group_default_callback(&new_args);
+    } else {
+      for (int i = 0; i < d->g_action->count; i++) {
+        if (d->g_action->elements[i].is_default) {
+          *resp_value = i;
+          return;
+        }
       }
     }
     draw_dialogue(d);
     break;
   default:
-    d->g_content->w.callback(&new_args);
-    if (response.value > -1) {
-      d->is_initiated = 0;
-      destroy_dialogue(d);
-      app->modal.type = none;
+    if (d->active.type == g_content) {
+      new_args.widget = new_args.widget = d->g_content;
+      group_default_callback(&new_args);
     } else {
+      new_args.widget = new_args.widget = d->g_action;
+      group_default_callback(&new_args);
+    }
+    if (*resp_value == -1) {
       draw_dialogue(d);
     }
   }
 }
 
 void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
-                   uint32_t cur_y, uint32_t cur_x) {
+                   coordinates_t *p_coordinates) {
   dialogue->win = 0;
   dialogue->g_content = NULL;
   dialogue->w.x = 0;
   dialogue->w.y = 0;
-  dialogue->cur_y = cur_y;
-  dialogue->cur_x = cur_x;
+  dialogue->p_coordinates = p_coordinates;
   dialogue->w.callback = dialogue_default_callback;
   dialogue->is_initiated = 1;
   strcpy(dialogue->w.title, title);
@@ -123,12 +140,10 @@ int32_t draw_dialogue(dialogue_t *d) {
 
   /* space for action block */
 
-  y += 2;
-
   d->w.x = x;
   d->w.y = y;
-  d->w.m_y = (d->cur_y - y) / 2;
-  d->w.m_x = (d->cur_x - x) / 2;
+  d->w.m_y = (d->p_coordinates->max_y - y) / 2;
+  d->w.m_x = (d->p_coordinates->max_x - x) / 2;
 
   /* render window */
   if (d->win == NULL) {
@@ -156,10 +171,10 @@ int32_t draw_dialogue(dialogue_t *d) {
   print_multiline_text(d->win, d->text, d->w.x, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
   if (d->g_content != NULL) {
-    draw_group(d->win, d->g_content, d->active.id);
+    draw_group(d->win, d->g_content, d->active.id, &(d->w));
   }
   if (d->g_action != NULL) {
-    draw_group(d->win, d->g_action, d->active.id);
+    draw_group(d->win, d->g_action, d->active.id, &(d->w));
   }
   return 0;
 };
@@ -167,6 +182,9 @@ int32_t draw_dialogue(dialogue_t *d) {
 void destroy_dialogue(dialogue_t *d) {
   if (d->g_content) {
     destroy_group(d->g_content);
+  }
+  if (d->g_action) {
+    destroy_group(d->g_action);
   }
   delwin(d->win);
   d->win = NULL;

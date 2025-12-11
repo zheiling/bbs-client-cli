@@ -2,6 +2,7 @@
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
 #include <ncurses.h>
+#include <stdint.h>
 #include <string.h>
 
 typedef struct {
@@ -10,20 +11,21 @@ typedef struct {
 } group_bt_t;
 
 void login_modal_group_callback(callback_args_t *args) {
-  group_resp_t *response = (group_resp_t *)args->resp_data;
-  callback_args_t ch_args;
-  memcpy(&ch_args, args, sizeof(callback_args_t));
-  ch_args.app = NULL;
-  group_default_callback(&ch_args);
-  if (response->value > -1) {
-    // TODO: finish actions
-    switch (response->value) {
+  int32_t response;
+  callback_args_t d_args;
+  app_t *app = args->app;
+  dialogue_t *d = (dialogue_t *)args->widget;
+  memcpy(&d_args, args, sizeof(callback_args_t));
+  d_args.app = NULL;
+  d_args.resp_data = &response;
+  dialogue_default_callback(&d_args);
+  if (response > -1) {
+    switch (response) {
     case 0:
-      // exit(10);
+      break;
     case 1:
-      // exit(11);
-    case 2:
-      // exit(12);
+      // exit(0);
+      break;
     }
   }
 }
@@ -39,11 +41,11 @@ dialogue_t *init_login_modal(app_t *app) {
   init_dialogue(&(app->modal.dialogue), "Login",
                 "Select your login "
                 "option",
-                app->cur_y, app->cur_x);
+                &(app->coordinates));
   app->modal.dialogue.g_content =
       init_group(&(app->modal.dialogue.win), &(app->modal.dialogue.w), children,
                  horizontal);
-  app->modal.dialogue.g_content->w.callback = login_modal_group_callback;
+  app->modal.dialogue.w.callback = login_modal_group_callback;
 
   return NULL;
 }

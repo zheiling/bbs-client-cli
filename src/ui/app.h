@@ -1,8 +1,9 @@
 #ifndef N_APP_H
 #define N_APP_H
 
-#include <ncurses.h>
 #include "widget/dialogue.h"
+#include "../common.h"
+#include <ncurses.h>
 
 typedef enum {
   MODAL_COLOR_PAIR = 3,
@@ -23,8 +24,8 @@ typedef struct {
     dialogue_e type;
     dialogue_t dialogue;
   } modal;
-  int cur_y, cur_x;
   params_t *params;
+  coordinates_t coordinates;
 } app_t;
 
 app_t *init_app();

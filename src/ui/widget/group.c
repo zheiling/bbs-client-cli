@@ -9,36 +9,23 @@
 
 #define MAKE_RESPONSE_M1(args, resp_data, response)                            \
   if (args->resp_data != NULL) {                                               \
-    response->active_id = g->active_id;                                        \
-    response->value = -1;                                                      \
-  }
-
-#define FIND_ELEMENT(args, element_ptr, element_idx)                           \
-  if (args->resp_data != NULL) {                                               \
-    for (int i = 0; i < g->count; i++) {                                       \
-      if (g->elements[i].id == g->active_id) {                                 \
-        element_ptr = &(g->elements[i]);                                       \
-        element_idx = i;                                                       \
-        break;                                                                 \
-      }                                                                        \
-    }                                                                          \
+    *response = -1;                                                            \
   }
 
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->widget;
   char key = *((char *)args->data);
-  group_resp_t *response = (group_resp_t *)args->resp_data;
+  int32_t *response = (int32_t *)args->resp_data;
   input_t *input;
   group_el_t *element_ptr;
   int32_t element_idx = -1;
   switch (key) {
   case '\n': /* Enter */
-    FIND_ELEMENT(args, element_ptr, element_idx);
-    response->active_id = g->active_id;
-    response->value = element_idx;
+    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
+    *response = element_idx;
     break;
   case '\177': /* DEL */
-    FIND_ELEMENT(args, element_ptr, element_idx);
+    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->value_len) {
@@ -48,7 +35,7 @@ void group_default_callback(callback_args_t *args) {
     MAKE_RESPONSE_M1(args, resp_data, response);
     break;
   default:
-    FIND_ELEMENT(args, element_ptr, element_idx);
+    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->max_len > input->value_len) {
@@ -76,12 +63,13 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   }
   group->elements = calloc(group->count, sizeof(group_el_t));
   group_el_t *elements = group->elements;
-  for (int i = 0; i < group->count; i++) {
+  for (int32_t i = 0; i < group->count; i++) {
     elements[i].type = children[i].type;
+    elements[i].is_default = children[i].is_default;
   }
 
   /* init child elements */
-  for (int i = 0; i < group->count; i++) {
+  for (int32_t i = 0; i < group->count; i++) {
     widget_t *w;
     switch (elements[i].type) {
     case w_button:
@@ -101,7 +89,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     // set dimensions
     elements[i].id = w->id;
     if (direction == horizontal) {
-      w->m_x = group->w.x;
+      w->m_x = group->w.x + 1;
       w->m_y = group->w.m_y;
       group->w.x += w->x + 1;
       if (group->w.y < w->y)
@@ -109,7 +97,6 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     }
     if (i == 0) {
       group->first_id = w->id;
-      group->active_id = w->id;
     } else {
       group->last_id = w->id;
     }
@@ -118,8 +105,11 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   return group;
 }
 
-void draw_group(WINDOW *win, group_t *group, int32_t active_id) {
+void draw_group(WINDOW *win, group_t *group, int32_t active_id,
+                widget_t *dialog_w) {
   group_el_t *children = group->elements;
+  group_el_t *active_element = NULL;
+  uint32_t active_idx;
   for (int i = 0; i < group->count; i++) {
     group_el_t *el = &children[i];
     switch (el->type) {
@@ -135,21 +125,22 @@ void draw_group(WINDOW *win, group_t *group, int32_t active_id) {
       break;
     }
   }
-  for (int i = 0; i < group->count; i++) {
-    if (group->elements[i].id == group->active_id &&
-        group->elements[i].type == w_input) {
-      input_t *input = group->elements[i].element;
-      uint32_t margin_y = input->w.m_y + input->w.w_parent->m_y;
-      uint32_t margin_x = input->w.m_x + input->w.w_parent->m_x + 1;
-      if (input->max_len == input->value_len) {
-        wmove(win, margin_y + 1, margin_x + input->value_len);
-      } else {
-        wmove(win, margin_y + 1,
-              margin_x + input->value_len +
-                  1); // x: +1: margin left from the border
-      }
-      curs_set(1);
+  /* move cursor */
+  FIND_ACTIVE_ELEMENT(group, active_id, active_element, active_idx);
+  
+  if (active_element != NULL && active_element->id == active_id &&
+      active_element->type == w_input) {
+    input_t *input = active_element->element;
+    dialog_w->cur.y = input->w.cur.y;
+    if (input->max_len == input->value_len) {
+      dialog_w->cur.x = input->w.cur.x + input->value_len - 1;
+    } else {
+      dialog_w->cur.x = input->w.cur.x + input->value_len;
     }
+  }
+  if (dialog_w->cur.y || dialog_w->cur.x) {
+    wmove(win, dialog_w->cur.y, dialog_w->cur.x);
+    curs_set(1);
   }
 }
 

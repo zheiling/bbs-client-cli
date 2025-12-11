@@ -19,6 +19,7 @@ typedef struct {
   void *widget;
   void *data;
   void *resp_data;
+  uint32_t active_id;
 } callback_args_t;
 
 enum rsize {

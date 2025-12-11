@@ -9,10 +9,12 @@
 
 button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
   button_t *btn = malloc(sizeof(button_t));
-  init_widget(&(btn->w), w_parent,  win, label);
+  init_widget(&(btn->w), w_parent, win, label);
   btn->is_disabled = 0;
   btn->w.x = strlen(btn->w.title) + 6; // + "[  ]"
-  btn->w.y = 1; // TODO: detect new line
+  btn->w.y = 1;                        // TODO: detect new line
+  btn->w.cur.y = 0;
+  btn->w.cur.x = 0;
   return btn;
 }
 
@@ -31,6 +33,8 @@ int32_t draw_button(button_t *btn, uint32_t active_id) {
   }
 
   mvwprintw(win, margin_y, margin_x, "%s", title);
+  btn->w.cur.y = margin_y;
+  btn->w.cur.x = margin_x;
 
   wattroff(win, A_BOLD | A_REVERSE);
   return strlen(title);
