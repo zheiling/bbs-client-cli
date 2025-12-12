@@ -6,6 +6,7 @@
 #include "../app.h"
 #include "dialogue.h"
 #include "group.h"
+#include "input.h"
 
 #define INCR_ACTIVE_ID(d, current, next)                                       \
   if (d->active.id != d->current->last_id) {                                   \
@@ -119,6 +120,8 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
 int32_t draw_dialogue(dialogue_t *d) {
   if (!d->is_initiated)
     return -1;
+  group_el_t *ae_ptr = NULL; /* active element */
+  uint32_t ae_idx; /* active element */
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -176,6 +179,29 @@ int32_t draw_dialogue(dialogue_t *d) {
   if (d->g_action != NULL) {
     draw_group(d->win, d->g_action, d->active.id, &(d->w));
   }
+
+  /* move cursor */
+  FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
+  if (ae_ptr == NULL) FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
+
+  if (ae_ptr != NULL && ae_ptr->id == d->active.id) {
+    if (ae_ptr->type == w_input) {
+      input_t *input = ae_ptr->element;
+      d->w.cur.y = input->w.cur.y;
+      if (input->max_len == input->value_len) {
+        d->w.cur.x = input->w.cur.x + input->value_len - 1;
+      } else {
+        d->w.cur.x = input->w.cur.x + input->value_len;
+      }
+      if (d->w.cur.y || d->w.cur.x) {
+        wmove(d->win, d->w.cur.y, d->w.cur.x);
+        curs_set(1);
+      }
+    } else {
+      curs_set(0);
+    }
+  }
+
   return 0;
 };
 

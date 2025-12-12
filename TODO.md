@@ -7,3 +7,4 @@ TODO:
 - [ ] Simpler refresh on typing / entering in input
 - [ ] Group elements as lists
 - [ ] Process arrows
+- [ ] active_id -> просто указатель на элемент

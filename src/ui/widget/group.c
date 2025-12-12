@@ -1,6 +1,7 @@
 #include "group.h"
 #include "button.h"
 #include "input.h"
+#include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -124,23 +125,6 @@ void draw_group(WINDOW *win, group_t *group, int32_t active_id,
       draw_input((input_t *)el->element, active_id);
       break;
     }
-  }
-  /* move cursor */
-  FIND_ACTIVE_ELEMENT(group, active_id, active_element, active_idx);
-  
-  if (active_element != NULL && active_element->id == active_id &&
-      active_element->type == w_input) {
-    input_t *input = active_element->element;
-    dialog_w->cur.y = input->w.cur.y;
-    if (input->max_len == input->value_len) {
-      dialog_w->cur.x = input->w.cur.x + input->value_len - 1;
-    } else {
-      dialog_w->cur.x = input->w.cur.x + input->value_len;
-    }
-  }
-  if (dialog_w->cur.y || dialog_w->cur.x) {
-    wmove(win, dialog_w->cur.y, dialog_w->cur.x);
-    curs_set(1);
   }
 }
 
