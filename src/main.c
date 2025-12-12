@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 void app_draw_modal(app_t *app);
 
 void event_loop(app_t *app) {
-  int c;
+  int32_t c;
 
   callback_args_t d_args = {.app = app,
                             .win = NULL,
@@ -63,10 +63,8 @@ void event_loop(app_t *app) {
   for (;;) {
     c = wgetch(app->win);
     switch (c) {
-    // 113 is q key. This exits the program
-    case 113:
-      return;
     case KEY_F(9):
+      destroy_app(app);
       return;
     default:
       if (app->modal.type != none) {

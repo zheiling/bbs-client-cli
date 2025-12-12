@@ -1,5 +1,6 @@
 #include "app.h"
 // #include "action.h"
+#include <ncurses.h>
 #include <stdlib.h>
 
 void ac_file(WINDOW *win, int is_action_w);
@@ -39,6 +40,8 @@ app_t *init_app() {
   // here goes box borders
   draw_borders(_app);
 
+  keypad(_app->win, TRUE);
+
   // refresh the windows
   wnoutrefresh(_app->win);
   wnoutrefresh(_app->left_win);
@@ -50,9 +53,10 @@ app_t *init_app() {
 
 void init_nc() {
   initscr();
+  cbreak();
+  keypad(stdscr, TRUE);
   noecho();
   curs_set(0);
-  keypad(stdscr, TRUE);
 
   if (!has_colors()) {
     printf("Your terminal does not support color\n");
@@ -97,5 +101,6 @@ void print_bars(app_t *app) {
 
 void destroy_app(app_t *app) {
   delwin(app->win);
-  free(app);
+  // free(app);
+  endwin();
 }

@@ -15,7 +15,7 @@
 
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->widget;
-  char key = *((char *)args->data);
+  int32_t key = *((int32_t *)args->data);
   int32_t *response = (int32_t *)args->resp_data;
   input_t *input;
   group_el_t *element_ptr;
@@ -25,7 +25,8 @@ void group_default_callback(callback_args_t *args) {
     FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     *response = element_idx;
     break;
-  case '\177': /* DEL */
+  case KEY_BACKSPACE:
+  case KEY_DL:
     FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;

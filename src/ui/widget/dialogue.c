@@ -18,22 +18,55 @@
     d->active.id = d->current->first_id;                                       \
   }
 
+#define DECR_ACTIVE_ID(d, current, next)                                       \
+  if (d->active.id != d->current->first_id) {                                  \
+    d->active.id = d->active.id - 1;                                           \
+  } else if (d->next != NULL) {                                                \
+    d->active.id = d->next->last_id;                                           \
+    d->active.type = next;                                                     \
+  } else {                                                                     \
+    d->active.id = d->current->last_id;                                        \
+  }
+
+#define CH_GROUP(d, current, next)                                             \
+  {                                                                            \
+    if (d->active.type == current) {                                           \
+      d->active.type = next;                                                   \
+      diff = d->active.id - d->current->first_id;                              \
+      if (diff > d->next->last_id - d->next->first_id) {                       \
+        d->active.id = d->next->last_id;                                       \
+      } else {                                                                 \
+        d->active.id = d->next->first_id + diff;                               \
+      }                                                                        \
+    }                                                                          \
+  }
+
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->widget;
-  char key = *((char *)args->data);
+  int32_t key = *((int32_t *)args->data);
   app_t *app = (app_t *)args->app;
   callback_args_t new_args;
   int32_t *resp_value = (int32_t *)args->resp_data;
   group_el_t *default_element = NULL;
   memcpy(&new_args, args, sizeof(callback_args_t));
   new_args.active_id = d->active.id;
-
+  int32_t diff;
   switch (key) {
+  case KEY_RIGHT:
   case '\t':
     if (d->active.type == g_content) {
       INCR_ACTIVE_ID(d, g_content, g_action);
     } else if (d->active.type == g_action) {
       INCR_ACTIVE_ID(d, g_action, g_content);
+    }
+    *resp_value = -1;
+    draw_dialogue(d);
+    break;
+  case KEY_LEFT:
+    if (d->active.type == g_content) {
+      DECR_ACTIVE_ID(d, g_content, g_action);
+    } else if (d->active.type == g_action) {
+      DECR_ACTIVE_ID(d, g_action, g_content);
     }
     *resp_value = -1;
     draw_dialogue(d);
@@ -52,14 +85,22 @@ void dialogue_default_callback(callback_args_t *args) {
     }
     draw_dialogue(d);
     break;
+  case KEY_UP:
+    CH_GROUP(d, g_action, g_content);
+    draw_dialogue(d);
+    break;
+  case KEY_DOWN:
+    CH_GROUP(d, g_content, g_action);
+    draw_dialogue(d);
+    break;
   default:
+    /* run callback function */
     if (d->active.type == g_content) {
       new_args.widget = new_args.widget = d->g_content;
-      group_default_callback(&new_args);
     } else {
       new_args.widget = new_args.widget = d->g_action;
-      group_default_callback(&new_args);
     }
+    group_default_callback(&new_args);
     if (*resp_value == -1) {
       draw_dialogue(d);
     }
@@ -121,7 +162,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   if (!d->is_initiated)
     return -1;
   group_el_t *ae_ptr = NULL; /* active element */
-  uint32_t ae_idx; /* active element */
+  uint32_t ae_idx;           /* active element */
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -182,7 +223,8 @@ int32_t draw_dialogue(dialogue_t *d) {
 
   /* move cursor */
   FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
-  if (ae_ptr == NULL) FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
+  if (ae_ptr == NULL)
+    FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
 
   if (ae_ptr != NULL && ae_ptr->id == d->active.id) {
     if (ae_ptr->type == w_input) {
