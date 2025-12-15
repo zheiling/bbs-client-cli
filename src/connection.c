@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ui/app.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -10,13 +11,15 @@
 #include <termios.h>
 #include <unistd.h>
 
-void connect_to_server(int sd, params_t *params) {
+void connect_to_server(app_t *app) {
   struct sockaddr_in server;
   server.sin_family = AF_INET;
-  server.sin_addr.s_addr = params->addr;
-  server.sin_port = params->port;
-  if (-1 == connect(sd, (struct sockaddr *)&server, sizeof(server))) {
+  server.sin_addr.s_addr = app->params->addr;
+  server.sin_port = app->params->port;
+  if (-1 ==
+      connect(app->params->sd, (struct sockaddr *)&server, sizeof(server))) {
     perror("connect");
+    destroy_app(app);
     exit(2);
   }
 }

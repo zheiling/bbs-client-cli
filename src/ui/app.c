@@ -1,7 +1,12 @@
 #include "app.h"
+#include "modals/ask_server_addr.h"
+#include "modals/login_credentials.h"
+#include "modals/login_option.h"
 // #include "action.h"
 #include <ncurses.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 void ac_file(WINDOW *win, int is_action_w);
 
@@ -30,9 +35,8 @@ app_t *init_app() {
   _app->right_win = newwin(y_max - 4, action_w_x, 2, menu_w_x + 1);
 
   // dialogue
-  _app->modal.dialogue.win = NULL;
-  _app->modal.dialogue.is_initiated = 0;
-  _app->modal.type = none;
+  _app->modal.win = NULL;
+  _app->modal.is_initiated = 0;
 
   // print decorative bars
   print_bars(_app);
@@ -97,6 +101,52 @@ void print_bars(app_t *app) {
   mvwprintw(app->win, app->coordinates.cur_y - 2, 2, "F1 - Help | F9 - Quit");
 
   wattroff(app->win, A_REVERSE);
+}
+void app_refresh(app_t *app) {
+  draw_borders(app);
+
+  wnoutrefresh(app->win);
+  wnoutrefresh(app->left_win);
+  wnoutrefresh(app->right_win);
+  if (app->modal.win != NULL) {
+    if (app->modal.is_initiated != 0) {
+      wnoutrefresh(app->modal.win);
+    }
+  }
+  doupdate();
+}
+
+void app_draw_modal(app_t *app) {
+  if (!app->modal.is_initiated) {
+    switch (app->query_args->state) {
+    case S_ASK_SEVER_IP:
+      init_asa_modal(app);
+      break;
+    case S_ASK_LOGIN_TYPE:
+      init_login_option_modal(app);
+      break;
+    case S_ASK_LOGIN_USER:
+      init_login_credentials_modal(app);
+      break;
+    case WAIT_SERVER_INIT:
+    case WAIT_SERVER:
+    case WAIT_REGISTER:
+    case WAIT_REGISTER_CONFIRMATION:
+    case WAIT_CLIENT:
+    case UPLOAD_FILE:
+    case STATE_FILE_LIST:
+    case STATE_FILE_SELECT:
+    case STATE_FILE_DOWNLOAD:
+    case STATE_UPLOAD_PARAMS:
+    case STATE_UPLOAD_FILE:
+    case STATE_UPLOAD_REQUESTED:
+    case STATE_ASK_USER_BEFORE_LOGIN:
+    case STATE_ERR:
+    case S_N_D:
+      return;
+    }
+  }
+  draw_dialogue(&(app->modal));
 }
 
 void destroy_app(app_t *app) {

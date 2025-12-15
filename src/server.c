@@ -1,6 +1,5 @@
 #include "client.h"
 #include "main.h"
-#include "query.h"
 #include "ui.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -29,26 +28,26 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* LOGIN */
   if (!strncmp(line, "login>", ws_pos)) {
-    if (params->uname == NULL) {
-      fflush(stdout);
-      answer = print_ask_list("Select login type:", login_options);
-      switch (answer) {
-      case 1:
-        ask_uname_and_password(q_args->params);
-        break;
-      case 2:
-        params->uname = malloc(sizeof("anonymous"));
-        strcpy(params->uname, "anonymous");
-        q_args->state = WAIT_CLIENT;
-        break;
-      case 3:
-        wait_register(q_args);
-        return 3;
-      default:
-        return -1;
-      }
-    }
-    write(q_args->sd, params->uname, strlen(params->uname));
+    // if (params->uname == NULL) {
+    //   fflush(stdout);
+    //   answer = print_ask_list("Select login type:", login_options);
+    //   switch (answer) {
+    //   case 1:
+    //     ask_uname_and_password(q_args->params);
+    //     break;
+    //   case 2:
+    //     params->uname = malloc(sizeof("anonymous"));
+    //     strcpy(params->uname, "anonymous");
+    //     q_args->state = WAIT_CLIENT;
+    //     break;
+    //   case 3:
+    //     wait_register(q_args);
+    //     return 3;
+    //   default:
+    //     return -1;
+    //   }
+    // }
+    // write(q_args->sd, params->uname, strlen(params->uname));
 
     return 0;
   }

@@ -11,20 +11,21 @@
 
 #include "connection.h"
 #include "main.h"
+#include "query.h"
 #include "ui/app.h"
-#include "ui/modals/ask_server_addr.h"
-#include "ui/modals/login.h"
 #include "ui/widget.h"
 #include "ui/widget/dialogue.h"
 
 uint32_t m_id = 0;
 
-void event_loop(app_t *app);
-void app_refresh(app_t *app);
+int32_t process_user_input(app_t *app, callback_args_t *d_args);
 
 int main(int argc, char **argv) {
   app_t *app;
   params_t params;
+  query_args_t *q_args = malloc(sizeof(query_args_t));
+  char buf[INBUFSIZE];
+
   app = calloc(1, sizeof(app_t));
 
   init_nc();
@@ -37,89 +38,44 @@ int main(int argc, char **argv) {
   wrefresh(app->left_win);
   wrefresh(app->right_win);
 
-  // temporal
-  app->modal.type = ask_server_addr;
+  init_query_args(q_args, app->params);
+  q_args->buf = malloc(INBUFSIZE);
+  app->query_args = q_args;
 
-  event_loop(app);
+  /* init client to connect to the server */
+  app->params->sd = init_client();
 
+  if (params.addr == 0) {
+    app->query_args->state = S_ASK_SEVER_IP;
+  } else {
+    connect_to_server(app);
+    app->query_args->state = S_ASK_LOGIN_TYPE;
+  }
+
+  query_loop(app);
+  clear_params(&params);
   destroy_app(app);
-  endwin();
 
-  return 0;
+  return OK;
 }
 
-void app_draw_modal(app_t *app);
-
-void event_loop(app_t *app) {
+int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   int32_t c;
-
-  callback_args_t d_args = {.app = app,
-                            .win = NULL,
-                            .widget = NULL,
-                            .data = (void *)&c,
-                            .resp_data = NULL};
+  c = wgetch(app->win);
+  switch (c) {
+  case KEY_F(9):
+    destroy_app(app);
+    return OK;
+  default:
+    if (app->modal.win != NULL) {
+      d_args->data = (void *)&c;
+      d_args->win = app->modal.win;
+      d_args->widget = &(app->modal);
+      app->modal.w.callback(d_args);
+    }
+    break;
+  }
   app_draw_modal(app);
   app_refresh(app);
-  for (;;) {
-    c = wgetch(app->win);
-    switch (c) {
-    case KEY_F(9):
-      destroy_app(app);
-      return;
-    default:
-      if (app->modal.type != none) {
-        d_args.win = app->modal.dialogue.win;
-        d_args.widget = &(app->modal.dialogue);
-        app->modal.dialogue.w.callback(&d_args);
-      }
-      break;
-    }
-    app_draw_modal(app);
-    app_refresh(app);
-  };
+  return OK;
 }
-
-void app_refresh(app_t *app) {
-  draw_borders(app);
-
-  wnoutrefresh(app->win);
-  wnoutrefresh(app->left_win);
-  wnoutrefresh(app->right_win);
-  if (app->modal.type != none) {
-    if (app->modal.dialogue.is_initiated == 0) {
-      app->modal.type = none;
-    } else {
-      wnoutrefresh(app->modal.dialogue.win);
-    }
-  }
-  doupdate();
-}
-
-void app_draw_modal(app_t *app) {
-  if (app->modal.type != none && !app->modal.dialogue.is_initiated) {
-    switch (app->modal.type) {
-    case login:
-      init_login_modal(app);
-      break;
-    case ask_server_addr:
-      init_asa_modal(app);
-      break;
-    case none:
-    default:
-      break;
-    }
-    draw_dialogue(&(app->modal.dialogue));
-  }
-}
-
-// int main(int argc, char *argv[]) {
-//   params_t params;
-//   init_params(&params);
-//   analyze_args(argc, argv, &params);
-//   get_missing_params(&params);
-//   int sd = init_client();
-//   connect_to_server(sd, &params);
-//   query_loop(sd, &params);
-//   clear_params(&params);
-//   return 0;
-// }

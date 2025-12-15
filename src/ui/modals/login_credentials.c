@@ -3,7 +3,6 @@
 #include <string.h>
 #include <ncurses.h>
 
-#include "../../connection.h"
 #include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
@@ -14,7 +13,7 @@ typedef struct {
   enum w_type type;
 } group_bt_t;
 
-void asa_modal_dialogue_callback(callback_args_t *args) {
+void init_login_credentials_modal_cb(callback_args_t *args) {
   int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
@@ -28,8 +27,7 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
   if (response > -1) {
     switch (response) {
     case 0:
-      get_ip_port(app->params, in_ip->value, in_port->value);
-      connect_to_server(app);
+      app->query_args->state = S_ASK_LOGIN_USER;
       destroy_dialogue(d);
       break;
     case 1:
@@ -39,24 +37,24 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
   }
 }
 
-dialogue_t *init_asa_modal(app_t *app) {
+dialogue_t *init_login_credentials_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t content[] = {
-      {.type = w_input, .label = "Address", .length = 15},
-      {.type = w_input, .label = "Port", .length = 5},
+      {.type = w_input, .label = "Username", .length = 10},
+      {.type = w_input, .label = "Password", .length = 10},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Connect", .is_default = 1},
+      {.type = w_button, .label = "Login", .is_default = 1},
       {.type = w_button, .label = "Cancel", .is_default = 0},
       {.type = w_end}};
 
-  init_dialogue(&(app->modal), "Connect to server",
+  init_dialogue(&(app->modal), "Credentials",
                 "There is information needed", &(app->coordinates));
   dialogue_t *d = &(app->modal);
 
-  d->w.callback = asa_modal_dialogue_callback;
+  d->w.callback = init_login_credentials_modal_cb;
   d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
   d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
 

@@ -1,16 +1,17 @@
-#include "../app.h"
-#include "../widget/dialogue.h"
-#include "../widget/group.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <string.h>
+
+#include "../app.h"
+#include "../widget/dialogue.h"
+#include "../widget/group.h"
 
 typedef struct {
   button_t *element;
   enum w_type type;
 } group_bt_t;
 
-void login_modal_group_callback(callback_args_t *args) {
+void login_modal_option_cb(callback_args_t *args) {
   int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
@@ -24,13 +25,14 @@ void login_modal_group_callback(callback_args_t *args) {
     case 0:
       break;
     case 1:
-      // exit(0);
+      destroy_dialogue(d);
+      app->query_args->state = S_ASK_LOGIN_USER;
       break;
     }
   }
 }
 
-dialogue_t *init_login_modal(app_t *app) {
+dialogue_t *init_login_option_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t children[] = {{.type = w_button, .label = "Anonymous"},
@@ -38,14 +40,14 @@ dialogue_t *init_login_modal(app_t *app) {
                                 {.type = w_button, .label = "Register"},
                                 {.type = w_end}};
 
-  init_dialogue(&(app->modal.dialogue), "Login",
+  init_dialogue(&(app->modal), "Login",
                 "Select your login "
                 "option",
                 &(app->coordinates));
-  app->modal.dialogue.g_content =
-      init_group(&(app->modal.dialogue.win), &(app->modal.dialogue.w), children,
+  app->modal.g_content =
+      init_group(&(app->modal.win), &(app->modal.w), children,
                  horizontal);
-  app->modal.dialogue.w.callback = login_modal_group_callback;
+  app->modal.w.callback = login_modal_option_cb;
 
   return NULL;
 }

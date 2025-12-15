@@ -1,8 +1,8 @@
 #ifndef N_APP_H
 #define N_APP_H
 
-#include "widget/dialogue.h"
 #include "../common.h"
+#include "widget/dialogue.h"
 #include <ncurses.h>
 
 typedef enum {
@@ -20,12 +20,12 @@ typedef struct {
   WINDOW *win;
   WINDOW *left_win;
   WINDOW *right_win;
-  struct {
-    dialogue_e type;
-    dialogue_t dialogue;
-  } modal;
+  dialogue_t modal;
   params_t *params;
   coordinates_t coordinates;
+  query_args_t *query_args;
+  file_args_t *file_args;
+  int32_t read_fd;
 } app_t;
 
 app_t *init_app();
@@ -33,5 +33,7 @@ void init_nc();
 void destroy_app(app_t *app);
 void draw_borders(app_t *app);
 void print_bars(app_t *app);
+void app_refresh(app_t *app);
+void app_draw_modal(app_t *app);
 
 #endif // N_APP_H

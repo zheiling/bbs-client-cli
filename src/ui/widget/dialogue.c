@@ -75,13 +75,17 @@ void dialogue_default_callback(callback_args_t *args) {
     if (d->active.type == g_action) {
       new_args.widget = new_args.widget = d->g_action;
       group_default_callback(&new_args);
-    } else {
+    } else if (d->g_action != NULL) {
       for (int i = 0; i < d->g_action->count; i++) {
         if (d->g_action->elements[i].is_default) {
           *resp_value = i;
           return;
         }
       }
+    } else {
+      /* TODO: temp solution, improve */
+      *resp_value = d->active.id - d->g_content->first_id;
+      return;
     }
     draw_dialogue(d);
     break;
@@ -222,8 +226,10 @@ int32_t draw_dialogue(dialogue_t *d) {
   }
 
   /* move cursor */
-  FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
-  if (ae_ptr == NULL)
+  if (d->g_content != NULL) {
+    FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
+  }
+  if (ae_ptr == NULL && d->g_action != NULL)
     FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
 
   if (ae_ptr != NULL && ae_ptr->id == d->active.id) {

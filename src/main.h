@@ -20,9 +20,14 @@ typedef struct params {
   char *uname;
   char *pass;
   char privileges;
+  int32_t sd;
 } params_t;
 
 enum state {
+  S_N_D,
+  S_ASK_SEVER_IP,
+  S_ASK_LOGIN_TYPE,
+  S_ASK_LOGIN_USER,
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,

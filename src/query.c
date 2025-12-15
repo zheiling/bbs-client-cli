@@ -1,12 +1,9 @@
-#include "file_processor.h"
-#include "connection.h"
-#include "client.h"
-#include "main.h"
-#include "server.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <ncurses.h>
 #include <netinet/in.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,34 +16,45 @@
 #include <time.h>
 #include <unistd.h>
 
-static void init_query_args(query_args_t *q_args, int sd, char *buf,
-                            enum state state, int buf_used, params_t *params);
+#include "client.h"
+#include "connection.h"
+#include "file_processor.h"
+#include "main.h"
+#include "server.h"
+#include "ui/app.h"
+
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);
 int process_query(query_args_t *query_args, file_args_t *file_args);
+int32_t process_user_input(app_t *app, callback_args_t *d_args);
 
-void query_loop(int sd, params_t *params) {
+void query_loop(app_t *app) {
+  query_args_t *query_args = app->query_args;
   fd_set readfds;
-
+  int32_t sd = app->params->sd;
   size_t qlen;
   int sr;
-  char buf[INBUFSIZE];
   static file_args_t file_args;
-  static query_args_t query_args;
+  callback_args_t d_args = {
+      .app = app, .win = NULL, .widget = NULL, .data = NULL, .resp_data = NULL};
 
-  init_query_args(&query_args, sd, buf, WAIT_SERVER_INIT, 0, params);
   init_file_args(&file_args);
+  query_args->sd = sd;
 
   for (;;) {
+    /* update screen */
+    app_draw_modal(app);
+    app_refresh(app);
+
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sd, &readfds);
     int maxfd = sd;
-    if (query_args.state == STATE_UPLOAD_FILE) {
-      if (query_args.file != NULL) {
-        FD_SET(query_args.file->fd, &readfds);
-        if (query_args.file->fd > maxfd)
-          maxfd = query_args.file->fd;
+    if (query_args->state == STATE_UPLOAD_FILE) {
+      if (query_args->file != NULL) {
+        FD_SET(query_args->file->fd, &readfds);
+        if (query_args->file->fd > maxfd)
+          maxfd = query_args->file->fd;
       }
     }
     sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
@@ -57,41 +65,41 @@ void query_loop(int sd, params_t *params) {
 
     if (FD_ISSET(sd, &readfds)) {
       /* process request from the server */
-      qlen = read(sd, buf, INBUFSIZE);
+      qlen = read(sd, query_args->buf, INBUFSIZE);
       if (qlen == 0) {
         close_session(sd);
         printf("\n*** server closed the connection. ***\n");
         exit(1);
       } else {
-        query_args.buf_used = qlen;
-        query_args.from_server = 1;
-        if (-1 == process_query(&query_args, &file_args)) {
+        query_args->buf_used = qlen;
+        query_args->from_server = 1;
+        if (-1 == process_query(query_args, &file_args)) {
           close_session(sd);
           exit(1);
         }
       }
     }
 
-    if (query_args.file && query_args.file->fd > -1 &&
-        FD_ISSET(query_args.file->fd, &readfds)) {
+    if (query_args->file && query_args->file->fd > -1 &&
+        FD_ISSET(query_args->file->fd, &readfds)) {
       /* process upload/download */
-      query_args.buf_used = read(query_args.file->fd, buf, INBUFSIZE);
-      process_query(&query_args, &file_args);
+      query_args->buf_used = read(query_args->file->fd, query_args->buf, INBUFSIZE);
+      process_query(query_args, &file_args);
     }
 
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
       /* process request from the client */
-      qlen = read(STDIN_FILENO, buf, INBUFSIZE);
-      if (qlen == 0) {
+      /* qlen = read(STDIN_FILENO, buf, INBUFSIZE); */
+      /* if (qlen == 0) {
         close_session(sd);
         exit(0);
-      } else {
-        query_args.buf_used = qlen;
-        query_args.from_server = 0;
-        if (-1 == process_query(&query_args, &file_args)) {
-          close_session(sd);
-          exit(1);
-        }
+      } else { */
+      /*       query_args->buf_used = qlen;
+            query_args->from_server = 0; */
+      // if (-1 == process_query(&query_args, &file_args)) {
+      if (-1 == process_user_input(app, &d_args)) {
+        close_session(sd);
+        exit(1);
       }
     }
   }
@@ -154,6 +162,10 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     break;
   case WAIT_REGISTER:
     wait_register(query_args);
+    break;
+  case S_ASK_SEVER_IP:
+  case S_ASK_LOGIN_TYPE:
+  case S_N_D:
     break;
   }
   return 0;
@@ -218,12 +230,11 @@ static void wait_side(query_args_t *q_args) {
   }
 }
 
-static void init_query_args(query_args_t *q_args, int sd, char *buf,
-                            enum state state, int buf_used, params_t *params) {
-  q_args->buf = buf;
-  q_args->sd = sd;
-  q_args->state = state;
-  q_args->buf_used = buf_used;
+void init_query_args(query_args_t *q_args, params_t *params) {
+  q_args->buf = NULL;
+  q_args->sd = -1;
+  q_args->state = S_N_D;
+  q_args->buf_used = 0;
   q_args->params = params;
   q_args->file = NULL;
   q_args->from_server = 0;
