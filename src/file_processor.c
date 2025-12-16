@@ -35,7 +35,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
     if (!strcmp("list_end\n", query)) {
-      q_args->state = STATE_FILE_SELECT;
+      q_args->state = S_FILE_SELECT;
       idx = 1;
       break;
     }
@@ -71,7 +71,7 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   
   if (!(sscanf(buf, "%u", &filenum))) {
     write(q_args->sd, buf, strlen(buf));
-    q_args->state = STATE_FILE_LIST;
+    q_args->state = S_FILE_LIST;
     fl_clear(&f_args->l_start, &f_args->l_current);
     return;
   }
@@ -111,7 +111,7 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   }
   qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
   write(q_args->sd, send_buf, qlen);
-  q_args->state = STATE_FILE_DOWNLOAD;
+  q_args->state = S_FILE_DOWNLOAD;
   free(file_path);
 }
 

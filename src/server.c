@@ -21,6 +21,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   params_t *params = q_args->params;
   const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
   uint32_t answer;
+  uint64_t new_capacity;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -28,27 +29,11 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* LOGIN */
   if (!strncmp(line, "login>", ws_pos)) {
-    // if (params->uname == NULL) {
-    //   fflush(stdout);
-    //   answer = print_ask_list("Select login type:", login_options);
-    //   switch (answer) {
-    //   case 1:
-    //     ask_uname_and_password(q_args->params);
-    //     break;
-    //   case 2:
-    //     params->uname = malloc(sizeof("anonymous"));
-    //     strcpy(params->uname, "anonymous");
-    //     q_args->state = WAIT_CLIENT;
-    //     break;
-    //   case 3:
-    //     wait_register(q_args);
-    //     return 3;
-    //   default:
-    //     return -1;
-    //   }
-    // }
-    // write(q_args->sd, params->uname, strlen(params->uname));
-
+    if (q_args->server_message.size > 0) {
+      q_args->state = S_PRINT_SERVER_MESSAGE;
+      q_args->next_server_command = malloc(l_len + 1);
+      strcpy(q_args->next_server_command, line);
+    }
     return 0;
   }
 
@@ -99,8 +84,25 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
     return 0;
   }
 
-  if (q_args->state == WAIT_SERVER_INIT) {
-    write(STDOUT_FILENO, line, l_len);
+  if (q_args->state == S_WAIT_SERVER) {
+    if (q_args->server_message.text == NULL) {
+      q_args->server_message.text = malloc(l_len + 1);
+      memcpy(q_args->server_message.text, line, l_len);
+      q_args->server_message.text[l_len] = 0;
+      q_args->server_message.size = l_len + 1;
+      q_args->server_message.capacity = l_len + 1;
+    } else {
+      if (q_args->server_message.size + l_len >
+          q_args->server_message.capacity) {
+        new_capacity = (l_len + q_args->server_message.capacity) * 2;
+        q_args->server_message.text =
+            realloc(q_args->server_message.text, new_capacity);
+        q_args->server_message.capacity = new_capacity;
+      }
+      q_args->server_message.size += l_len;
+      strncat(q_args->server_message.text, line, l_len);
+      q_args->server_message.text[q_args->server_message.size+l_len] = 0;
+    }
   } else {
     char buf[INBUFSIZE + sizeof("server: ")] = "server: ";
     strcat(buf, line);

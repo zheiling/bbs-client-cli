@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     app->query_args->state = S_ASK_SEVER_IP;
   } else {
     connect_to_server(app);
-    app->query_args->state = S_ASK_LOGIN_TYPE;
+    app->query_args->state = S_WAIT_SERVER;
   }
 
   query_loop(app);

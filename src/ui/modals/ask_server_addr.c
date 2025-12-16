@@ -31,6 +31,7 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
       get_ip_port(app->params, in_ip->value, in_port->value);
       connect_to_server(app);
       destroy_dialogue(d);
+      app->query_args->state = S_WAIT_SERVER;
       break;
     case 1:
       destroy_app(app);

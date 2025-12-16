@@ -1,6 +1,7 @@
 #include "main.h"
 #include "ui/app.h"
 #include <arpa/inet.h>
+#include <ncurses.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,7 @@ void connect_to_server(app_t *app) {
     destroy_app(app);
     exit(2);
   }
+  app->params->is_connected = TRUE;
 }
 
 void init_params(params_t *params) {
@@ -30,6 +32,7 @@ void init_params(params_t *params) {
   params->uname = NULL;
   params->privileges = 0;
   params->port = htons(SERVER_PORT);
+  params->is_connected = FALSE;
 }
 
 void clear_params(params_t *params) {

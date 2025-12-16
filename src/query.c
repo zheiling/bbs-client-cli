@@ -49,8 +49,8 @@ void query_loop(app_t *app) {
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sd, &readfds);
-    int maxfd = sd;
-    if (query_args->state == STATE_UPLOAD_FILE) {
+    int maxfd = app->params->is_connected ? sd : STDIN_FILENO;
+    if (query_args->state == S_UPLOAD_FILE) {
       if (query_args->file != NULL) {
         FD_SET(query_args->file->fd, &readfds);
         if (query_args->file->fd > maxfd)
@@ -122,35 +122,36 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
   case WAIT_CLIENT:
+  case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
     wait_side(query_args);
     break;
   case UPLOAD_FILE:
-  case STATE_ERR:
+  case S_ERR:
     break;
-  case STATE_FILE_LIST:
+  case S_FILE_LIST:
     file_list(file_args, query_args);
     break;
-  case STATE_FILE_SELECT:
+  case S_FILE_SELECT:
     if (query_args->from_server) {
       wait_side(query_args);
     } else {
       file_select(file_args, query_args);
     }
     break;
-  case STATE_FILE_DOWNLOAD:
+  case S_FILE_DOWNLOAD:
     file_download(file_args, query_args);
     break;
-  case STATE_UPLOAD_REQUESTED:
+  case S_UPLOAD_REQUESTED:
     if (!file_upload_start(query_args)) {
-      query_args->state = STATE_UPLOAD_FILE;
+      query_args->state = S_UPLOAD_FILE;
     } else {
       print_prompt(query_args->params);
       query_args->state = WAIT_CLIENT;
     }
     break;
-  case STATE_UPLOAD_PARAMS:
-  case STATE_UPLOAD_FILE:
+  case S_UPLOAD_PARAMS:
+  case S_UPLOAD_FILE:
     if (file_upload(query_args)) {
       /* upload finishes */
       user_request_description(query_args);
@@ -158,7 +159,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
       query_args->state = WAIT_CLIENT;
     }
     break;
-  case STATE_ASK_USER_BEFORE_LOGIN:
+  case S_ASK_USER_BEFORE_LOGIN:
     break;
   case WAIT_REGISTER:
     wait_register(query_args);
@@ -215,7 +216,7 @@ static void wait_side(query_args_t *q_args) {
   char *query = NULL;
 
   if (q_args->state == WAIT_SERVER || q_args->state == WAIT_SERVER_INIT ||
-      q_args->from_server) {
+      q_args->from_server || q_args->state == S_WAIT_SERVER) {
     while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
       process_server_command(query, qlen, q_args);
       free(query);
@@ -238,6 +239,10 @@ void init_query_args(query_args_t *q_args, params_t *params) {
   q_args->params = params;
   q_args->file = NULL;
   q_args->from_server = 0;
+  q_args->server_message.text = NULL;
+  q_args->server_message.capacity = 0;
+  q_args->server_message.size = 0;
+  q_args->next_server_command = NULL;
 }
 
 void user_request_description(query_args_t *q_args) {

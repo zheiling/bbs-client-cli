@@ -11,7 +11,7 @@
 #define INBUFSIZE 1024
 #define DOWNLOADS_DIR "./Downloads"
 #define DIALOGUE_TITLE 64
-#define DIALOGUE_TEXT 128
+#define DIALOGUE_TEXT 4096
 #define INPUT_TEXT DIALOGUE_TITLE
 
 typedef struct params {
@@ -21,6 +21,7 @@ typedef struct params {
   char *pass;
   char privileges;
   int32_t sd;
+  uint32_t is_connected : 1;
 } params_t;
 
 enum state {
@@ -28,20 +29,22 @@ enum state {
   S_ASK_SEVER_IP,
   S_ASK_LOGIN_TYPE,
   S_ASK_LOGIN_USER,
+  S_WAIT_SERVER,
+  S_PRINT_SERVER_MESSAGE,
+  S_FILE_LIST,
+  S_FILE_SELECT,
+  S_FILE_DOWNLOAD,
+  S_UPLOAD_PARAMS,
+  S_UPLOAD_FILE,
+  S_UPLOAD_REQUESTED,
+  S_ASK_USER_BEFORE_LOGIN,
+  S_ERR,
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,
   WAIT_REGISTER_CONFIRMATION,
   WAIT_CLIENT,
   UPLOAD_FILE,
-  STATE_FILE_LIST,
-  STATE_FILE_SELECT,
-  STATE_FILE_DOWNLOAD,
-  STATE_UPLOAD_PARAMS,
-  STATE_UPLOAD_FILE,
-  STATE_UPLOAD_REQUESTED,
-  STATE_ASK_USER_BEFORE_LOGIN,
-  STATE_ERR,
 };
 
 typedef struct p_file {
@@ -74,6 +77,12 @@ typedef struct query_args {
   char *buf;
   char from_server;
   params_t *params;
+  char *next_server_command;
+  struct {
+    char *text;
+    uint64_t capacity;
+    uint64_t size;
+  } server_message;
 } query_args_t;
 
 #endif

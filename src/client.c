@@ -10,14 +10,14 @@ int process_client_command(char *line, int l_len, query_args_t *q_args) {
   /* FILE LIST */
   if (!strncmp(line, "file list", sizeof("file list") - 1)) {
     write(q_args->sd, "file list", sizeof("file list") - 1);
-    q_args->state = STATE_FILE_LIST;
+    q_args->state = S_FILE_LIST;
     return 0;
   }
 
   /* FILE UPLOAD */
   if (!strncmp(line, "file upload", sizeof("file upload") - 1)) {
     if (!file_upload_request(line, q_args)) {
-      q_args->state = STATE_UPLOAD_REQUESTED;
+      q_args->state = S_UPLOAD_REQUESTED;
     } else {
       print_prompt(q_args->params);
       q_args->state = WAIT_CLIENT;

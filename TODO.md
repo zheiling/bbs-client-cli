@@ -8,3 +8,8 @@ TODO:
 - [ ] Group elements as lists
 - [ ] Process arrows
 - [ ] active_id -> просто указатель на элемент
+
+INPUT:
+- [ ] hidden text for passwords
+- [ ] move cursor through the text in input
+

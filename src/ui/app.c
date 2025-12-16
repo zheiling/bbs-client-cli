@@ -2,6 +2,8 @@
 #include "modals/ask_server_addr.h"
 #include "modals/login_credentials.h"
 #include "modals/login_option.h"
+#include "modals/server_message.h"
+// #include "modals/server_message.h"
 // #include "action.h"
 #include <ncurses.h>
 #include <stdio.h>
@@ -128,20 +130,24 @@ void app_draw_modal(app_t *app) {
     case S_ASK_LOGIN_USER:
       init_login_credentials_modal(app);
       break;
+    case S_PRINT_SERVER_MESSAGE:
+      init_server_message_modal(app);
+      break;
     case WAIT_SERVER_INIT:
     case WAIT_SERVER:
     case WAIT_REGISTER:
     case WAIT_REGISTER_CONFIRMATION:
     case WAIT_CLIENT:
     case UPLOAD_FILE:
-    case STATE_FILE_LIST:
-    case STATE_FILE_SELECT:
-    case STATE_FILE_DOWNLOAD:
-    case STATE_UPLOAD_PARAMS:
-    case STATE_UPLOAD_FILE:
-    case STATE_UPLOAD_REQUESTED:
-    case STATE_ASK_USER_BEFORE_LOGIN:
-    case STATE_ERR:
+    case S_FILE_LIST:
+    case S_FILE_SELECT:
+    case S_FILE_DOWNLOAD:
+    case S_UPLOAD_PARAMS:
+    case S_UPLOAD_FILE:
+    case S_UPLOAD_REQUESTED:
+    case S_ASK_USER_BEFORE_LOGIN:
+    case S_ERR:
+    case S_WAIT_SERVER:
     case S_N_D:
       return;
     }
@@ -151,6 +157,5 @@ void app_draw_modal(app_t *app) {
 
 void destroy_app(app_t *app) {
   delwin(app->win);
-  // free(app);
   endwin();
 }
