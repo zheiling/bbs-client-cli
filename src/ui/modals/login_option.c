@@ -44,10 +44,11 @@ dialogue_t *init_login_option_modal(app_t *app) {
                 "Select your login "
                 "option",
                 &(app->coordinates));
-  app->modal.g_content =
+  app->modal.g_action =
       init_group(&(app->modal.win), &(app->modal.w), children,
                  horizontal);
   app->modal.w.callback = login_modal_option_cb;
+  dialogue_init_active_id(&(app->modal));
 
   return NULL;
 }

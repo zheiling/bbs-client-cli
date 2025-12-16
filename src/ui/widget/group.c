@@ -53,7 +53,7 @@ void group_default_callback(callback_args_t *args) {
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction direction) {
   group_t *group = malloc(sizeof(group_t));
-
+  init_widget(&(group->w), w_parent, win, "");
   /* count elements */
   group->count = 0;
   for (; children[group->count].type != w_end; group->count++)
@@ -91,7 +91,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     // set dimensions
     elements[i].id = w->id;
     if (direction == horizontal) {
-      w->m_x = group->w.x + 1;
+      w->m_x = group->w.m_x + 1 + group->w.x;
       w->m_y = group->w.m_y;
       group->w.x += w->x + 1;
       if (group->w.y < w->y)

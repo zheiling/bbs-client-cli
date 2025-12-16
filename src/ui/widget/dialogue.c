@@ -155,9 +155,9 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
     group->w.m_y = y;                                                          \
     if (line_max_len < group->w.x) {                                           \
       line_max_len = group->w.x;                                               \
-      group->w.m_x = 1; /* when uses box */                                    \
+      group->w.m_x = 0; /* when uses box */                                    \
     } else {                                                                   \
-      /* TODO: centering */                                                    \
+      group->w.m_x = (line_max_len - group->w.x) / 2;                          \
     }                                                                          \
     y += group->w.y;                                                           \
   }

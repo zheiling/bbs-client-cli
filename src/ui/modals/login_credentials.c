@@ -1,7 +1,7 @@
+#include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ncurses.h>
 
 #include "../app.h"
 #include "../widget/dialogue.h"
@@ -41,8 +41,8 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t content[] = {
-      {.type = w_input, .label = "Username", .length = 10},
-      {.type = w_input, .label = "Password", .length = 10},
+      {.type = w_input, .label = "Username", .length = 15},
+      {.type = w_input, .label = "Password", .length = 15},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
@@ -50,8 +50,8 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
       {.type = w_button, .label = "Cancel", .is_default = 0},
       {.type = w_end}};
 
-  init_dialogue(&(app->modal), "Credentials",
-                "There is information needed", &(app->coordinates));
+  init_dialogue(&(app->modal), "Credentials", "There is information needed",
+                &(app->coordinates));
   dialogue_t *d = &(app->modal);
 
   d->w.callback = init_login_credentials_modal_cb;
