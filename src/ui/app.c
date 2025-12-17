@@ -149,6 +149,7 @@ void app_draw_modal(app_t *app) {
     case S_ERR:
     case S_WAIT_SERVER:
     case S_N_D:
+    case S_NEXT_ACTION:
       return;
     }
   }

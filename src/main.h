@@ -39,6 +39,7 @@ enum state {
   S_UPLOAD_REQUESTED,
   S_ASK_USER_BEFORE_LOGIN,
   S_ERR,
+  S_NEXT_ACTION,
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,
@@ -70,12 +71,12 @@ typedef struct file_args {
 } file_args_t;
 
 typedef struct query_args {
-  int sd;
-  int buf_used;
+  int32_t sd;
+  int32_t buf_used;
   p_file_t *file;
   enum state state;
   char *buf;
-  char from_server;
+  uint32_t from_server : 1;
   params_t *params;
   char *next_server_command;
   struct {

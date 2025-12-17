@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "../app.h"
 #include "../widget/dialogue.h"
@@ -21,13 +22,20 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
-  input_t *in_ip = d->g_content->elements[0].element;
-  input_t *in_port = d->g_content->elements[1].element;
+  input_t *in_name = d->g_content->elements[0].element;
+  input_t *in_pass = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
   if (response > -1) {
     switch (response) {
     case 0:
-      app->query_args->state = S_ASK_LOGIN_USER;
+      app->params->uname = malloc(in_name->value_len + 1);
+      app->params->pass = malloc(in_pass->value_len + 1);
+      strncpy(app->params->uname, in_name->value, in_name->value_len);
+      app->params->uname[in_name->value_len] = 0;
+      strncpy(app->params->pass, in_pass->value, in_pass->value_len);
+      app->params->pass[in_pass->value_len] = 0;
+      write(app->params->sd, app->params->uname, in_name->value_len);
+      app->query_args->state = S_WAIT_SERVER;
       destroy_dialogue(d);
       break;
     case 1:

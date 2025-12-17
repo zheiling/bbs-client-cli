@@ -75,7 +75,5 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
     }
     break;
   }
-  app_draw_modal(app);
-  app_refresh(app);
   return OK;
 }

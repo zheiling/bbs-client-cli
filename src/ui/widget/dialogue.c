@@ -186,8 +186,6 @@ int32_t draw_dialogue(dialogue_t *d) {
   x += 1; /* when uses box */
   y += 1; /* when uses box */
 
-  /* space for action block */
-
   d->w.x = x;
   d->w.y = y;
   d->w.m_y = (d->p_coordinates->max_y - y) / 2;

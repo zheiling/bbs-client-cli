@@ -16,6 +16,14 @@
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);
 
+#define PRINT_SRV_MESSAGE(q_args)                                              \
+  if (q_args->server_message.size > 0) {                                       \
+    q_args->state = S_PRINT_SERVER_MESSAGE;                                    \
+    q_args->next_server_command = malloc(l_len + 1);                           \
+    strcpy(q_args->next_server_command, line);                                 \
+    return 0;                                                                  \
+  }
+
 int process_server_command(char *line, int l_len, query_args_t *q_args) {
   int ws_pos = l_len;
   params_t *params = q_args->params;
@@ -29,11 +37,8 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* LOGIN */
   if (!strncmp(line, "login>", ws_pos)) {
-    if (q_args->server_message.size > 0) {
-      q_args->state = S_PRINT_SERVER_MESSAGE;
-      q_args->next_server_command = malloc(l_len + 1);
-      strcpy(q_args->next_server_command, line);
-    }
+    PRINT_SRV_MESSAGE(q_args);
+    q_args->state = S_ASK_LOGIN_TYPE;
     return 0;
   }
 
@@ -101,7 +106,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
       }
       q_args->server_message.size += l_len;
       strncat(q_args->server_message.text, line, l_len);
-      q_args->server_message.text[q_args->server_message.size+l_len] = 0;
+      q_args->server_message.text[q_args->server_message.size + l_len] = 0;
     }
   } else {
     char buf[INBUFSIZE + sizeof("server: ")] = "server: ";

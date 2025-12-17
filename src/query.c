@@ -32,6 +32,7 @@ void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
   int32_t sd = app->params->sd;
+  app->query_args->sd = app->params->sd;
   size_t qlen;
   int sr;
   static file_args_t file_args;
@@ -57,10 +58,25 @@ void query_loop(app_t *app) {
           maxfd = query_args->file->fd;
       }
     }
-    sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
-    if (sr == -1) {
-      perror("select");
-      exit(3);
+    if (query_args->state == S_NEXT_ACTION &&
+        query_args->next_server_command != NULL) {
+      query_args->buf_used = strlen(query_args->next_server_command);
+      memcpy(query_args->buf, query_args->next_server_command,
+             query_args->buf_used);
+      free(query_args->next_server_command);
+      query_args->next_server_command = NULL;
+      query_args->from_server = TRUE;
+      if (-1 == process_query(query_args, &file_args)) {
+        close_session(sd);
+        exit(1);
+      }
+      continue;
+    } else {
+      sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
+      if (sr == -1) {
+        perror("select");
+        exit(3);
+      }
     }
 
     if (FD_ISSET(sd, &readfds)) {
@@ -72,7 +88,7 @@ void query_loop(app_t *app) {
         exit(1);
       } else {
         query_args->buf_used = qlen;
-        query_args->from_server = 1;
+        query_args->from_server = TRUE;
         if (-1 == process_query(query_args, &file_args)) {
           close_session(sd);
           exit(1);
@@ -83,7 +99,8 @@ void query_loop(app_t *app) {
     if (query_args->file && query_args->file->fd > -1 &&
         FD_ISSET(query_args->file->fd, &readfds)) {
       /* process upload/download */
-      query_args->buf_used = read(query_args->file->fd, query_args->buf, INBUFSIZE);
+      query_args->buf_used =
+          read(query_args->file->fd, query_args->buf, INBUFSIZE);
       process_query(query_args, &file_args);
     }
 
@@ -122,6 +139,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
   case WAIT_CLIENT:
+  case S_NEXT_ACTION:
   case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
     wait_side(query_args);
