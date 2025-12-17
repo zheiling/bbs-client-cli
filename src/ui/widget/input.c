@@ -29,7 +29,7 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   uint32_t margin_y = input->w.m_y + input->w.w_parent->m_y;
   uint32_t margin_x = input->w.m_x + input->w.w_parent->m_x;
 
-  wattrset(win, COLOR_PAIR(MODAL_COLOR_PAIR));
+  wattrset(win, COLOR_PAIR(modal_color_pair));
 
   mvwhline(win, margin_y, margin_x, 0, input->w.x);
   mvwhline(win, margin_y + 2, margin_x, 0, input->w.x);
@@ -50,7 +50,7 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   margin_x++;
 
   if (input->w.id == active_id) {
-    wattrset(win, COLOR_PAIR(MODAL_COLOR_PAIR) | A_BOLD | A_REVERSE);
+    wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD | A_REVERSE);
   } else {
     wattrset(win, COLOR_PAIR(0) | A_BOLD);
   }

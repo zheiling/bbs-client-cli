@@ -6,15 +6,15 @@
 #include <ncurses.h>
 
 typedef enum {
-  MODAL_COLOR_PAIR = 3,
-  MODAL_BORDER_COLOR_PAIR = 4,
+  modal_color_pair = 3,
+  modal_border_color_pair = 4,
 } color;
 
 typedef enum {
-  none = 0,
-  login = 1,
-  ask_server_addr = 2,
-} dialogue_e;
+  aw_left,
+  aw_right,
+  aw_modal
+} active_win_t;
 
 typedef struct {
   WINDOW *win;
@@ -26,6 +26,7 @@ typedef struct {
   query_args_t *query_args;
   file_args_t *file_args;
   int32_t read_fd;
+  active_win_t active_win;
 } app_t;
 
 app_t *init_app();

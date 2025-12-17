@@ -26,7 +26,7 @@ int32_t draw_button(button_t *btn, uint32_t active_id) {
 
   if (btn->w.id == active_id) {
     sprintf(title, "[< %s >]", btn->w.title);
-    wattrset(win, COLOR_PAIR(MODAL_COLOR_PAIR) | A_BOLD | A_REVERSE);
+    wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD | A_REVERSE);
   } else {
     sprintf(title, "[  %s  ]", btn->w.title);
     wattrset(win, COLOR_PAIR(0) | A_REVERSE);

@@ -44,14 +44,16 @@ int main(int argc, char **argv) {
 
   /* init client to connect to the server */
   app->params->sd = init_client();
-
+  
   if (params.addr == 0) {
     app->query_args->state = S_ASK_SEVER_IP;
   } else {
     connect_to_server(app);
     app->query_args->state = S_WAIT_SERVER;
   }
-
+  
+  app->query_args->sd = app->params->sd;
+  
   query_loop(app);
   clear_params(&params);
   destroy_app(app);

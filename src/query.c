@@ -32,7 +32,6 @@ void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
   int32_t sd = app->params->sd;
-  app->query_args->sd = app->params->sd;
   size_t qlen;
   int sr;
   static file_args_t file_args;
