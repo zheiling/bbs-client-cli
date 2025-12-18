@@ -3,6 +3,7 @@
 #include "modals/login_credentials.h"
 #include "modals/login_option.h"
 #include "modals/server_message.h"
+#include "widget/file_list.h"
 // #include "modals/server_message.h"
 // #include "action.h"
 #include <ncurses.h>
@@ -109,14 +110,6 @@ void print_bars(app_t *app) {
   mvwprintw(app->win, app->coordinates.cur_y - 2, 2, "F1 - Help | F9 - Quit");
 
   wattroff(app->win, A_REVERSE);
-}
-
-void draw_file_list(app_t *app) {
-  WINDOW *win = app->left_win;
-  int sz_y, sz_x;
-  getmaxyx(win, sz_y, sz_x);
-
-  
 }
 
 void app_refresh(app_t *app) {

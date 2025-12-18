@@ -1,5 +1,6 @@
 TODO:
 - [x] More universal Makefile
+- [ ] Draw only when something changes in UI
 - [ ] Check and fix registration and login
 - [x] UI: destroy child elements everywhere
 - [x] use parent widgets pointers to count the margins correctly

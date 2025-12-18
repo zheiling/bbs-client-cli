@@ -84,6 +84,7 @@ typedef struct query_args {
     uint64_t capacity;
     uint64_t size;
   } server_message;
+  void *file_list_ui; /* TODO: find solution to insert actual type without recursion */
 } query_args_t;
 
 #endif

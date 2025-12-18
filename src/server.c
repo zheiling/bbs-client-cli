@@ -1,6 +1,7 @@
 #include "client.h"
 #include "main.h"
 #include "ui.h"
+#include "ui/widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -37,8 +38,14 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* LOGIN */
   if (!strncmp(line, "login>", ws_pos)) {
-    PRINT_SRV_MESSAGE(q_args);
-    q_args->state = S_ASK_LOGIN_TYPE;
+    if (q_args->server_message.size > 0) {
+      PRINT_SRV_MESSAGE(q_args);
+    }
+    if (q_args->params->uname != NULL && q_args->params->pass != NULL) {
+      write(params->sd, q_args->params->uname, strlen(q_args->params->uname));
+    } else {
+      q_args->state = S_ASK_LOGIN_TYPE;
+    }
     return 0;
   }
 
@@ -65,9 +72,8 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   /* REGISTER CONFIRMATION */
   if (q_args->state == WAIT_REGISTER_CONFIRMATION) {
     if (!strcmp(line, "ok")) {
-      printf("Welcome, %s\n", q_args->params->uname);
-      print_prompt(q_args->params);
-      q_args->state = WAIT_CLIENT;
+      write(q_args->sd, "file list", sizeof("file list"));
+      q_args->state = S_FILE_LIST;
       return 0;
     } else {
       write(STDOUT_FILENO, line, strlen(line));
@@ -83,9 +89,8 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    printf("%s\n", line);
-    print_prompt(q_args->params);
-    q_args->state = WAIT_CLIENT;
+    write(q_args->sd, "file list", sizeof("file list"));
+    q_args->state = S_FILE_LIST;
     return 0;
   }
 

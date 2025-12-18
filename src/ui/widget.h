@@ -45,7 +45,7 @@ typedef struct widget_t {
   } cur;
   WINDOW *const *parent_win;
   struct widget_t *w_parent;
-  enum rsize rsize;
+  // enum rsize rsize;
   void (*callback)(callback_args_t *args);
 } widget_t;
 

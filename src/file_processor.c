@@ -1,6 +1,7 @@
 #include "client.h"
 #include "main.h"
 #include "query.h"
+#include "ui/widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -36,6 +37,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
                                         &query))) {
     if (!strcmp("list_end\n", query)) {
       q_args->state = S_FILE_SELECT;
+      draw_file_list(q_args->file_list_ui, &(f_args->l_start));
       idx = 1;
       break;
     }
@@ -43,8 +45,6 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     qbuf_used += strlen(qbuf);
     if (strchr(qbuf, '\n') == NULL) continue;
     fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
-    printf("[%d] [%s | %s]\n%s\n", idx++, f_args->l_current->name,
-           f_args->l_current->owner, f_args->l_current->description);
     free(query);
     query = NULL;
     qbuf_used = 0;
@@ -53,7 +53,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
 
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
-    write(STDOUT_FILENO, query, strlen(query));
+    // write(STDOUT_FILENO, query, strlen(query));
   }
 }
 
