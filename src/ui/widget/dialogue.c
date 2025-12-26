@@ -5,6 +5,7 @@
 
 #include "../app.h"
 #include "dialogue.h"
+#include "file_list.h"
 #include "group.h"
 #include "input.h"
 
@@ -251,7 +252,8 @@ int32_t draw_dialogue(dialogue_t *d) {
   return 0;
 };
 
-void destroy_dialogue(dialogue_t *d) {
+void destroy_dialogue(dialogue_t *d, void *_app) {
+  app_t *app = (app_t *)_app;
   if (d->g_content) {
     destroy_group(d->g_content);
   }
@@ -261,4 +263,7 @@ void destroy_dialogue(dialogue_t *d) {
   delwin(d->win);
   d->win = NULL;
   d->is_initiated = 0;
+  app->active_win_type = aw_left;
+  app->active_win = app->left_win;
+  app->active_callback = file_list_cb;
 }

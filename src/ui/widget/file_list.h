@@ -7,8 +7,13 @@ typedef struct {
     fl_item_t *current;
     fl_item_t *start;
     int32_t current_idx;
+    uint32_t count;
+    uint32_t pages;
+    uint32_t current_page;
 } file_list_t;
 
-void draw_file_list(file_list_t *fl_ui, fl_item_t **fl_start);
+void draw_file_list(file_list_t *fl_ui);
+void redraw_file_list(file_list_t *fl_ui);
 file_list_t *init_file_list(WINDOW **win);
+void file_list_cb(callback_args_t *args);
 #endif

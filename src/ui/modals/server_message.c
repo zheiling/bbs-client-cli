@@ -16,15 +16,16 @@ void server_message_modal_cb(callback_args_t *args) {
   int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)args->widget;
+  dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
+  d_args.widget = app->active_widget;
   dialogue_default_callback(&d_args);
   if (response > -1) {
     switch (response) {
     case 0:
-      destroy_dialogue(d);
+      destroy_dialogue(d, app);
       /* TODO: macros */
       free(app->query_args->server_message.text);
       app->query_args->server_message.capacity = 0;

@@ -30,6 +30,8 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t idx = 1;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
+  file_list_t *fui = (file_list_t *) q_args->file_list_ui;
+  fui->start = f_args->l_start;
 
   if (qbuf_used == 0) qbuf[0] = 0;
 
@@ -37,7 +39,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
                                         &query))) {
     if (!strcmp("list_end\n", query)) {
       q_args->state = S_FILE_SELECT;
-      draw_file_list(q_args->file_list_ui, &(f_args->l_start));
+      draw_file_list(fui);
       idx = 1;
       break;
     }
@@ -45,6 +47,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     qbuf_used += strlen(qbuf);
     if (strchr(qbuf, '\n') == NULL) continue;
     fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
+    fui->count++;
     free(query);
     query = NULL;
     qbuf_used = 0;

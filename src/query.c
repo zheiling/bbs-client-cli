@@ -36,7 +36,7 @@ void query_loop(app_t *app) {
   int sr;
   static file_args_t file_args;
   callback_args_t d_args = {
-      .app = app, .win = NULL, .widget = NULL, .data = NULL, .resp_data = NULL};
+      .app = app, .widget = NULL, .data = NULL, .resp_data = NULL};
 
   init_file_args(&file_args);
   query_args->sd = sd;
@@ -65,7 +65,7 @@ void query_loop(app_t *app) {
       free(query_args->next_server_command);
       query_args->next_server_command = NULL;
       query_args->from_server = TRUE;
-      if (-1 == process_query(query_args, &file_args)) {
+      if (ERR == process_query(query_args, &file_args)) {
         close_session(sd);
         exit(1);
       }
@@ -88,7 +88,7 @@ void query_loop(app_t *app) {
       } else {
         query_args->buf_used = qlen;
         query_args->from_server = TRUE;
-        if (-1 == process_query(query_args, &file_args)) {
+        if (ERR == process_query(query_args, &file_args)) {
           close_session(sd);
           exit(1);
         }
@@ -113,7 +113,7 @@ void query_loop(app_t *app) {
       /*       query_args->buf_used = qlen;
             query_args->from_server = 0; */
       // if (-1 == process_query(&query_args, &file_args)) {
-      if (-1 == process_user_input(app, &d_args)) {
+      if (ERR == process_user_input(app, &d_args)) {
         close_session(sd);
         exit(1);
       }

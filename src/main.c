@@ -14,7 +14,6 @@
 #include "query.h"
 #include "ui/app.h"
 #include "ui/widget.h"
-#include "ui/widget/dialogue.h"
 #include "ui/widget/file_list.h"
 
 uint32_t m_id = 0;
@@ -69,14 +68,10 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   switch (c) {
   case KEY_F(9):
     destroy_app(app);
-    return OK;
+    return ERR;
   default:
-    if (app->modal.win != NULL) {
       d_args->data = (void *)&c;
-      d_args->win = app->modal.win;
-      d_args->widget = &(app->modal);
-      app->modal.w.callback(d_args);
-    }
+      app->active_callback(d_args);
     break;
   }
   return OK;

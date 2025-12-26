@@ -14,7 +14,6 @@ enum w_type {
 };
 
 typedef struct {
-  WINDOW *win;
   void *app;
   void *widget;
   void *data;

@@ -24,6 +24,7 @@ void connect_to_server(app_t *app) {
     exit(2);
   }
   app->params->is_connected = TRUE;
+  print_bars(app);
 }
 
 void init_params(params_t *params) {

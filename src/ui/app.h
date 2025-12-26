@@ -2,6 +2,7 @@
 #define N_APP_H
 
 #include "../common.h"
+#include "widget.h"
 #include "widget/dialogue.h"
 #include <ncurses.h>
 
@@ -26,7 +27,10 @@ typedef struct {
   query_args_t *query_args;
   file_args_t *file_args;
   int32_t read_fd;
-  active_win_t active_win;
+  active_win_t active_win_type;
+  void (*active_callback)(callback_args_t *args);
+  WINDOW *active_win;
+  void *active_widget;
 } app_t;
 
 app_t *init_app();

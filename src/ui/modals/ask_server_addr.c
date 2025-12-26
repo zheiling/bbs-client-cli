@@ -18,10 +18,11 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
   int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)args->widget;
+  dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
+  d_args.widget = app->active_widget;
   input_t *in_ip = d->g_content->elements[0].element;
   input_t *in_port = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
@@ -30,7 +31,7 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
     case 0:
       get_ip_port(app->params, in_ip->value, in_port->value);
       connect_to_server(app);
-      destroy_dialogue(d);
+      destroy_dialogue(d, app);
       app->query_args->state = S_WAIT_SERVER;
       break;
     case 1:

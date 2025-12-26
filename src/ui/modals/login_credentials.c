@@ -18,10 +18,11 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
   int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)args->widget;
+  dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
+  d_args.widget = app->active_widget;
   input_t *in_name = d->g_content->elements[0].element;
   input_t *in_pass = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
@@ -36,7 +37,8 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       app->params->pass[in_pass->value_len] = 0;
       write(app->params->sd, app->params->uname, in_name->value_len);
       app->query_args->state = S_WAIT_SERVER;
-      destroy_dialogue(d);
+      destroy_dialogue(d,app);
+      print_bars(app);
       break;
     case 1:
       destroy_app(app);
