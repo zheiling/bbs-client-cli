@@ -1,7 +1,5 @@
-#include "client.h"
 #include "main.h"
 #include "ui.h"
-#include "ui/widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -114,12 +112,12 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
       q_args->server_message.text[q_args->server_message.size + l_len] = 0;
     }
   } else {
-    char buf[INBUFSIZE + sizeof("server: ")] = "server: ";
-    strcat(buf, line);
-    write(STDOUT_FILENO, buf, l_len + sizeof("server: "));
-    if (q_args->state == WAIT_CLIENT) {
-      print_prompt(q_args->params);
-    }
+    /* char buf[INBUFSIZE + sizeof("server: ")] = "server: ";
+      strcat(buf, line);
+      write(STDOUT_FILENO, buf, l_len + sizeof("server: "));
+      if (q_args->state == WAIT_CLIENT) {
+        print_prompt(q_args->params);
+    } */
   }
 
   return 0;

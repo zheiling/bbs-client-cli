@@ -1,26 +1,46 @@
 #include "file_list.h"
+#include "../../file_processor.h"
 #include "../app.h"
 #include <ncurses.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
+
+void reset_file_list(file_list_t *fl_ui);
 
 void file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
   file_list_t *fui = app->query_args->file_list_ui;
   int32_t key = *((int32_t *)args->data);
+  char switch_page_query[10];
+  int32_t spq_len = 0;
   switch (key) {
   case KEY_DOWN:
-    if (fui->current_idx < fui->count - 1) {
+    if (fui->current_idx < fui->current_count - 1) {
       fui->current_idx++;
-      redraw_file_list(fui);
+      draw_file_list(fui);
+    } else if (fui->current_page < fui->pages) {
+      fl_clear(fui->start, fui->current);
+      app->query_args->state = S_FILE_LIST;
+      sprintf(switch_page_query, "p%u\n%n", fui->current_page + 1, &spq_len);
+      write(app->query_args->sd, switch_page_query, spq_len);
+      reset_file_list(fui);
     }
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
       fui->current_idx--;
-      redraw_file_list(fui);
+      draw_file_list(fui);
+    } else if (fui->current_page > 1) {
+      fl_clear(fui->start, fui->current);
+      app->query_args->state = S_FILE_LIST;
+      sprintf(switch_page_query, "p%u\n%n", fui->current_page - 1, &spq_len);
+      write(app->query_args->sd, switch_page_query, spq_len);
+      reset_file_list(fui);
+      fui->activate_last = true;
     }
     break;
   }
@@ -32,7 +52,9 @@ file_list_t *init_file_list(WINDOW **win) {
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
   fl_ui->pages = 0;
-  fl_ui->count = 0;
+  fl_ui->current_count = 0;
+  fl_ui->full_count = 0;
+  fl_ui->activate_last = false;
   return fl_ui;
 }
 
@@ -40,75 +62,66 @@ void reset_file_list(file_list_t *fl_ui) {
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
   fl_ui->pages = 0;
-  fl_ui->count = 0;
+  fl_ui->current_count = 0;
+  fl_ui->full_count = 0;
+  fl_ui->activate_last = false;
 }
 
 void draw_file_list(file_list_t *fl_ui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
   getmaxyx(*(fl_ui->w.parent_win), sz_y, sz_x);
-  p_y = 1;
-  p_x = 1;
-  fl_item_t *el = fl_ui->start;
-  int32_t cur_el_idx = 0;
-  curs_set(0);
-
-  do {
-    if (cur_el_idx == fl_ui->current_idx) {
-      wattrset(*(fl_ui->w.parent_win), A_BOLD | A_REVERSE);
-    }
-    p_x = 1;
-    mvwprintw(*(fl_ui->w.parent_win), p_y, p_x, "%s%n", el->name, &p_x);
-    for (uint i = 1; p_x < sz_x; i++) {
-      mvwprintw(*(fl_ui->w.parent_win), p_y, ++p_x, " ");
-    }
-    if (cur_el_idx == fl_ui->current_idx) {
-      wattroff(*(fl_ui->w.parent_win), A_BOLD | A_REVERSE);
-    }
-    p_y++;
-    cur_el_idx++;
-  } while ((el = el->next) != NULL && p_y < sz_y);
-}
-
-void redraw_file_list(file_list_t *fl_ui) {
-  static uint32_t active_idx = 0;
-  int32_t sz_y, sz_x;
-  int32_t p_y, p_x;
-  getmaxyx(*(fl_ui->w.parent_win), sz_y, sz_x);
   int32_t sz_y_f = sz_y - 2; // factual size (without box)
   p_y = 1;
   p_x = 1;
-  fl_item_t *el = fl_ui->start;
+  fl_item_t *el = *(fl_ui->start);
   int32_t cur_el_idx = 0;
-  bool sm_size = sz_y_f < fl_ui->count;
-  bool print_all = false;
-  int32_t diff = 0;
+  WINDOW *win = *(fl_ui->w.parent_win);
+  curs_set(0);
 
-  if (fl_ui->current_idx >= sz_y_f) {
-    print_all = true;
-    diff = fl_ui->current_idx - sz_y_f + 1;
-  } else if (active_idx - fl_ui->current_idx == 1) {
-    print_all = true;
+  if (fl_ui->activate_last) {
+    fl_ui->current_idx = fl_ui->current_count - 1;
+    fl_ui->activate_last = false;
+  }
+
+  if (fl_ui->current_idx + 1 >= sz_y_f) {
+    p_y -= fl_ui->current_idx - sz_y_f + 2;
   }
 
   do {
-    if (cur_el_idx == fl_ui->current_idx) {
-      wattrset(*(fl_ui->w.parent_win), A_BOLD | A_REVERSE);
-    } else if (cur_el_idx != active_idx && !print_all) {
+    if (p_y < 1) {
       p_y++;
       cur_el_idx++;
       continue;
     }
-    p_x = 1;
-    mvwprintw(*(fl_ui->w.parent_win), p_y-diff, p_x, "%s%n", el->name, &p_x);
-    for (uint i = 1; p_x < sz_x; i++) {
-      mvwprintw(*(fl_ui->w.parent_win), p_y-diff, ++p_x, " ");
-    }
     if (cur_el_idx == fl_ui->current_idx) {
-      wattroff(*(fl_ui->w.parent_win), A_BOLD | A_REVERSE);
+      wattrset(win, A_BOLD | A_REVERSE);
+    }
+    p_x = 1;
+    mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
+    mvwprintw(win, p_y, p_x + 1, "%*s", sz_x - p_x, "");
+    if (cur_el_idx == fl_ui->current_idx) {
+      wattroff(win, A_BOLD | A_REVERSE);
     }
     p_y++;
     cur_el_idx++;
-  } while ((el = el->next) != NULL && p_y-diff < sz_y);
-  active_idx = fl_ui->current_idx;
+  } while ((el = el->next) != NULL && p_y < sz_y_f);
+
+  p_x = 1;
+
+  for (; p_y < sz_y_f; p_y++) {
+    mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
+  }
+  char p_info[24];
+  uint32_t p_len;
+  p_x = 1;
+
+  sprintf(p_info, "page: %u/%u files: %u/%u%n", fl_ui->current_page,
+          fl_ui->pages, fl_ui->current_count, fl_ui->full_count, &p_len);
+
+  uint32_t l_pad = (sz_x - p_len) / 2;
+
+  wattrset(win, A_BOLD);
+  mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
+  wattroff(win, A_BOLD);
 }

@@ -20,7 +20,7 @@
 
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 static fl_item_t *fl_select(fl_item_t *start, int num);
-static void fl_clear(fl_item_t **start, fl_item_t **current);
+void fl_clear(fl_item_t **start, fl_item_t **current);
 
 static void clear_file_in_query(query_args_t *q_args);
 
@@ -30,10 +30,12 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t idx = 1;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
-  file_list_t *fui = (file_list_t *) q_args->file_list_ui;
-  fui->start = f_args->l_start;
+  file_list_t *fui = (file_list_t *)q_args->file_list_ui;
+  fui->start = &(f_args->l_start);
+  fui->current = &(f_args->l_current);
 
-  if (qbuf_used == 0) qbuf[0] = 0;
+  if (qbuf_used == 0)
+    qbuf[0] = 0;
 
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
@@ -45,18 +47,29 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     }
     strcat(qbuf, query);
     qbuf_used += strlen(qbuf);
-    if (strchr(qbuf, '\n') == NULL) continue;
+    if (strchr(qbuf, '\n') == NULL)
+      continue;
     fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
-    fui->count++;
+    fui->current_count++;
     free(query);
     query = NULL;
     qbuf_used = 0;
     qbuf[0] = 0;
   }
 
+  uint32_t current_page, pages, current_count, full_count;
+
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
-    // write(STDOUT_FILENO, query, strlen(query));
+    if (4 == sscanf(query, "=== PAGE %u/%u COUNT: %u/%u ===", &current_page,
+                    &pages, &current_count, &full_count)) {
+      fui->current_page = current_page;
+      fui->current_count = current_count;
+      fui->full_count = full_count;
+      fui->pages = pages;
+      draw_file_list(fui);
+      return;
+    }
   }
 }
 
@@ -71,7 +84,7 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   uint32_t qlen;
   char send_buf[256];
   struct stat st = {0};
-  
+
   if (!(sscanf(buf, "%u", &filenum))) {
     write(q_args->sd, buf, strlen(buf));
     q_args->state = S_FILE_LIST;
@@ -286,7 +299,7 @@ static fl_item_t *fl_select(fl_item_t *start, int num) {
   return current;
 }
 
-static void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
+void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
   if (*start == NULL)
     return;
   fl_item_t *next, *current;

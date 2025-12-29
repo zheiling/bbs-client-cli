@@ -9,5 +9,6 @@ void init_file_args(file_args_t *fargs);
 int file_upload_request(char *, query_args_t *q_args);
 int file_upload_start(query_args_t *q_args);
 int file_upload(query_args_t *q_args);
+void fl_clear(fl_item_t **start, fl_item_t **arg_current);
 
 #endif

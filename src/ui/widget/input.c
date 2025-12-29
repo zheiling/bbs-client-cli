@@ -56,12 +56,10 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   }
 
   uint32_t x_c = 0;
-  mvwprintw(win, margin_y + 1, margin_x, "%s", input->value);
+  mvwprintw(win, margin_y + 1, margin_x, "%s%*s", input->value,
+            input->w.x - input->value_len - 2, "");
   input->w.cur.y = margin_y + 1;
   input->w.cur.x = margin_x;
-  for (int i = 0; i < input->w.x - input->value_len - 2; i++) {
-    mvwprintw(win, margin_y + 1, margin_x + i + input->value_len, " ");
-  }
 
   wattroff(win, A_BOLD | A_REVERSE);
   return 0;

@@ -4,12 +4,14 @@
 #include <stdint.h>
 typedef struct {
     widget_t w;
-    fl_item_t *current;
-    fl_item_t *start;
+    fl_item_t **current;
+    fl_item_t **start;
     int32_t current_idx;
-    uint32_t count;
+    uint32_t current_count;
+    uint32_t full_count;
     uint32_t pages;
     uint32_t current_page;
+    uint32_t activate_last : 1;
 } file_list_t;
 
 void draw_file_list(file_list_t *fl_ui);

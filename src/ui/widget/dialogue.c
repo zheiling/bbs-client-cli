@@ -199,10 +199,8 @@ int32_t draw_dialogue(dialogue_t *d) {
   wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
 
   /* background */
-  for (int xp = 1; xp < d->w.x; xp++) {
-    for (int yp = 1; yp < d->w.y - 1; yp++) {
-      mvwprintw(d->win, yp, xp, " ");
-    }
+  for (int yp = 1; yp < d->w.y - 1; yp++) {
+    mvwprintw(d->win, yp, 1, "%*s", d->w.x, "");
   }
 
   /* title */
