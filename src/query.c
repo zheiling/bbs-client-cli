@@ -40,6 +40,7 @@ void query_loop(app_t *app) {
 
   init_file_args(&file_args);
   query_args->sd = sd;
+  app->file_args = &file_args;
 
   for (;;) {
     /* update screen */
@@ -260,6 +261,7 @@ void init_query_args(query_args_t *q_args, params_t *params) {
   q_args->server_message.capacity = 0;
   q_args->server_message.size = 0;
   q_args->next_server_command = NULL;
+  q_args->progress_bar = NULL;
 }
 
 void user_request_description(query_args_t *q_args) {

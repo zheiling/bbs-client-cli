@@ -1,6 +1,7 @@
 #include "file_list.h"
 #include "../../file_processor.h"
 #include "../app.h"
+#include "progress_bar.h"
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -9,14 +10,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void reset_file_list(file_list_t *fl_ui);
+void reset_file_list(ui_file_list_t *fl_ui);
 
 void file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
-  file_list_t *fui = app->query_args->file_list_ui;
+  ui_file_list_t *fui = app->query_args->file_list_ui;
   int32_t key = *((int32_t *)args->data);
-  char switch_page_query[10];
-  int32_t spq_len = 0;
+  char query[256];
+  int32_t q_len = 0;
+  fl_item_t *f_item;
+  ui_progress_bar_t *pb;
   switch (key) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
@@ -25,8 +28,8 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page < fui->pages) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(switch_page_query, "p%u\n%n", fui->current_page + 1, &spq_len);
-      write(app->query_args->sd, switch_page_query, spq_len);
+      sprintf(query, "p%u\n%n", fui->current_page + 1, &q_len);
+      write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
     }
     break;
@@ -37,17 +40,20 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page > 1) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(switch_page_query, "p%u\n%n", fui->current_page - 1, &spq_len);
-      write(app->query_args->sd, switch_page_query, spq_len);
+      sprintf(query, "p%u\n%n", fui->current_page - 1, &q_len);
+      write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
       fui->activate_last = true;
     }
     break;
+  case '\n':
+    ui_file_select(app->file_args, app->query_args, fui->current_idx+1);
+    break;
   }
 }
 
-file_list_t *init_file_list(WINDOW **win) {
-  file_list_t *fl_ui = malloc(sizeof(file_list_t));
+ui_file_list_t *init_file_list(WINDOW **win) {
+  ui_file_list_t *fl_ui = malloc(sizeof(ui_file_list_t));
   init_widget(&(fl_ui->w), NULL, win, "");
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
@@ -58,7 +64,7 @@ file_list_t *init_file_list(WINDOW **win) {
   return fl_ui;
 }
 
-void reset_file_list(file_list_t *fl_ui) {
+void reset_file_list(ui_file_list_t *fl_ui) {
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
   fl_ui->pages = 0;
@@ -67,7 +73,7 @@ void reset_file_list(file_list_t *fl_ui) {
   fl_ui->activate_last = false;
 }
 
-void draw_file_list(file_list_t *fl_ui) {
+void draw_file_list(ui_file_list_t *fl_ui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
   getmaxyx(*(fl_ui->w.parent_win), sz_y, sz_x);

@@ -7,8 +7,8 @@ TODO:
 - [ ] Hotkeys for buttons
 - [ ] Simpler refresh on typing / entering in input
 - [ ] Group elements as lists
-- [ ] Process arrows
-- [ ] active_id -> просто указатель на элемент
+- [x] Process arrows
+- [ ] Optimize modals re-drawings
 
 INPUT:
 - [ ] hidden text for passwords

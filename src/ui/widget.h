@@ -11,6 +11,7 @@ enum w_type {
   w_box,
   w_group,
   w_input,
+  w_progress,
 };
 
 typedef struct {

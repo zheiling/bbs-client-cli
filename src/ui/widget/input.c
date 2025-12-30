@@ -45,8 +45,6 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   mvwvline(win, margin_y + 1, margin_x + input->w.x - 1, 0, 1);
   mvwvline(win, margin_y + 2, margin_x + input->w.x - 1, ACS_LRCORNER, 1);
 
-  // TODO: correct sizes (x)
-
   margin_x++;
 
   if (input->w.id == active_id) {

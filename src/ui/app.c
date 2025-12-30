@@ -1,9 +1,10 @@
 #include "app.h"
 #include "modals/ask_server_addr.h"
+#include "modals/download_pr.h"
 #include "modals/login_credentials.h"
 #include "modals/login_option.h"
 #include "modals/server_message.h"
-#include "widget/file_list.h"
+#include "widget/progress_bar.h"
 // #include "modals/server_message.h"
 // #include "action.h"
 #include <ncurses.h>
@@ -151,6 +152,9 @@ void app_draw_modal(app_t *app) {
     case S_PRINT_SERVER_MESSAGE:
       init_server_message_modal(app);
       break;
+    case S_FILE_DOWNLOAD:
+      init_dwn_pr_modal(app);
+      break;
     case WAIT_SERVER_INIT:
     case WAIT_SERVER:
     case WAIT_REGISTER:
@@ -159,7 +163,6 @@ void app_draw_modal(app_t *app) {
     case UPLOAD_FILE:
     case S_FILE_LIST:
     case S_FILE_SELECT:
-    case S_FILE_DOWNLOAD:
     case S_UPLOAD_PARAMS:
     case S_UPLOAD_FILE:
     case S_UPLOAD_REQUESTED:

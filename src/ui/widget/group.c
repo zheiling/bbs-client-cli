@@ -1,6 +1,7 @@
 #include "group.h"
 #include "button.h"
 #include "input.h"
+#include "progress_bar.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -87,6 +88,10 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
           init_input(win, &(group->w), children[i].label, children[i].length);
       w = &(((input_t *)elements[i].element)->w);
       break;
+    case w_progress:
+      elements[i].element = init_ui_progress_bar(win, &(group->w));
+      w = &(((ui_progress_bar_t *)elements[i].element)->w);
+      break;
     }
     // set dimensions
     elements[i].id = w->id;
@@ -125,6 +130,9 @@ void draw_group(WINDOW *win, group_t *group, int32_t active_id,
     case w_input:
       draw_input((input_t *)el->element, active_id);
       break;
+    case w_progress:
+      draw_ui_progress_bar((ui_progress_bar_t *)el->element);
+      break;
     }
   }
 }
@@ -143,6 +151,9 @@ void destroy_group(group_t *group) {
       break;
     case w_input:
       destroy_input(el->element);
+      break;
+    case w_progress:
+      destroy_ui_progress_bar(el->element);
       break;
     }
   }

@@ -1,7 +1,9 @@
 #include "client.h"
 #include "main.h"
 #include "query.h"
+#include "ui/widget/dialogue.h"
 #include "ui/widget/file_list.h"
+#include "ui/widget/progress_bar.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -19,7 +21,7 @@
 #include <unistd.h>
 
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
-static fl_item_t *fl_select(fl_item_t *start, int num);
+fl_item_t *fl_select(fl_item_t *start, int num);
 void fl_clear(fl_item_t **start, fl_item_t **current);
 
 static void clear_file_in_query(query_args_t *q_args);
@@ -30,7 +32,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t idx = 1;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
-  file_list_t *fui = (file_list_t *)q_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
 
@@ -73,6 +75,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   }
 }
 
+/* file_select: old function, can be removed in the future */
 void file_select(file_args_t *f_args, query_args_t *q_args) {
   char *buf = q_args->buf;
   fl_item_t *l_start = f_args->l_start;
@@ -131,16 +134,61 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   free(file_path);
 }
 
+int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
+  fl_item_t *l_selected; /* from the list */
+  fl_item_t *f_selected =
+      &(f_args->f_selected); /* new copy of file struct (list be cleared) */
+  uint32_t qlen;
+  char send_buf[256];
+  struct stat st = {0};
+
+  l_selected = fl_select(f_args->l_start, idx);
+
+  if (l_selected == NULL) {
+    return -1;
+  }
+
+  memcpy(f_selected, l_selected, sizeof(fl_item_t));
+
+  if (stat(DOWNLOADS_DIR, &st) == -1) {
+    mkdir(DOWNLOADS_DIR, 0700);
+  }
+  char *file_path = malloc(sizeof(DOWNLOADS_DIR) + strlen(l_selected->name) +
+                           2); // + '/' + '\0'
+  f_selected->name = NULL;
+  sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
+  f_selected->name = strdup(l_selected->name);
+  fl_clear(&f_args->l_start, &f_args->l_current);
+  f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (f_args->file_d == -1) {
+    qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
+    write(q_args->sd, send_buf, qlen);
+    perror(f_selected->name);
+    print_prompt(q_args->params);
+    q_args->state = WAIT_CLIENT;
+    free(file_path);
+    return -2;
+  }
+  qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
+  write(q_args->sd, send_buf, qlen);
+  q_args->state = S_FILE_DOWNLOAD;
+  free(file_path);
+  return OK;
+}
+
 void file_download(file_args_t *f_args, query_args_t *q_args) {
   fl_item_t *f_selected = &(f_args->f_selected);
   static uint32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
-    it_interval = (f_selected->size / INBUFSIZE / 100) * 10; /* every 10% */
+    it_interval = (f_selected->size / INBUFSIZE / 100) * 1; /* every 1% */
     if (it_interval == 0)
       it_interval = 1;
   }
+
   static size_t size_rest = 0;
+  uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
+  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -148,7 +196,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   if (qlen) {
     it_count++;
     if (!(it_count % it_interval)) {
-      printf("%zu / %zu\n", f_selected->size - size_rest, f_selected->size);
+      pb->procent = progress;
     }
     if (it_count % it_interval)
       q_args->buf_used = 0;
@@ -161,10 +209,8 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       it_count = 0;
       it_interval = 0;
       f_selected->size = 0;
-      printf("File %s is downloaded\n", f_selected->name);
       close(f_args->file_d);
       free(f_selected->name);
-      print_prompt(q_args->params);
       q_args->state = WAIT_CLIENT;
     }
   }
@@ -287,7 +333,7 @@ static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
   *cur = fitem;
 }
 
-static fl_item_t *fl_select(fl_item_t *start, int num) {
+fl_item_t *fl_select(fl_item_t *start, int num) {
   fl_item_t *current = start;
   for (; num != 1; num--) {
     if (current->next != NULL) {
