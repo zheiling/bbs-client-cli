@@ -87,7 +87,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    write(q_args->sd, "file list", sizeof("file list"));
+    write(q_args->sd, "file list\n", sizeof("file list\n")-1);
     q_args->state = S_FILE_LIST;
     return 0;
   }

@@ -34,6 +34,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
 
@@ -45,6 +46,9 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     if (!strcmp("list_end\n", query)) {
       q_args->state = S_FILE_SELECT;
       draw_file_list(fui);
+      if (d != NULL && d->is_initiated) {
+        d->needs_update = true;
+      }
       idx = 1;
       break;
     }
@@ -159,7 +163,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
   f_selected->name = NULL;
   sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
   f_selected->name = strdup(l_selected->name);
-  /* fl_clear(&f_args->l_start, &f_args->l_current); */
+  fl_clear(&f_args->l_start, &f_args->l_current);
   f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
   if (f_args->file_d == -1) {
     qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
@@ -186,6 +190,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
     if (it_interval == 0)
       it_interval = 1;
   }
+  char answer[256];
 
   static size_t size_rest = 0;
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
@@ -213,9 +218,13 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       it_interval = 0;
       f_selected->size = 0;
       close(f_args->file_d);
-      free(f_selected->name);
       d->needs_destroy = true;
-      q_args->state = WAIT_CLIENT;
+      sprintf(answer, "File %s is downloaded from the server!", f_selected->name);
+      q_args->notification = malloc(strlen(answer)+1);
+      strcpy(q_args->notification, answer);
+      free(f_selected->name);
+      write(q_args->sd, "file list\n", sizeof("file list\n")-1);
+      q_args->state = S_FILE_LIST;
     }
   }
 }

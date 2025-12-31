@@ -8,7 +8,10 @@ TODO:
 - [ ] Simpler refresh on typing / entering in input
 - [ ] Group elements as lists
 - [x] Process arrows
-- [ ] Optimize modals re-drawings
+- [x] Optimize modals re-drawings
+- [ ] Bug with file list on downloading files
+- [ ] Remember page numbers
+- [ ] "Server message" to notification
 
 INPUT:
 - [ ] hidden text for passwords

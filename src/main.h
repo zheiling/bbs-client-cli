@@ -87,6 +87,7 @@ typedef struct query_args {
   void *file_list_ui; /* TODO: find solution to insert actual type without recursion */
   void *progress_bar;
   void *active_dialogue;
+  char *notification;
 } query_args_t;
 
 #endif

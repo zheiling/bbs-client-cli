@@ -263,6 +263,7 @@ void init_query_args(query_args_t *q_args, params_t *params) {
   q_args->next_server_command = NULL;
   q_args->progress_bar = NULL;
   q_args->active_dialogue = NULL;
+  q_args->notification = NULL;
 }
 
 void user_request_description(query_args_t *q_args) {

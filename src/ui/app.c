@@ -3,6 +3,7 @@
 #include "modals/download_pr.h"
 #include "modals/login_credentials.h"
 #include "modals/login_option.h"
+#include "modals/notification.h"
 #include "modals/server_message.h"
 #include "widget/dialogue.h"
 #include <ncurses.h>
@@ -139,6 +140,10 @@ void app_refresh(app_t *app) {
 }
 
 void app_draw_modal(app_t *app) {
+  if (app->modal.needs_destroy) {
+    destroy_dialogue(&(app->modal), app);
+    app_refresh(app);
+  }
   if (!app->modal.is_initiated) {
     switch (app->query_args->state) {
     case S_ASK_SEVER_IP:
@@ -172,18 +177,18 @@ void app_draw_modal(app_t *app) {
     case S_WAIT_SERVER:
     case S_N_D:
     case S_NEXT_ACTION:
-      return;
+      if (app->query_args->notification != NULL) {
+        init_notification_modal(app);
+      } else {
+        return;
+      }
     }
     app->active_callback = app->modal.w.callback;
     app->active_win = app->modal.win;
     app->active_win_type = aw_modal;
     app->active_widget = &(app->modal);
   }
-  if (app->modal.needs_destroy) {
-    destroy_dialogue(&(app->modal), app);
-  } else {
-    draw_dialogue(&(app->modal));
-  }
+  draw_dialogue(&(app->modal));
 }
 
 void destroy_app(app_t *app) {
