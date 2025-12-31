@@ -4,9 +4,7 @@
 #include "modals/login_credentials.h"
 #include "modals/login_option.h"
 #include "modals/server_message.h"
-#include "widget/progress_bar.h"
-// #include "modals/server_message.h"
-// #include "action.h"
+#include "widget/dialogue.h"
 #include <ncurses.h>
 #include <netinet/in.h>
 #include <stdint.h>
@@ -84,6 +82,9 @@ void init_nc() {
 }
 
 void draw_borders(app_t *app) {
+  if (app->modal.win != NULL && !app->modal.needs_update) {
+    return;
+  }
   clear();
   box(app->win, 0, 0);
   box(app->left_win, 0, 0);
@@ -178,7 +179,11 @@ void app_draw_modal(app_t *app) {
     app->active_win_type = aw_modal;
     app->active_widget = &(app->modal);
   }
-  draw_dialogue(&(app->modal));
+  if (app->modal.needs_destroy) {
+    destroy_dialogue(&(app->modal), app);
+  } else {
+    draw_dialogue(&(app->modal));
+  }
 }
 
 void destroy_app(app_t *app) {

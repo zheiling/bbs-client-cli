@@ -1,9 +1,3 @@
-#include "client.h"
-#include "main.h"
-#include "query.h"
-#include "ui/widget/dialogue.h"
-#include "ui/widget/file_list.h"
-#include "ui/widget/progress_bar.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -19,6 +13,13 @@
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+
+#include "client.h"
+#include "main.h"
+#include "query.h"
+#include "ui/widget/dialogue.h"
+#include "ui/widget/file_list.h"
+#include "ui/widget/progress_bar.h"
 
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 fl_item_t *fl_select(fl_item_t *start, int num);
@@ -158,7 +159,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
   f_selected->name = NULL;
   sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
   f_selected->name = strdup(l_selected->name);
-  fl_clear(&f_args->l_start, &f_args->l_current);
+  /* fl_clear(&f_args->l_start, &f_args->l_current); */
   f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
   if (f_args->file_d == -1) {
     qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
@@ -181,7 +182,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
-    it_interval = (f_selected->size / INBUFSIZE / 100) * 1; /* every 1% */
+    it_interval = (f_selected->size / INBUFSIZE / 100) * 5; /* every 1% */
     if (it_interval == 0)
       it_interval = 1;
   }
@@ -189,6 +190,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   static size_t size_rest = 0;
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
   ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
+  dialogue_t *d  = (dialogue_t *)q_args->active_dialogue;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -197,6 +199,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
     it_count++;
     if (!(it_count % it_interval)) {
       pb->procent = progress;
+      d->needs_update = true;
     }
     if (it_count % it_interval)
       q_args->buf_used = 0;
@@ -211,6 +214,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       f_selected->size = 0;
       close(f_args->file_d);
       free(f_selected->name);
+      d->needs_destroy = true;
       q_args->state = WAIT_CLIENT;
     }
   }

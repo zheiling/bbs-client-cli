@@ -21,6 +21,8 @@ typedef struct {
   } active;
   char text[DIALOGUE_TEXT];
   uint32_t is_initiated : 1;
+  uint32_t needs_update : 1;
+  uint32_t needs_destroy: 1;
   coordinates_t *p_coordinates;
 } dialogue_t;
 

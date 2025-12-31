@@ -52,6 +52,7 @@ void dialogue_default_callback(callback_args_t *args) {
   memcpy(&new_args, args, sizeof(callback_args_t));
   new_args.active_id = d->active.id;
   int32_t diff;
+  d->needs_update = true;
   switch (key) {
   case KEY_RIGHT:
   case '\t':
@@ -61,7 +62,7 @@ void dialogue_default_callback(callback_args_t *args) {
       INCR_ACTIVE_ID(d, g_action, g_content);
     }
     *resp_value = -1;
-    draw_dialogue(d);
+
     break;
   case KEY_LEFT:
     if (d->active.type == g_content) {
@@ -70,7 +71,7 @@ void dialogue_default_callback(callback_args_t *args) {
       DECR_ACTIVE_ID(d, g_action, g_content);
     }
     *resp_value = -1;
-    draw_dialogue(d);
+
     break;
   case '\n':
     if (d->active.type == g_action) {
@@ -88,15 +89,15 @@ void dialogue_default_callback(callback_args_t *args) {
       *resp_value = d->active.id - d->g_content->first_id;
       return;
     }
-    draw_dialogue(d);
+
     break;
   case KEY_UP:
     CH_GROUP(d, g_action, g_content);
-    draw_dialogue(d);
+
     break;
   case KEY_DOWN:
     CH_GROUP(d, g_content, g_action);
-    draw_dialogue(d);
+
     break;
   default:
     /* run callback function */
@@ -106,9 +107,6 @@ void dialogue_default_callback(callback_args_t *args) {
       new_args.widget = new_args.widget = d->g_action;
     }
     group_default_callback(&new_args);
-    if (*resp_value == -1) {
-      draw_dialogue(d);
-    }
   }
 }
 
@@ -120,7 +118,9 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   dialogue->w.y = 0;
   dialogue->p_coordinates = p_coordinates;
   dialogue->w.callback = dialogue_default_callback;
-  dialogue->is_initiated = 1;
+  dialogue->is_initiated = true;
+  dialogue->needs_update = true;
+  dialogue->needs_destroy = false;
   strcpy(dialogue->w.title, title);
   strcpy(dialogue->text, text);
 }
@@ -166,6 +166,10 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
 int32_t draw_dialogue(dialogue_t *d) {
   if (!d->is_initiated)
     return -1;
+  else if (!d->needs_update) {
+    return 0;
+  }
+
   group_el_t *ae_ptr = NULL; /* active element */
   uint32_t ae_idx;           /* active element */
   /* count dimensions */
@@ -196,6 +200,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   if (d->win == NULL) {
     d->win = newwin(y, x, d->w.m_y, d->w.m_x);
   }
+
   wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
 
   /* background */
@@ -215,6 +220,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   /* mvwhline(d->win, d->w.y - 3, 1, 0, d->w.x - 2); */
   print_multiline_text(d->win, d->text, d->w.x, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
+
   if (d->g_content != NULL) {
     draw_group(d->win, d->g_content, d->active.id, &(d->w));
   }
@@ -247,6 +253,8 @@ int32_t draw_dialogue(dialogue_t *d) {
     }
   }
 
+  d->needs_update = false;
+
   return 0;
 };
 
@@ -264,4 +272,5 @@ void destroy_dialogue(dialogue_t *d, void *_app) {
   app->active_win_type = aw_left;
   app->active_win = app->left_win;
   app->active_callback = file_list_cb;
+  app->query_args->active_dialogue = NULL;
 }

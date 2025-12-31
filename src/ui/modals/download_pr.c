@@ -28,6 +28,7 @@ dialogue_t *init_dwn_pr_modal(app_t *app) {
   d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
 
   app->query_args->progress_bar = d->g_content->elements[0].element;
+  app->query_args->active_dialogue = d;
 
   dialogue_init_active_id(d);
 
