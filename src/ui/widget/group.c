@@ -85,7 +85,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       break;
     case w_input:
       elements[i].element =
-          init_input(win, &(group->w), children[i].label, children[i].length);
+          init_input(win, &(group->w), children[i].label, children[i].length, children[i].is_hidden_value);
       w = &(((input_t *)elements[i].element)->w);
       break;
     case w_progress:

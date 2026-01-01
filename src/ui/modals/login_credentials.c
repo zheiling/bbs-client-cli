@@ -37,7 +37,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       app->params->pass[in_pass->value_len] = 0;
       write(app->params->sd, app->params->uname, in_name->value_len);
       app->query_args->state = S_WAIT_SERVER;
-      destroy_dialogue(d,app);
+      destroy_dialogue(d, app);
       print_bars(app);
       break;
     case 1:
@@ -52,12 +52,15 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
     return NULL;
   group_el_init_t content[] = {
       {.type = w_input, .label = "Username", .length = 15},
-      {.type = w_input, .label = "Password", .length = 15},
+      {.type = w_input,
+       .label = "Password",
+       .length = 15,
+       .is_hidden_value = true},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Login", .is_default = 1},
-      {.type = w_button, .label = "Cancel", .is_default = 0},
+      {.type = w_button, .label = "Login", .is_default = true},
+      {.type = w_button, .label = "Cancel", .is_default = false},
       {.type = w_end}};
 
   init_dialogue(&(app->modal), "Credentials", "There is information needed",

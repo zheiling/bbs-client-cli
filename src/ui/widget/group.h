@@ -19,6 +19,7 @@ typedef struct {
 typedef struct {
   enum w_type type;
   uint32_t is_default : 1;
+  uint32_t is_hidden_value : 1;
   char label[DIALOGUE_TITLE];
   uint32_t length;
 } group_el_init_t;

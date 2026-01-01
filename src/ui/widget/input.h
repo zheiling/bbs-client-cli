@@ -11,9 +11,11 @@ typedef struct {
   uint32_t value_len;
   uint32_t max_len;
   uint32_t is_disabled : 1;
+  uint32_t is_hidden : 1;
 } input_t;
 
-input_t *init_input(WINDOW **win, widget_t *w_parent, char *label, uint32_t size);
+input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
+                    uint32_t size, uint32_t is_hidden_value);
 int32_t draw_input(input_t *input, uint32_t active_id);
 void destroy_input(input_t *input);
 #endif
