@@ -239,7 +239,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   /* text */
   wattroff(d->win, A_BOLD);
   /* mvwhline(d->win, d->w.y - 3, 1, 0, d->w.x - 2); */
-  print_multiline_text(d->win, d->text, d->w.x, 2, 1, PMT_ALIGN_CENTER);
+  print_multiline_text(d->win, d->text, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {

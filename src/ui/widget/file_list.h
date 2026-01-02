@@ -12,10 +12,11 @@ typedef struct {
     uint32_t pages;
     uint32_t current_page;
     uint32_t activate_last : 1;
+    WINDOW *const* info_win;
 } ui_file_list_t;
 
 void draw_file_list(ui_file_list_t *fl_ui);
 void redraw_file_list(ui_file_list_t *fl_ui);
-ui_file_list_t *init_file_list(WINDOW **win);
+ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const* info_win);
 void file_list_cb(callback_args_t *args);
 #endif

@@ -52,7 +52,7 @@ void file_list_cb(callback_args_t *args) {
   }
 }
 
-ui_file_list_t *init_file_list(WINDOW **win) {
+ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const* info_win) {
   ui_file_list_t *fl_ui = malloc(sizeof(ui_file_list_t));
   init_widget(&(fl_ui->w), NULL, win, "");
   fl_ui->current_idx = 0;
@@ -61,6 +61,7 @@ ui_file_list_t *init_file_list(WINDOW **win) {
   fl_ui->current_count = 0;
   fl_ui->full_count = 0;
   fl_ui->activate_last = false;
+  fl_ui->info_win = info_win;
   return fl_ui;
 }
 
@@ -81,6 +82,7 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   p_y = 1;
   p_x = 1;
   fl_item_t *el = *(fl_ui->start);
+  fl_item_t *active_el = *(fl_ui->start);
   int32_t cur_el_idx = 0;
   WINDOW *win = *(fl_ui->w.parent_win);
   curs_set(0);
@@ -102,6 +104,7 @@ void draw_file_list(ui_file_list_t *fl_ui) {
     }
     if (cur_el_idx == fl_ui->current_idx) {
       wattrset(win, A_BOLD | A_REVERSE);
+      active_el = el;
     }
     p_x = 1;
     mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
@@ -130,4 +133,16 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   wattrset(win, A_BOLD);
   mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
   wattroff(win, A_BOLD);
+
+  
+  /* draw file info */
+  p_y = 1;
+  p_x = 1;
+  WINDOW *i_win = *fl_ui->info_win;
+  wclear(i_win);
+  
+  mvwprintw(i_win, p_y++, p_x, "Size: %zu", active_el->size);
+  mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
+  mvwprintw(i_win, p_y++, p_x, "Description: ");
+  print_multiline_text(i_win, active_el->description, p_y, p_x, 0);
 }

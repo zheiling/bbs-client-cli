@@ -58,8 +58,7 @@ enum pmt_attrs {
 
 void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title);
 int32_t get_max_line_len(const char *text, uint32_t *line_count);
-uint32_t print_multiline_text(WINDOW *win, const char *text,
-                              const uint32_t win_width, const uint32_t y,
+uint32_t print_multiline_text(WINDOW *win, const char *text, const uint32_t y,
                               const uint32_t x, const uint16_t attrs);
 
 #endif

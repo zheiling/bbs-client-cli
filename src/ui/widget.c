@@ -2,6 +2,7 @@
 #include "../main.h"
 #include <ncurses.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern uint32_t m_id;
@@ -57,15 +58,35 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
     mvwprintw(win, line_v_pos, x, "%s", l_buf);                                \
   }
 
-uint32_t print_multiline_text(WINDOW *win, const char *text,
-                              const uint32_t win_width, const uint32_t y,
+uint32_t print_multiline_text(WINDOW *win, const char *_text, const uint32_t y,
                               const uint32_t x, const uint16_t attrs) {
 
   uint16_t line_v_pos = y;
   int32_t c_line_len = 0;
   uint32_t m_line_len = 0;
   uint32_t i = 0;
+  uint32_t win_width = getmaxx(win) - 2; /* -2: borders */
   char l_buf[DIALOGUE_TEXT];
+  char *text = malloc(strlen(_text) + 1);
+  strcpy(text, _text);
+
+  uint l_size = 0;
+  for (uint m = 0; text[m] != '\0'; m++) {
+    if (text[m] != '\n') {
+      if (l_size >= win_width) {
+        uint j = m;
+        while (text[j] != ' ') {
+          j--;
+        }
+        text[j] = '\n';
+        l_size = 0;
+      } else {
+        l_size++;
+      }
+    } else {
+      l_size = 0;
+    }
+  }
 
   if (attrs & PMT_POS_CENTER) {
     m_line_len = get_max_line_len(text, NULL);
@@ -80,6 +101,8 @@ uint32_t print_multiline_text(WINDOW *win, const char *text,
   }
 
   PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs)
+
+  free(text);
 
   return 1;
 }
