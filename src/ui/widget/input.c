@@ -13,7 +13,7 @@ input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
   init_widget(&(input->w), w_parent, win, label);
   input->is_disabled = 0;
   input->w.y = 3;                              // with borders
-  input->w.x = length + 2;                     // with borders
+  input->w.x = length + 3;                     // with borders and extra space for the last element
   uint32_t t_len = strlen(input->w.title) + 4; // with borders and space
   if (input->w.x < t_len)
     input->w.x = t_len;
@@ -22,6 +22,7 @@ input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
   input->value_len = 0;
   input->max_len = length;
   input->is_hidden = is_hidden_value;
+  input->cur_pos = 0;
   return input;
 }
 

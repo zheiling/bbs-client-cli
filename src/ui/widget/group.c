@@ -5,9 +5,8 @@
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
-
-// TODO: refactor
 
 #define MAKE_RESPONSE_M1(args, resp_data, response)                            \
   if (args->resp_data != NULL) {                                               \
@@ -21,6 +20,7 @@ void group_default_callback(callback_args_t *args) {
   input_t *input;
   group_el_t *element_ptr;
   int32_t element_idx = -1;
+  u_int32_t start_pos = 0;
   switch (key) {
   case '\n': /* Enter */
     FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
@@ -32,7 +32,13 @@ void group_default_callback(callback_args_t *args) {
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->value_len) {
-        input->value[--input->value_len] = '\0';
+        if (input->cur_pos > 0) {
+          start_pos = input->value_len-- - input->cur_pos;
+          memmove(input->value + start_pos - 1, input->value + start_pos,
+                  input->value_len - start_pos + 2);
+        } else {
+          input->value[--input->value_len] = '\0';
+        }
       }
     }
     MAKE_RESPONSE_M1(args, resp_data, response);
@@ -42,8 +48,15 @@ void group_default_callback(callback_args_t *args) {
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->max_len > input->value_len) {
-        input->value[input->value_len++] = key;
-        input->value[input->value_len] = '\0';
+        if (input->cur_pos > 0) {
+          start_pos = input->value_len++ - input->cur_pos;
+          memmove(input->value + start_pos + 1, input->value + start_pos,
+                  input->value_len - start_pos);
+          input->value[start_pos] = key;
+        } else {
+          input->value[input->value_len++] = key;
+          input->value[input->value_len] = '\0';
+        }
       }
     }
     MAKE_RESPONSE_M1(args, resp_data, response);
@@ -85,7 +98,8 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       break;
     case w_input:
       elements[i].element =
-          init_input(win, &(group->w), children[i].label, children[i].length, children[i].is_hidden_value);
+          init_input(win, &(group->w), children[i].label, children[i].length,
+                     children[i].is_hidden_value);
       w = &(((input_t *)elements[i].element)->w);
       break;
     case w_progress:

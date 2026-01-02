@@ -8,6 +8,7 @@
 typedef struct {
   widget_t w;
   char value[INPUT_TEXT];
+  uint32_t cur_pos; /* is relative to the end of a string */
   uint32_t value_len;
   uint32_t max_len;
   uint32_t is_disabled : 1;

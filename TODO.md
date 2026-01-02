@@ -12,6 +12,6 @@ TODO:
 - [ ] "Server message" to notification
 
 INPUT:
-- [ ] hidden text for passwords
-- [ ] move cursor through the text in input
+- [x] hidden text for passwords
+- [x] move cursor through the text in input
 

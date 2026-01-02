@@ -53,8 +53,8 @@ void dialogue_default_callback(callback_args_t *args) {
   new_args.active_id = d->active.id;
   int32_t diff;
   d->needs_update = true;
-  switch (key) {
-  case KEY_RIGHT:
+  input_t *input;
+ switch (key) {
   case '\t':
     if (d->active.type == g_content) {
       INCR_ACTIVE_ID(d, g_content, g_action);
@@ -62,16 +62,40 @@ void dialogue_default_callback(callback_args_t *args) {
       INCR_ACTIVE_ID(d, g_action, g_content);
     }
     *resp_value = -1;
-
+    break;
+  case KEY_RIGHT:
+    if (d->active.type == g_content) {
+      if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
+          w_input) {
+        input = d->g_content->elements[d->active.id - d->g_content->first_id]
+                    .element;
+        if (input->cur_pos > 0) {
+          input->cur_pos -= 1;
+        }
+      } else {
+        INCR_ACTIVE_ID(d, g_content, g_action);
+      }
+    } else if (d->active.type == g_action) {
+      INCR_ACTIVE_ID(d, g_action, g_content);
+    }
+    *resp_value = -1;
     break;
   case KEY_LEFT:
     if (d->active.type == g_content) {
-      DECR_ACTIVE_ID(d, g_content, g_action);
+      if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
+          w_input) {
+        input = d->g_content->elements[d->active.id - d->g_content->first_id]
+                    .element;
+        if (input->value_len > input->cur_pos) {
+          input->cur_pos += 1;
+        }
+      } else {
+        DECR_ACTIVE_ID(d, g_content, g_action);
+      }
     } else if (d->active.type == g_action) {
       DECR_ACTIVE_ID(d, g_action, g_content);
     }
     *resp_value = -1;
-
     break;
   case '\n':
     if (d->active.type == g_action) {
@@ -89,15 +113,12 @@ void dialogue_default_callback(callback_args_t *args) {
       *resp_value = d->active.id - d->g_content->first_id;
       return;
     }
-
     break;
   case KEY_UP:
     CH_GROUP(d, g_action, g_content);
-
     break;
   case KEY_DOWN:
     CH_GROUP(d, g_content, g_action);
-
     break;
   default:
     /* run callback function */
@@ -239,11 +260,8 @@ int32_t draw_dialogue(dialogue_t *d) {
     if (ae_ptr->type == w_input) {
       input_t *input = ae_ptr->element;
       d->w.cur.y = input->w.cur.y;
-      if (input->max_len == input->value_len) {
-        d->w.cur.x = input->w.cur.x + input->value_len - 1;
-      } else {
-        d->w.cur.x = input->w.cur.x + input->value_len;
-      }
+      d->w.cur.x = input->w.cur.x + input->value_len;
+      d->w.cur.x -= input->cur_pos;
       if (d->w.cur.y || d->w.cur.x) {
         wmove(d->win, d->w.cur.y, d->w.cur.x);
         curs_set(1);
