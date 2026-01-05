@@ -4,6 +4,7 @@
 #include "progress_bar.h"
 #include <ncurses.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 #include <unistd.h>
 
 void reset_file_list(ui_file_list_t *fl_ui);
+void size_to_text(size_t size, char *text);
 
 void file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
@@ -47,12 +49,12 @@ void file_list_cb(callback_args_t *args) {
     }
     break;
   case '\n':
-    ui_file_select(app->file_args, app->query_args, fui->current_idx+1);
+    ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
     break;
   }
 }
 
-ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const* info_win) {
+ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
   ui_file_list_t *fl_ui = malloc(sizeof(ui_file_list_t));
   init_widget(&(fl_ui->w), NULL, win, "");
   fl_ui->current_idx = 0;
@@ -134,15 +136,45 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
   wattroff(win, A_BOLD);
 
-  
   /* draw file info */
   p_y = 1;
   p_x = 1;
   WINDOW *i_win = *fl_ui->info_win;
   wclear(i_win);
+
+  char size_text[64];
+  size_to_text(active_el->size, size_text);
   
-  mvwprintw(i_win, p_y++, p_x, "Size: %zu", active_el->size);
+  mvwprintw(i_win, p_y++, p_x, "Size: %s", size_text);
   mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
   mvwprintw(i_win, p_y++, p_x, "Description: ");
   print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+}
+
+#define BYTES_IN_GB 1073741824
+#define BYTES_IN_MB 1048576
+#define BYTES_IN_KB 1024
+
+void size_to_text(size_t size, char *text) {
+  size_t kb = 0;
+  size_t mb = 0;
+  size_t gb = 0;
+
+  gb = size / BYTES_IN_GB;
+  mb = size / BYTES_IN_MB;
+  kb = size / BYTES_IN_KB;
+  if (gb > 0) {
+    size = size % BYTES_IN_GB;
+    mb = size / BYTES_IN_MB;
+    sprintf(text, "%zu,%zu GB", gb, mb);
+  } else if (mb > 0) {
+    size = size % BYTES_IN_MB;
+    kb = size / BYTES_IN_KB;
+    sprintf(text, "%zu,%zu MB", mb, kb);
+  } else if (kb > 0) {
+    size = size % BYTES_IN_KB;
+    sprintf(text, "%zu,%zu KB", kb, size);
+  } else {
+    sprintf(text, "%zu B", size);
+  }
 }

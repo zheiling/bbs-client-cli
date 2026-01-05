@@ -29,10 +29,10 @@ void upload_dialogue_modal_cb(callback_args_t *args) {
 dialogue_t *init_upload_dialogue_modal(app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t content[] = {{.type = w_input,
-                                .label = "File description",
-                                .length = 30}, /* length is ignored */
-                               {.type = w_end}};
+  group_el_init_t content[] = {
+      {.type = w_input, .label = "File description", .length = 30},
+      {.type = w_input, .label = "File path", .length = 30},
+      {.type = w_end}};
 
   group_el_init_t actions[] = {
       {.type = w_button, .label = "Upload", .is_default = 1},
