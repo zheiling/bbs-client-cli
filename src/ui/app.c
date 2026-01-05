@@ -5,6 +5,7 @@
 #include "modals/login_option.h"
 #include "modals/notification.h"
 #include "modals/server_message.h"
+#include "modals/upload_dialogue.h"
 #include "widget/dialogue.h"
 #include <ncurses.h>
 #include <netinet/in.h>
@@ -90,12 +91,6 @@ void draw_borders(app_t *app) {
   box(app->win, 0, 0);
   box(app->left_win, 0, 0);
   box(app->right_win, 0, 0);
-
-  /* refresh the windows */
-  wnoutrefresh(app->win);
-  wnoutrefresh(app->left_win);
-  wnoutrefresh(app->right_win);
-  doupdate();
 }
 
 void print_bars(app_t *app) {
@@ -120,7 +115,8 @@ void print_bars(app_t *app) {
   mvwprintw(app->win, 1, 2, "%s", top_text);
 
   /* add content to the bottom bar */
-  mvwprintw(app->win, app->coordinates.cur_y - 2, 2, "F1 - Help | F9 - Quit");
+  mvwprintw(app->win, app->coordinates.cur_y - 2, 2,
+            "F1 - Help | U - upload | F9 - Quit");
 
   wattroff(app->win, A_REVERSE);
 }
@@ -161,16 +157,17 @@ void app_draw_modal(app_t *app) {
     case S_FILE_DOWNLOAD:
       init_dwn_pr_modal(app);
       break;
+    case S_UPLOAD_FILE:
+      init_upload_dialogue_modal(app);
+      break;
     case WAIT_SERVER_INIT:
     case WAIT_SERVER:
     case WAIT_REGISTER:
     case WAIT_REGISTER_CONFIRMATION:
     case WAIT_CLIENT:
-    case UPLOAD_FILE:
     case S_FILE_LIST:
     case S_FILE_SELECT:
     case S_UPLOAD_PARAMS:
-    case S_UPLOAD_FILE:
     case S_UPLOAD_REQUESTED:
     case S_ASK_USER_BEFORE_LOGIN:
     case S_ERR:
@@ -191,7 +188,9 @@ void app_draw_modal(app_t *app) {
   draw_dialogue(&(app->modal));
 }
 
-void destroy_app(app_t *app) {
+void destroy_app(app_t *app, int32_t exit_code) {
   delwin(app->win);
   endwin();
+  app->win = NULL;
+  exit(exit_code);
 }

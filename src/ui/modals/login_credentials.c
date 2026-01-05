@@ -41,8 +41,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       print_bars(app);
       break;
     case 1:
-      destroy_app(app);
-      exit(0);
+      destroy_app(app, 0);
     }
   }
 }

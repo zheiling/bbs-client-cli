@@ -107,7 +107,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       w = &(((ui_progress_bar_t *)elements[i].element)->w);
       break;
     }
-    // set dimensions
+    /* set dimensions */
     elements[i].id = w->id;
     if (direction == horizontal) {
       w->m_x = group->w.m_x + 1 + group->w.x;

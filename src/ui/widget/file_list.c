@@ -144,5 +144,5 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   mvwprintw(i_win, p_y++, p_x, "Size: %zu", active_el->size);
   mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
   mvwprintw(i_win, p_y++, p_x, "Description: ");
-  print_multiline_text(i_win, active_el->description, p_y, p_x, 0);
+  print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
 }

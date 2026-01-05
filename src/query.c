@@ -144,7 +144,6 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case WAIT_REGISTER_CONFIRMATION:
     wait_side(query_args);
     break;
-  case UPLOAD_FILE:
   case S_ERR:
     break;
   case S_FILE_LIST:

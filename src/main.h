@@ -45,7 +45,6 @@ enum state {
   WAIT_REGISTER,
   WAIT_REGISTER_CONFIRMATION,
   WAIT_CLIENT,
-  UPLOAD_FILE,
 };
 
 typedef struct p_file {

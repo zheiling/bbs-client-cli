@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
   query_loop(app);
   clear_params(&params);
-  destroy_app(app);
+  destroy_app(app, 0);
 
   return OK;
 }
@@ -67,8 +67,12 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
-    destroy_app(app);
-    return ERR;
+    destroy_app(app, 0);
+    return OK;
+  case 'U':
+  case 'u':
+    app->query_args->state = S_UPLOAD_FILE;
+    break;
   default:
       d_args->data = (void *)&c;
       app->active_callback(d_args);

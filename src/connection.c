@@ -20,8 +20,7 @@ void connect_to_server(app_t *app) {
   if (-1 ==
       connect(app->params->sd, (struct sockaddr *)&server, sizeof(server))) {
     perror("connect");
-    destroy_app(app);
-    exit(2);
+    destroy_app(app, 2);
   }
   app->params->is_connected = TRUE;
   print_bars(app);

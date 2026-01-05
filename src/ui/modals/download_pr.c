@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void init_dwn_pr_modal_cb(callback_args_t *args) {
+void dwn_pr_modal_cb(callback_args_t *args) {
 }
 
 dialogue_t *init_dwn_pr_modal(app_t *app) {
@@ -23,7 +23,7 @@ dialogue_t *init_dwn_pr_modal(app_t *app) {
   init_dialogue(&(app->modal), "Download", text, &(app->coordinates));
   dialogue_t *d = &(app->modal);
 
-  d->w.callback = init_dwn_pr_modal_cb;
+  d->w.callback = dwn_pr_modal_cb;
   d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
   d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
 

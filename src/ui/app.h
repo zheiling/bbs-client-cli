@@ -35,7 +35,7 @@ typedef struct {
 
 app_t *init_app();
 void init_nc();
-void destroy_app(app_t *app);
+void destroy_app(app_t *app, int32_t exit_code);
 void draw_borders(app_t *app);
 void print_bars(app_t *app);
 void app_refresh(app_t *app);

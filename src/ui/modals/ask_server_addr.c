@@ -35,8 +35,7 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
       app->query_args->state = S_WAIT_SERVER;
       break;
     case 1:
-      destroy_app(app);
-      exit(0);
+      destroy_app(app, 0);
     }
   }
 }

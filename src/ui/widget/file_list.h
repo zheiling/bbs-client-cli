@@ -2,6 +2,7 @@
 #define FILE_LIST_H
 #include "../widget.h"
 #include <stdint.h>
+
 typedef struct {
     widget_t w;
     fl_item_t **current;

@@ -25,5 +25,4 @@ query.o: src/query.c src/client.h src/main.h src/types.h src/connection.h \
  src/ui/widget/../../common.h src/ui/widget/button.h \
  src/ui/widget/../../main.h src/ui/widget/group.h src/file_processor.h \
  src/ui/widget/file_list.h src/server.h
-server.o: src/server.c src/main.h src/types.h src/ui.h
-ui.o: src/ui.c
+server.o: src/server.c src/main.h src/types.h
