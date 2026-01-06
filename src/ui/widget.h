@@ -12,6 +12,7 @@ enum w_type {
   w_group,
   w_input,
   w_progress,
+  w_fs_file_list,
 };
 
 typedef struct {

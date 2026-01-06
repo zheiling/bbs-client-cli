@@ -1,24 +1,56 @@
-#include "file_list.h"
 #include "../../file_processor.h"
 #include "../app.h"
-#include "../../fs.h"
+#include "fs_file_list.h"
 #include "progress_bar.h"
+#include <dirent.h>
+#include <errno.h>
 #include <ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-void reset_file_list(ui_file_list_t *fl_ui);
+void reset_file_list(ui_fs_file_list_t *fl_ui);
 
-void file_list_cb(callback_args_t *args) {
+static void fl_add(fl_item_t **f_start, fl_item_t **f_current,
+                   struct dirent *dent) {
+  fl_item_t *c_item = malloc(sizeof(fl_item_t));
+  c_item->name = dent->d_name;
+  c_item->description = NULL;
+  c_item->owner = NULL;
+  c_item->size = 0;
+  c_item->next = NULL;
+  if (*f_start == NULL) {
+    *f_start = c_item;
+    *f_current = c_item;
+  } else {
+    (*f_current)->next = c_item;
+  }
+}
+
+fl_item_t *get_files_from_fs(char *path) {
+  DIR *dir;
+  struct dirent *dent;
+
+  fl_item_t *l_start = NULL, *l_current = NULL;
+
+  dir = opendir(path);
+  if (!dir) {
+    return NULL;
+    errno = 1;
+  }
+  while ((dent = readdir(dir)) != NULL) {
+    fl_add(&l_start, &l_current, dent);
+  }
+  return l_start;
+}
+
+void fs_file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
-  ui_file_list_t *fui = app->query_args->file_list_ui;
+  ui_fs_file_list_t *fui = app->query_args->file_list_ui;
   int32_t key = *((int32_t *)args->data);
-  char query[256];
   int32_t q_len = 0;
   fl_item_t *f_item;
   ui_progress_bar_t *pb;
@@ -26,57 +58,45 @@ void file_list_cb(callback_args_t *args) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
       fui->current_idx++;
-      draw_file_list(fui);
-    } else if (fui->current_page < fui->pages) {
+      draw_fs_file_list(fui);
+    } else {
       fl_clear(fui->start, fui->current);
-      app->query_args->state = S_FILE_LIST;
-      sprintf(query, "p%u\n%n", fui->current_page + 1, &q_len);
-      write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
     }
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
       fui->current_idx--;
-      draw_file_list(fui);
-    } else if (fui->current_page > 1) {
+      draw_fs_file_list(fui);
+    } else {
       fl_clear(fui->start, fui->current);
-      app->query_args->state = S_FILE_LIST;
-      sprintf(query, "p%u\n%n", fui->current_page - 1, &q_len);
-      write(app->query_args->sd, query, q_len);
-      reset_file_list(fui);
+      reset_fs_file_list(fui);
       fui->activate_last = true;
     }
     break;
   case '\n':
-    ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
+    /* here goes file select */
     break;
   }
 }
 
-ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
-  ui_file_list_t *fl_ui = malloc(sizeof(ui_file_list_t));
-  init_widget(&(fl_ui->w), NULL, win, "");
+ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
+  ui_fs_file_list_t *fl_ui = malloc(sizeof(ui_fs_file_list_t));
+  init_widget(&(fl_ui->w), w_parent, win, "");
   fl_ui->current_idx = 0;
-  fl_ui->current_page = 0;
-  fl_ui->pages = 0;
   fl_ui->current_count = 0;
-  fl_ui->full_count = 0;
   fl_ui->activate_last = false;
-  fl_ui->info_win = info_win;
+  fl_ui->info_win = NULL;
   return fl_ui;
 }
 
-void reset_file_list(ui_file_list_t *fl_ui) {
+void reset_fs_file_list(ui_fs_file_list_t *fl_ui) {
   fl_ui->current_idx = 0;
-  fl_ui->current_page = 0;
-  fl_ui->pages = 0;
   fl_ui->current_count = 0;
-  fl_ui->full_count = 0;
   fl_ui->activate_last = false;
 }
 
-void draw_file_list(ui_file_list_t *fl_ui) {
+void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
   WINDOW *win = *(fl_ui->w.parent_win);
@@ -127,26 +147,14 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   uint32_t p_len;
   p_x = 1;
 
-  sprintf(p_info, "page: %u/%u files: %u/%u%n", fl_ui->current_page,
-          fl_ui->pages, fl_ui->current_count, fl_ui->full_count, &p_len);
-
   uint32_t l_pad = (sz_x - p_len) / 2;
 
   wattrset(win, A_BOLD);
   mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
   wattroff(win, A_BOLD);
+}
 
-  /* draw file info */
-  p_y = 1;
-  p_x = 1;
-  WINDOW *i_win = *fl_ui->info_win;
-  wclear(i_win);
-
-  char size_text[64];
-  size_to_text(active_el->size, size_text);
-
-  mvwprintw(i_win, p_y++, p_x, "Size: %s", size_text);
-  mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
-  mvwprintw(i_win, p_y++, p_x, "Description: ");
-  print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+void destroy_fs_file_list(ui_fs_file_list_t *fui) {
+  fl_clear(fui->start, fui->current);
+  free(fui);
 }

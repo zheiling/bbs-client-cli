@@ -31,7 +31,7 @@ dialogue_t *init_upload_dialogue_modal(app_t *app) {
     return NULL;
   group_el_init_t content[] = {
       {.type = w_input, .label = "File description", .length = 30},
-      {.type = w_input, .label = "File path", .length = 30},
+      {.type = w_fs_file_list, .label = "File", .length = 30},
       {.type = w_end}};
 
   group_el_init_t actions[] = {

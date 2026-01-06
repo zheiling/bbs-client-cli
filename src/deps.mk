@@ -13,6 +13,7 @@ file_processor.o: src/file_processor.c src/client.h src/main.h \
  src/ui/widget/../../main.h src/ui/widget/group.h \
  src/ui/widget/dialogue.h src/ui/widget/file_list.h \
  src/ui/widget/progress_bar.h
+fs.o: src/fs.c
 main.o: src/main.c src/connection.h src/main.h src/types.h src/ui/app.h \
  src/ui/../common.h src/ui/widget.h src/ui/../main.h \
  src/ui/widget/dialogue.h src/ui/widget/../widget.h \
