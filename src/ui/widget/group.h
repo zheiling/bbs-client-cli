@@ -32,18 +32,14 @@ typedef struct {
   uint32_t first_id, last_id;
 } group_t;
 
-#define FIND_ACTIVE_ELEMENT(g, active_id, element_ptr, element_idx)                    \
-  for (int i = 0; i < g->count; i++) {                                         \
-    if (g->elements[i].id == active_id) {                                \
-      element_ptr = &(g->elements[i]);                                         \
-      element_idx = i;                                                         \
-      break;                                                                   \
-    }                                                                          \
-  }
+#define FIND_ACTIVE_ELEMENT(g, active_id, element_ptr, element_idx)            \
+  element_idx = active_id - g->first_id;                                       \
+  element_ptr = &(g->elements[element_idx]);
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction dir);
-void draw_group(WINDOW *win, group_t *group, int32_t active_id, widget_t *dialog_w);
+void draw_group(WINDOW *win, group_t *group, int32_t active_id,
+                widget_t *dialog_w);
 void destroy_group(group_t *group);
 void group_default_callback(callback_args_t *args);
 

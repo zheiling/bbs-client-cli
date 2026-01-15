@@ -17,7 +17,7 @@ enum w_type {
 
 typedef struct {
   void *app;
-  void *widget;
+  void *element;
   void *data;
   void *resp_data;
   uint32_t active_id;

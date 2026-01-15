@@ -16,13 +16,15 @@
   }
 
 void group_default_callback(callback_args_t *args) {
-  group_t *g = (group_t *)args->widget;
+  group_t *g = (group_t *)args->element;
   int32_t key = *((int32_t *)args->data);
   int32_t *response = (int32_t *)args->resp_data;
   input_t *input;
+  widget_t *widget;
   group_el_t *element_ptr;
   int32_t element_idx = -1;
   u_int32_t start_pos = 0;
+  callback_args_t new_args;
   switch (key) {
   case '\n': /* Enter */
     FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
@@ -59,6 +61,13 @@ void group_default_callback(callback_args_t *args) {
           input->value[input->value_len++] = key;
           input->value[input->value_len] = '\0';
         }
+      }
+    } else {
+      widget = (widget_t *) element_ptr->element;
+      if (widget->callback != NULL) {
+        memccpy(&new_args, args, 1, sizeof(callback_args_t *));
+        new_args.element = element_ptr->element;
+        widget->callback(&new_args);
       }
     }
     MAKE_RESPONSE_M1(args, resp_data, response);
@@ -124,6 +133,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     }
     if (i == 0) {
       group->first_id = w->id;
+      group->last_id = w->id;
     } else {
       group->last_id = w->id;
     }

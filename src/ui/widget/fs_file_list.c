@@ -1,6 +1,6 @@
+#include "fs_file_list.h"
 #include "../../file_processor.h"
 #include "../app.h"
-#include "fs_file_list.h"
 #include "progress_bar.h"
 #include <dirent.h>
 #include <errno.h>
@@ -27,6 +27,7 @@ static void fl_add(fl_item_t **f_start, fl_item_t **f_current,
     *f_current = c_item;
   } else {
     (*f_current)->next = c_item;
+    *f_current = c_item;
   }
 }
 
@@ -48,8 +49,7 @@ fl_item_t *get_files_from_fs(char *path) {
 }
 
 void fs_file_list_cb(callback_args_t *args) {
-  app_t *app = args->app;
-  ui_fs_file_list_t *fui = app->query_args->file_list_ui;
+  ui_fs_file_list_t *fui = args->element;
   int32_t key = *((int32_t *)args->data);
   int32_t q_len = 0;
   fl_item_t *f_item;
@@ -87,6 +87,9 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   fl_ui->current_count = 0;
   fl_ui->activate_last = false;
   fl_ui->info_win = NULL;
+  fl_ui->start = malloc(sizeof(fl_item_t *)); /* For compatibility reasons */
+  *(fl_ui->start) = get_files_from_fs("./");
+  fl_ui->w.callback = fs_file_list_cb;
   return fl_ui;
 }
 
@@ -102,12 +105,12 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
   WINDOW *win = *(fl_ui->w.parent_win);
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 2; // actual size (without box)
+  int32_t sz_x_f = sz_x - 2; // actual size (without box)
   p_y = 1;
   p_x = 1;
   fl_item_t *el = *(fl_ui->start);
   fl_item_t *active_el = *(fl_ui->start);
   int32_t cur_el_idx = 0;
-  curs_set(0);
 
   if (fl_ui->activate_last) {
     fl_ui->current_idx = fl_ui->current_count - 1;
@@ -118,6 +121,8 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
     p_y -= fl_ui->current_idx - sz_y_f + 2;
   }
 
+  wattrset(win, A_REVERSE); /* Match with window background */
+
   do {
     if (p_y < 1) {
       p_y++;
@@ -125,14 +130,14 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
       continue;
     }
     if (cur_el_idx == fl_ui->current_idx) {
-      wattrset(win, A_BOLD | A_REVERSE);
+      wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
       active_el = el;
     }
     p_x = 1;
     mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
-    mvwprintw(win, p_y, p_x + 1, "%*s", sz_x - p_x, "");
+    mvwprintw(win, p_y, p_x + 1, "%*s", sz_x_f - p_x, "");
     if (cur_el_idx == fl_ui->current_idx) {
-      wattroff(win, A_BOLD | A_REVERSE);
+      wattroff(win, COLOR_PAIR(3) | A_BOLD);
     }
     p_y++;
     cur_el_idx++;
@@ -141,20 +146,16 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
   p_x = 1;
 
   for (; p_y < sz_y_f; p_y++) {
-    mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
+    mvwprintw(win, p_y, p_x, "%*s", sz_x_f - 1, "");
   }
-  char p_info[24];
-  uint32_t p_len;
-  p_x = 1;
 
-  uint32_t l_pad = (sz_x - p_len) / 2;
-
-  wattrset(win, A_BOLD);
-  mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
-  wattroff(win, A_BOLD);
+  wattroff(win, A_BOLD | A_REVERSE);
+  wattrset(win, COLOR_PAIR(0));
+  curs_set(false);
 }
 
 void destroy_fs_file_list(ui_fs_file_list_t *fui) {
   fl_clear(fui->start, fui->current);
+  free(fui->start);
   free(fui);
 }

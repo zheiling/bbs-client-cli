@@ -13,7 +13,7 @@ void upload_dialogue_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
-  d_args.widget = app->active_widget;
+  d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
   if (response > -1) {
     switch (response) {
@@ -30,12 +30,11 @@ dialogue_t *init_upload_dialogue_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t content[] = {
-      {.type = w_input, .label = "File description", .length = 30},
+      // {.type = w_input, .label = "File description", .length = 30},
       {.type = w_fs_file_list, .label = "File", .length = 30},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Upload", .is_default = 1},
       {.type = w_button, .label = "Cancel", .is_default = 0},
       {.type = w_end}};
 
@@ -48,7 +47,6 @@ dialogue_t *init_upload_dialogue_modal(app_t *app) {
   d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
   d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
 
-  app->query_args->progress_bar = d->g_content->elements[0].element;
   app->query_args->active_dialogue = d;
 
   dialogue_init_active_id(d);

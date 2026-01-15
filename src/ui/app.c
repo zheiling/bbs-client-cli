@@ -71,7 +71,7 @@ void init_nc() {
   cbreak();
   keypad(stdscr, TRUE);
   noecho();
-  curs_set(0);
+  curs_set(false);
 
   if (!has_colors()) {
     printf("Your terminal does not support color\n");

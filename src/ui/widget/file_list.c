@@ -87,7 +87,7 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   fl_item_t *el = *(fl_ui->start);
   fl_item_t *active_el = *(fl_ui->start);
   int32_t cur_el_idx = 0;
-  curs_set(0);
+  curs_set(false);
 
   if (fl_ui->activate_last) {
     fl_ui->current_idx = fl_ui->current_count - 1;

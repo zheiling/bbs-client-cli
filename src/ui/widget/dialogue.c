@@ -43,7 +43,7 @@
   }
 
 void dialogue_default_callback(callback_args_t *args) {
-  dialogue_t *d = (void *)args->widget;
+  dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
   app_t *app = (app_t *)args->app;
   callback_args_t new_args;
@@ -54,7 +54,7 @@ void dialogue_default_callback(callback_args_t *args) {
   int32_t diff;
   d->needs_update = true;
   input_t *input;
- switch (key) {
+  switch (key) {
   case '\t':
     if (d->active.type == g_content) {
       INCR_ACTIVE_ID(d, g_content, g_action);
@@ -99,7 +99,7 @@ void dialogue_default_callback(callback_args_t *args) {
     break;
   case '\n':
     if (d->active.type == g_action) {
-      new_args.widget = new_args.widget = d->g_action;
+      new_args.element = new_args.element = d->g_action;
       group_default_callback(&new_args);
     } else if (d->g_action != NULL) {
       for (int i = 0; i < d->g_action->count; i++) {
@@ -115,17 +115,29 @@ void dialogue_default_callback(callback_args_t *args) {
     }
     break;
   case KEY_UP:
-    CH_GROUP(d, g_action, g_content);
+    if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
+        w_fs_file_list) {
+      new_args.element = d->g_content;
+      group_default_callback(&new_args);
+    } else {
+      CH_GROUP(d, g_action, g_content);
+    }
     break;
   case KEY_DOWN:
-    CH_GROUP(d, g_content, g_action);
+    if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
+        w_fs_file_list) {
+      new_args.element = d->g_content;
+      group_default_callback(&new_args);
+    } else {
+      CH_GROUP(d, g_content, g_action);
+    }
     break;
   default:
     /* run callback function */
     if (d->active.type == g_content) {
-      new_args.widget = new_args.widget = d->g_content;
+      new_args.element = new_args.element = d->g_content;
     } else {
-      new_args.widget = new_args.widget = d->g_action;
+      new_args.element = new_args.element = d->g_action;
     }
     group_default_callback(&new_args);
   }
@@ -152,7 +164,8 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
   if (dialogue->g_content != NULL) {
     for (int i = 0; i < dialogue->g_content->count; i++) {
       widget_type = dialogue->g_content->elements[i].type;
-      if (widget_type == w_button || widget_type == w_input) {
+      if (widget_type == w_button || widget_type == w_input ||
+          widget_type == w_fs_file_list) { /* Add here new types */
         dialogue->active.type = g_content;
         widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
         dialogue->active.id = w->id;
@@ -162,7 +175,8 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
   } else if (dialogue->g_action != NULL) {
     for (int i = 0; i < dialogue->g_action->count; i++) {
       widget_type = dialogue->g_action->elements[i].type;
-      if (widget_type == w_button || widget_type == w_input) {
+      if (widget_type == w_button || widget_type == w_input ||
+          widget_type == w_fs_file_list) {
         dialogue->active.type = g_action;
         widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
         dialogue->active.id = w->id;
@@ -264,10 +278,10 @@ int32_t draw_dialogue(dialogue_t *d) {
       d->w.cur.x -= input->cur_pos;
       if (d->w.cur.y || d->w.cur.x) {
         wmove(d->win, d->w.cur.y, d->w.cur.x);
-        curs_set(1);
+        curs_set(true);
       }
     } else {
-      curs_set(0);
+      curs_set(false);
     }
   }
 
