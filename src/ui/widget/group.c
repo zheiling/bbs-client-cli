@@ -1,6 +1,5 @@
 #include "group.h"
 #include "button.h"
-#include "file_list.h"
 #include "fs_file_list.h"
 #include "input.h"
 #include "progress_bar.h"
@@ -65,9 +64,10 @@ void group_default_callback(callback_args_t *args) {
     } else {
       widget = (widget_t *) element_ptr->element;
       if (widget->callback != NULL) {
-        memccpy(&new_args, args, 1, sizeof(callback_args_t *));
+        memccpy(&new_args, args, 1, sizeof(callback_args_t));
         new_args.element = element_ptr->element;
         widget->callback(&new_args);
+        break;
       }
     }
     MAKE_RESPONSE_M1(args, resp_data, response);

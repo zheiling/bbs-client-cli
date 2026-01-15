@@ -1,6 +1,5 @@
 #include "fs_file_list.h"
 #include "../../file_processor.h"
-#include "../app.h"
 #include "progress_bar.h"
 #include <dirent.h>
 #include <errno.h>
@@ -32,6 +31,7 @@ static void fl_add(fl_item_t **f_start, fl_item_t **f_current,
 }
 
 fl_item_t *get_files_from_fs(char *path) {
+  /* TODO: separate files from directories, mark directories, filter empty fields */
   DIR *dir;
   struct dirent *dent;
 
@@ -82,6 +82,7 @@ void fs_file_list_cb(callback_args_t *args) {
 
 ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   ui_fs_file_list_t *fl_ui = malloc(sizeof(ui_fs_file_list_t));
+  WINDOW *win_par = *(w_parent->w_parent->parent_win);
   init_widget(&(fl_ui->w), w_parent, win, "");
   fl_ui->current_idx = 0;
   fl_ui->current_count = 0;
@@ -90,6 +91,8 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   fl_ui->start = malloc(sizeof(fl_item_t *)); /* For compatibility reasons */
   *(fl_ui->start) = get_files_from_fs("./");
   fl_ui->w.callback = fs_file_list_cb;
+  fl_ui->w.x = getmaxx(win_par) / 10 * 8;
+  fl_ui->w.y = getmaxy(win_par) / 10 * 8;
   return fl_ui;
 }
 

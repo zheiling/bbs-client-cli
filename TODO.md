@@ -10,8 +10,10 @@ TODO:
 - [ ] Bug with file list on downloading files
 - [ ] Remember page numbers
 - [ ] "Server message" to notification
+- [ ] file list -> list template
 
 INPUT:
 - [x] hidden text for passwords
+
 - [x] move cursor through the text in input
 
