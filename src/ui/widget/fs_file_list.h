@@ -3,15 +3,22 @@
 #include "../widget.h"
 #include <ncurses.h>
 #include <stdint.h>
+#include <sys/types.h>
+
+typedef struct fs_fl_item {
+  char *name;
+  struct fs_fl_item *next;
+  struct fs_fl_item *prev;
+  u_char d_type;
+} fs_fl_item_t;
 
 typedef struct {
     widget_t w;
-    fl_item_t **current;
-    fl_item_t **start;
+    fs_fl_item_t *current;
+    fs_fl_item_t *start;
     int32_t current_idx;
-    uint32_t current_count;
-    uint32_t activate_last : 1;
     WINDOW *const* info_win;
+    char d_path[512];
 } ui_fs_file_list_t;
 
 void draw_fs_file_list(ui_fs_file_list_t *fl_ui);

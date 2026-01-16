@@ -20,7 +20,7 @@ void init_notification_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
-  d_args.widget = app->active_widget;
+  d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
 
   app->query_args->state = WAIT_CLIENT;

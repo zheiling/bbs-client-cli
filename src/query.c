@@ -36,7 +36,7 @@ void query_loop(app_t *app) {
   int sr;
   static file_args_t file_args;
   callback_args_t d_args = {
-      .app = app, .widget = NULL, .data = NULL, .resp_data = NULL};
+      .app = app, .element = NULL, .data = NULL, .resp_data = NULL};
 
   init_file_args(&file_args);
   query_args->sd = sd;

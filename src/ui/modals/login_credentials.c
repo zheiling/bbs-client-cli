@@ -22,7 +22,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.resp_data = &response;
-  d_args.widget = app->active_widget;
+  d_args.element = app->active_widget;
   input_t *in_name = d->g_content->elements[0].element;
   input_t *in_pass = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);

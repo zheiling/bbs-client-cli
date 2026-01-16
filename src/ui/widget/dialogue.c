@@ -42,6 +42,18 @@
     }                                                                          \
   }
 
+widget_t *get_active_widget(dialogue_t *d) {
+  group_t *g;
+  if (d->active.type == g_action) {
+    g = d->g_action;
+  } else {
+    g = d->g_content;
+  }
+  widget_t *w = (widget_t *) g->elements[d->active.id - g->first_id].element;
+  return w;
+}
+
+
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
@@ -54,6 +66,7 @@ void dialogue_default_callback(callback_args_t *args) {
   int32_t diff;
   d->needs_update = true;
   input_t *input;
+  widget_t *widget;
   switch (key) {
   case '\t':
     if (d->active.type == g_content) {
@@ -98,6 +111,12 @@ void dialogue_default_callback(callback_args_t *args) {
     *resp_value = -1;
     break;
   case '\n':
+    widget = get_active_widget(d);
+    if (widget->callback != NULL) { /* Existing callback case */
+      new_args.element = widget;
+      widget->callback(&new_args);
+      break;
+    } /* Default cases */
     if (d->active.type == g_action) {
       new_args.element = new_args.element = d->g_action;
       group_default_callback(&new_args);
