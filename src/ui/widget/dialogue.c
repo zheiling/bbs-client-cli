@@ -49,10 +49,9 @@ widget_t *get_active_widget(dialogue_t *d) {
   } else {
     g = d->g_content;
   }
-  widget_t *w = (widget_t *) g->elements[d->active.id - g->first_id].element;
+  widget_t *w = (widget_t *)g->elements[d->active.id - g->first_id].element;
   return w;
 }
-
 
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->element;
@@ -324,4 +323,5 @@ void destroy_dialogue(dialogue_t *d, void *_app) {
   app->active_win = app->left_win;
   app->active_callback = file_list_cb;
   app->query_args->active_dialogue = NULL;
+  app_refresh(app);
 }

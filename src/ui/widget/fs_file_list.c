@@ -1,6 +1,5 @@
 #include "fs_file_list.h"
 #include "progress_bar.h"
-#include "../app.h"
 #include <dirent.h>
 #include <errno.h>
 #include <ncurses.h>

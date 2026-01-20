@@ -6,6 +6,7 @@
 #include "modals/notification.h"
 #include "modals/server_message.h"
 #include "modals/upload_dialogue.h"
+#include "modals/upload_props_dialogue.h"
 #include "widget/dialogue.h"
 #include <ncurses.h>
 #include <netinet/in.h>
@@ -138,7 +139,6 @@ void app_refresh(app_t *app) {
 void app_draw_modal(app_t *app) {
   if (app->modal.needs_destroy) {
     destroy_dialogue(&(app->modal), app);
-    app_refresh(app);
   }
   if (!app->modal.is_initiated) {
     switch (app->query_args->state) {
@@ -160,6 +160,9 @@ void app_draw_modal(app_t *app) {
     case S_UPLOAD_FILE:
       init_upload_dialogue_modal(app);
       break;
+    case S_UPLOAD_PARAMS:
+      init_upload_props_dialogue_modal(app);
+      break;
     case WAIT_SERVER_INIT:
     case WAIT_SERVER:
     case WAIT_REGISTER:
@@ -167,7 +170,6 @@ void app_draw_modal(app_t *app) {
     case WAIT_CLIENT:
     case S_FILE_LIST:
     case S_FILE_SELECT:
-    case S_UPLOAD_PARAMS:
     case S_UPLOAD_REQUESTED:
     case S_ASK_USER_BEFORE_LOGIN:
     case S_ERR:

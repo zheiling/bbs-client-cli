@@ -195,7 +195,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   static size_t size_rest = 0;
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
   ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
-  dialogue_t *d  = (dialogue_t *)q_args->active_dialogue;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -219,11 +219,12 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       f_selected->size = 0;
       close(f_args->file_d);
       d->needs_destroy = true;
-      sprintf(answer, "File %s is downloaded from the server!", f_selected->name);
-      q_args->notification = malloc(strlen(answer)+1);
+      sprintf(answer, "File %s is downloaded from the server!",
+              f_selected->name);
+      q_args->notification = malloc(strlen(answer) + 1);
       strcpy(q_args->notification, answer);
       free(f_selected->name);
-      write(q_args->sd, "file list\n", sizeof("file list\n")-1);
+      write(q_args->sd, "file list\n", sizeof("file list\n") - 1);
       q_args->state = S_FILE_LIST;
     }
   }
@@ -256,6 +257,26 @@ int32_t file_upload_request(char *query, query_args_t *q_args) {
   q_args->file->size = fsize;
   q_args->file->rest = fsize;
   write(q_args->sd, qbuf, qlen);
+  return 0;
+}
+
+int32_t file_upload_open(char *dpath, char *fname, query_args_t *q_args) {
+  char a_perm;
+  q_args->file = malloc(sizeof(p_file_t));
+  q_args->file->path = malloc(strlen(dpath) + strlen(fname) + 2);
+  sprintf(q_args->file->path, "%s/%s", dpath, fname);
+  int fd = open(q_args->file->path, O_RDONLY);
+  if (fd == -1) {
+    perror(q_args->file->path);
+    return -1;
+  }
+  size_t fsize = lseek(fd, 0, SEEK_END);
+  lseek(fd, 0, SEEK_SET);
+  q_args->file->fd = fd;
+  q_args->file->name = malloc(strlen(fname) + 1);
+  strcpy(q_args->file->name, fname);
+  q_args->file->size = fsize;
+  q_args->file->rest = fsize;
   return 0;
 }
 
