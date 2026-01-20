@@ -18,7 +18,7 @@ typedef struct {
     fs_fl_item_t *start;
     int32_t current_idx;
     WINDOW *const* info_win;
-    char d_path[512];
+    char *d_path;
 } ui_fs_file_list_t;
 
 void draw_fs_file_list(ui_fs_file_list_t *fl_ui);

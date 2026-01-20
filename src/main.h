@@ -13,6 +13,9 @@
 #define DIALOGUE_TITLE 64
 #define DIALOGUE_TEXT 4096
 #define INPUT_TEXT DIALOGUE_TITLE
+#ifndef __USE_GNU
+#define __USE_GNU 1
+#endif
 
 typedef struct params {
   unsigned short port;
@@ -49,6 +52,7 @@ enum state {
 
 typedef struct p_file {
   char *name;
+  char *path;
   size_t size;
   size_t rest;
   int fd;
@@ -83,7 +87,7 @@ typedef struct query_args {
     uint64_t capacity;
     uint64_t size;
   } server_message;
-  void *file_list_ui; /* TODO: find solution to insert actual type without recursion */
+  void *file_list_ui; /* TODO: find solution to insert actual type without void pointers */
   void *progress_bar;
   void *active_dialogue;
   char *notification;

@@ -1,5 +1,6 @@
 #include "fs_file_list.h"
 #include "progress_bar.h"
+#include "../app.h"
 #include <dirent.h>
 #include <errno.h>
 #include <ncurses.h>
@@ -79,22 +80,39 @@ fs_fl_item_t *get_files_from_fs(char *path) {
       fl_add(&f_start, &f_current, &f_args);
     }
   }
-  if (d_current != NULL) d_current->next = f_start;
-  if (f_start != NULL) f_start->prev = d_current;
+  if (d_current != NULL)
+    d_current->next = f_start;
+  if (f_start != NULL)
+    f_start->prev = d_current;
   return d_start;
 }
 
-void select_item(ui_fs_file_list_t *fui) {
-  char d_name[64] = "./";
+void select_item(ui_fs_file_list_t *fui, int32_t *resp_data) {
+  char *bash_case = NULL;
+  char *selection = NULL;
+  size_t dp_current;
   if (fui->current->d_type == DT_DIR) {
     if (!strcmp("/..", fui->current->name)) {
-      /* TODO: slice the last "/abc" */
+      bash_case = strrchr(fui->d_path, '/');
+      if (bash_case != NULL) {
+        *bash_case = '\0';
+        fl_clear(&(fui->start), &(fui->current));
+        fui->start = get_files_from_fs(fui->d_path);
+      }
     } else {
-      strcat(d_name, fui->current->name + 1); /* skip "/" in the name */
+      dp_current = strlen(fui->d_path);
+      selection = fui->current->name + 1;
+      fui->d_path =
+          realloc(fui->d_path, dp_current + strlen(selection) + 2);
+      sprintf(fui->d_path, "%s/%s", fui->d_path, selection);
+      fl_clear(&(fui->start), &(fui->current));
+      fui->start = get_files_from_fs(fui->d_path);
     }
-    fui->start = get_files_from_fs(d_name);
     fui->current = fui->start;
+    fui->current_idx = 0;
     draw_fs_file_list(fui);
+  } else if (fui->current->d_type == DT_REG) {
+    *resp_data = 1;
   }
 }
 
@@ -120,7 +138,7 @@ void fs_file_list_cb(callback_args_t *args) {
     }
     break;
   case '\n':
-    select_item(fui);
+    select_item(fui, (int32_t *) args->resp_data);
     break;
   }
 }
@@ -131,7 +149,8 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   init_widget(&(fl_ui->w), w_parent, win, "");
   fl_ui->current_idx = 0;
   fl_ui->info_win = NULL;
-  fl_ui->start = get_files_from_fs("./");
+  fl_ui->d_path = get_current_dir_name();
+  fl_ui->start = get_files_from_fs(fl_ui->d_path);
   fl_ui->current = fl_ui->start;
   fl_ui->w.callback = fs_file_list_cb;
   fl_ui->w.x = getmaxx(win_par) / 10 * 8;

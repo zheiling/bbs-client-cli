@@ -1,8 +1,11 @@
 #include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/group.h"
+#include "../widget/fs_file_list.h"
 #include <ncurses.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void upload_dialogue_modal_cb(callback_args_t *args) {
@@ -15,12 +18,19 @@ void upload_dialogue_modal_cb(callback_args_t *args) {
   d_args.resp_data = &response;
   d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
+  ui_fs_file_list_t *fui = (ui_fs_file_list_t *) d->g_content->elements[0].element;
   if (response > -1) {
     switch (response) {
     case 0:
       app->query_args->state = S_WAIT_SERVER;
       break;
     case 1:
+      app->query_args->file = malloc(sizeof(p_file_t));
+      app->query_args->file->path = malloc(strlen(fui->d_path) + strlen(fui->current->name) + 2);
+      strcpy(app->query_args->file->path, fui->current->name);
+      sprintf(app->query_args->file->path, "%s/%s", fui->d_path, fui->current->name);
+      destroy_dialogue(d, app);
+      app->query_args->state = S_UPLOAD_PARAMS;
       break;
     }
   }
@@ -35,8 +45,7 @@ dialogue_t *init_upload_dialogue_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Cancel", .is_default = 0},
-      {.type = w_end}};
+      {.type = w_button, .label = "Cancel", .is_default = 0}, {.type = w_end}};
 
   app->modal.w.parent_win = &app->win;
   init_dialogue(&(app->modal), "Upload new file", "Enter essential data",
