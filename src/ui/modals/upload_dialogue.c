@@ -8,7 +8,7 @@
 #include <string.h>
 
 void upload_dialogue_modal_cb(callback_args_t *args) {
-  int32_t response;
+  int32_t response = -1;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;

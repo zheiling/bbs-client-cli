@@ -1,7 +1,7 @@
 #include "../app.h"
 #include "../widget/dialogue.h"
-#include "../widget/fs_file_list.h"
 #include "../widget/group.h"
+#include "../widget/input.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,8 +10,7 @@
 #include <unistd.h>
 
 void upload_props_dialogue_modal_cb(callback_args_t *args) {
-  /* TODO: finish */
-  int32_t response;
+  int32_t response = -1;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
@@ -22,9 +21,21 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   char query[256];
   int32_t query_len = 0;
+  input_t *desc_input = (input_t *)d->g_content->elements[0].element;
   if (response > -1) {
     switch (response) {
     case 0:
+      query_len =
+          sprintf(query, "file upload \"%s\" %zu 1\n",
+                  app->query_args->file->name, app->query_args->file->size);
+      app->query_args->file->description =
+          malloc(desc_input->value_len + 9); /* reserve space for \n:END:\n */
+      strcpy(app->query_args->file->description, desc_input->value);
+      destroy_dialogue(d, app);
+      app->query_args->state = S_UPLOAD_REQUESTED;
+      write(app->query_args->sd, query, query_len);
+      break;
+    case 1:
       if (app->query_args->file->name != NULL)
         free(app->query_args->file->name);
       if (app->query_args->file->path != NULL)
@@ -32,12 +43,6 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
       free(app->query_args->file);
       app->query_args->file = NULL;
       app->query_args->state = S_WAIT_SERVER;
-      break;
-    case 1:
-      query_len = sprintf(query, "file upload \"%s\" %zu 1\n", app->query_args->file->name, app->query_args->file->size);
-      destroy_dialogue(d, app);
-      app->query_args->state = S_UPLOAD_REQUESTED;
-      write(app->query_args->sd, query, query_len+1);
       break;
     }
   }
@@ -51,7 +56,10 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Cancel", .is_default = 0}, {.type = w_end}};
+      {.type = w_button, .label = "Upload", .is_default = 1},
+      {.type = w_button, .label = "Cancel", .is_default = 0},
+      {.type = w_end},
+  };
 
   app->modal.w.parent_win = &app->win;
   init_dialogue(&(app->modal), "Description for the file",

@@ -157,7 +157,7 @@ void app_draw_modal(app_t *app) {
     case S_FILE_DOWNLOAD:
       init_dwn_pr_modal(app);
       break;
-    case S_UPLOAD_FILE:
+    case S_UPLOAD_FILE_SELECT:
       init_upload_dialogue_modal(app);
       break;
     case S_UPLOAD_PARAMS:
@@ -176,6 +176,7 @@ void app_draw_modal(app_t *app) {
     case S_WAIT_SERVER:
     case S_N_D:
     case S_NEXT_ACTION:
+    case S_UPLOAD_FILE:
       if (app->query_args->notification != NULL) {
         init_notification_modal(app);
       } else {

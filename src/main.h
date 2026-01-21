@@ -39,6 +39,7 @@ enum state {
   S_FILE_DOWNLOAD,
   S_UPLOAD_PARAMS,
   S_UPLOAD_FILE,
+  S_UPLOAD_FILE_SELECT,
   S_UPLOAD_REQUESTED,
   S_ASK_USER_BEFORE_LOGIN,
   S_ERR,
@@ -53,6 +54,7 @@ enum state {
 typedef struct p_file {
   char *name;
   char *path;
+  char *description;
   size_t size;
   size_t rest;
   int fd;

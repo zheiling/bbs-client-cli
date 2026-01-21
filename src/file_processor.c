@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include "client.h"
+#include "file_processor.h"
 #include "main.h"
 #include "query.h"
 #include "ui/widget/dialogue.h"
@@ -24,8 +25,6 @@
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 fl_item_t *fl_select(fl_item_t *start, int num);
 void fl_clear(fl_item_t **start, fl_item_t **current);
-
-static void clear_file_in_query(query_args_t *q_args);
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
   uint32_t qlen;
@@ -229,7 +228,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
     }
   }
 }
-
+/* obsolete */
 int32_t file_upload_request(char *query, query_args_t *q_args) {
   char qbuf[INBUFSIZE];
   char fpath[512];
@@ -277,6 +276,7 @@ int32_t file_upload_open(char *dpath, char *fname, query_args_t *q_args) {
   strcpy(q_args->file->name, fname);
   q_args->file->size = fsize;
   q_args->file->rest = fsize;
+  q_args->file->description = NULL;
   return 0;
 }
 
@@ -292,13 +292,6 @@ int32_t file_upload_start(query_args_t *q_args) {
 }
 
 int32_t file_upload(query_args_t *q_args) {
-  /* static size_t it_int = 0;
-   static int it_count = 0;
-
-   if (it_int == 0) {
-     it_int = (q_args->file->size / INBUFSIZE / 100) * 10; // every 10%
-} */
-
   if (q_args->buf_used > 0) {
     int wlen = write(q_args->sd, q_args->buf, q_args->buf_used);
     if (q_args->buf_used != wlen) {
@@ -310,17 +303,16 @@ int32_t file_upload(query_args_t *q_args) {
       q_args->file->rest -= wlen;
     }
   } else {
-    /* file upload is finished */
-    printf("Upload of %s is finished.\n", q_args->file->name);
-    /* TODO: ждать ответа от сервера */
-    clear_file_in_query(q_args);
+    /* TODO: уведомление пользователю */
     return 1;
   }
   return 0;
 }
 
-static void clear_file_in_query(query_args_t *q_args) {
+void clear_file_in_query(query_args_t *q_args) {
   free(q_args->file->name);
+  free(q_args->file->path);
+  free(q_args->file->description);
   free(q_args->file);
   q_args->file = NULL;
 }

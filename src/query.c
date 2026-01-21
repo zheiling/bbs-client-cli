@@ -163,7 +163,6 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     if (!file_upload_start(query_args)) {
       query_args->state = S_UPLOAD_FILE;
     } else {
-      print_prompt(query_args->params);
       query_args->state = WAIT_CLIENT;
     }
     break;
@@ -172,8 +171,8 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     if (file_upload(query_args)) {
       /* upload finishes */
       user_request_description(query_args);
-      print_prompt(query_args->params);
-      query_args->state = WAIT_CLIENT;
+      clear_file_in_query(query_args);
+      query_args->state = S_WAIT_SERVER;
     }
     break;
   case S_ASK_USER_BEFORE_LOGIN:
@@ -266,30 +265,7 @@ void init_query_args(query_args_t *q_args, params_t *params) {
 }
 
 void user_request_description(query_args_t *q_args) {
-  printf("File description > ");
-  fflush(stdout);
-  char buf[INBUFSIZE]; /* пока ограничение на буфер */
-  char *line_buf = NULL;
-  int blen = 0;
-  int line_len = 0;
-  size_t ll;
-  while (blen < INBUFSIZE - 6) { /* reserve space for ":END:\n" */
-    line_len = getline(&line_buf, &ll, stdin);
-    if (line_len == 1) {
-      /* free(line); -> не работает */
-      break;
-    }
-    if (blen == 0) {
-      strcpy(buf, line_buf);
-    } else {
-      strcat(buf, line_buf);
-    }
-    free(line_buf);
-    line_buf = NULL;
-    blen += line_len;
-  }
-
-  strcat(buf, ":END:\n");
-  blen += 6;
-  write(q_args->sd, buf, blen);
+  strcat(q_args->file->description, "\n\n:END:\n");
+  write(q_args->sd, q_args->file->description,
+        strlen(q_args->file->description)-1);
 }
