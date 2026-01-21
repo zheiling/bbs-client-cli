@@ -12,8 +12,8 @@ TODO:
 - [ ] "Server message" to notification
 - [ ] file list -> list template
 
-INPUT:
-- [x] hidden text for passwords
-
-- [x] move cursor through the text in input
+UPLOAD:
+- [ ] Progress bar
+- [ ] Show notifications and messages from the server (universal way)
+    use notification or something
 
