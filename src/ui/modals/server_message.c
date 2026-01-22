@@ -28,6 +28,7 @@ void server_message_modal_cb(callback_args_t *args) {
       destroy_dialogue(d, app);
       /* TODO: macros */
       free(app->query_args->server_message.text);
+      app->query_args->server_message.text = NULL;
       app->query_args->server_message.capacity = 0;
       app->query_args->server_message.size = 0;
       app->query_args->state = S_NEXT_ACTION;

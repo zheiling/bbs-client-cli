@@ -187,10 +187,12 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
         dialogue->active.type = g_content;
         widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
         dialogue->active.id = w->id;
-        break;
+        return;
+        
       }
     }
-  } else if (dialogue->g_action != NULL) {
+  }
+  if (dialogue->g_action != NULL) {
     for (int i = 0; i < dialogue->g_action->count; i++) {
       widget_type = dialogue->g_action->elements[i].type;
       if (widget_type == w_button || widget_type == w_input ||
@@ -198,11 +200,40 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
         dialogue->active.type = g_action;
         widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
         dialogue->active.id = w->id;
-        break;
+        return;
+        
       }
     }
   }
 }
+
+// void dialogue_init_active_id(dialogue_t *dialogue) {
+//   enum w_type widget_type;
+
+//   if (dialogue->g_content != NULL) {
+//     for (int i = 0; i < dialogue->g_content->count; i++) {
+//       widget_type = dialogue->g_content->elements[i].type;
+//       if (widget_type == w_button || widget_type == w_input ||
+//           widget_type == w_fs_file_list) { /* Add here new types */
+//         dialogue->active.type = g_content;
+//         widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
+//         dialogue->active.id = w->id;
+//         break;
+//       }
+//     }
+//   } else if (dialogue->g_action != NULL) {
+//     for (int i = 0; i < dialogue->g_action->count; i++) {
+//       widget_type = dialogue->g_action->elements[i].type;
+//       if (widget_type == w_button || widget_type == w_input ||
+//           widget_type == w_fs_file_list) {
+//         dialogue->active.type = g_action;
+//         widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
+//         dialogue->active.id = w->id;
+//         break;
+//       }
+//     }
+//   }
+// }
 
 #define DETECT_GROUP_SIZE(group, line_max_len, y, x)                           \
   if (group) {                                                                 \

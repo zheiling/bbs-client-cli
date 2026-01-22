@@ -22,6 +22,7 @@
 #include "main.h"
 #include "server.h"
 #include "ui/app.h"
+#include "ui/widget/dialogue.h"
 
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);
@@ -44,6 +45,9 @@ void query_loop(app_t *app) {
 
   for (;;) {
     /* update screen */
+    if (query_args->state == S_WAIT_SERVER && app->modal.is_initiated) {
+      destroy_dialogue(&(app->modal), app);
+    }
     app_draw_modal(app);
     app_refresh(app);
 
@@ -134,7 +138,7 @@ void wait_register(query_args_t *q_args) {
 
 int process_query(query_args_t *query_args, file_args_t *file_args) {
   query_args->buf[query_args->buf_used] = 0;
-
+  int32_t res = 0;
   switch (query_args->state) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
@@ -168,11 +172,13 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     break;
   case S_UPLOAD_PARAMS:
   case S_UPLOAD_FILE:
-    if (file_upload(query_args)) {
+    if ((res = file_upload(query_args)) == 1) {
       /* upload finishes */
       user_request_description(query_args);
       clear_file_in_query(query_args);
       query_args->state = S_WAIT_SERVER;
+    } else if (res == -1) {
+      /* TODO: Error */
     }
     break;
   case S_ASK_USER_BEFORE_LOGIN:

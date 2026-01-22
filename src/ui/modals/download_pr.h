@@ -4,6 +4,6 @@
 #include "../widget/dialogue.h"
 #include "../app.h"
 
-dialogue_t *init_dwn_pr_modal(app_t *app);
+dialogue_t *init_dwn_pr_modal(app_t *app, bool is_upload);
 
 #endif

@@ -204,9 +204,9 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
     if (!(it_count % it_interval)) {
       pb->procent = progress;
       d->needs_update = true;
-    }
-    if (it_count % it_interval)
+    } else {
       q_args->buf_used = 0;
+    }
     if (size_rest < qlen) {
       size_rest = 0;
     } else {
@@ -292,18 +292,35 @@ int32_t file_upload_start(query_args_t *q_args) {
 }
 
 int32_t file_upload(query_args_t *q_args) {
+  static uint32_t it_count = 0;
+  static size_t it_interval = 0;
+  if (it_interval == 0) {
+    it_interval = (q_args->file->size / INBUFSIZE / 100) * 5; /* every 1% */
+    if (it_interval == 0)
+      it_interval = 1;
+  }
+  uint32_t progress =
+      (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
+  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   if (q_args->buf_used > 0) {
     int wlen = write(q_args->sd, q_args->buf, q_args->buf_used);
     if (q_args->buf_used != wlen) {
       /* TODO: ошибка */
       return -1;
     } else {
+      it_count++;
+      if (!(it_count % it_interval)) {
+        pb->procent = progress;
+        d->needs_update = true;
+      }
       q_args->buf[0] = 0;
       q_args->buf_used = 0;
       q_args->file->rest -= wlen;
     }
   } else {
-    /* TODO: уведомление пользователю */
+    it_count = 0;
+    it_interval = 0;
     return 1;
   }
   return 0;

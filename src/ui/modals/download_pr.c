@@ -5,22 +5,24 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void dwn_pr_modal_cb(callback_args_t *args) {
-}
+void dwn_pr_modal_cb(callback_args_t *args) {}
 
-dialogue_t *init_dwn_pr_modal(app_t *app) {
+dialogue_t *init_dwn_pr_modal(app_t *app, bool is_upload) {
   if (app == NULL)
     return NULL;
-  group_el_init_t content[] = {{.type = w_progress, .label = "", .length = 30}, /* length is ignored */
-                               {.type = w_end}};
+  group_el_init_t content[] = {
+      {.type = w_progress, .label = "", .length = 30}, /* length is ignored */
+      {.type = w_end}};
 
   char text[256];
-  sprintf(text, "Downloading file: %s", app->file_args->f_selected.name);
+  sprintf(text, "%s file: %s", is_upload ? "Uploading" : "Downloading",
+          is_upload ? app->query_args->file->name : app->file_args->f_selected.name);
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Cancel", .is_default = 0}, {.type = w_end}};
+      {.type = w_button, .label = "Cancel", .is_default = 1}, {.type = w_end}};
 
   app->modal.w.parent_win = &app->win;
-  init_dialogue(&(app->modal), "Download", text, &(app->coordinates));
+  init_dialogue(&(app->modal), is_upload ? "Upload" : "Download", text,
+                &(app->coordinates));
   dialogue_t *d = &(app->modal);
 
   d->w.callback = dwn_pr_modal_cb;

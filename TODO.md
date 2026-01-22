@@ -14,6 +14,6 @@ TODO:
 
 UPLOAD:
 - [ ] Progress bar
-- [ ] Show notifications and messages from the server (universal way)
+- [x] Show notifications and messages from the server (universal way)
     use notification or something
 
