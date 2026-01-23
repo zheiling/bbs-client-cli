@@ -26,7 +26,7 @@ void login_modal_option_cb(callback_args_t *args) {
     case 0:
       break;
     case 1:
-      destroy_dialogue(d, app);
+      d->needs_destroy = true;
       app->query_args->state = S_ASK_LOGIN_USER;
       break;
     }

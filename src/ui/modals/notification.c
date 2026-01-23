@@ -24,7 +24,7 @@ void init_notification_modal_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
 
   app->query_args->state = WAIT_CLIENT;
-  destroy_dialogue(d, app);
+  d->needs_destroy = true;
 }
 
 dialogue_t *init_notification_modal(app_t *app) {

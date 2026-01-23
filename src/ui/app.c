@@ -73,6 +73,7 @@ void init_nc() {
   keypad(stdscr, TRUE);
   noecho();
   curs_set(false);
+  set_escdelay(50);
 
   if (!has_colors()) {
     printf("Your terminal does not support color\n");
@@ -137,7 +138,8 @@ void app_refresh(app_t *app) {
 }
 
 void app_draw_modal(app_t *app) {
-  if (app->modal.needs_destroy) {
+  if (app->modal.needs_destroy ||
+      (app->query_args->state == S_WAIT_SERVER && app->modal.is_initiated)) {
     destroy_dialogue(&(app->modal), app);
   }
   if (!app->modal.is_initiated) {

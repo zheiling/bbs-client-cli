@@ -1,8 +1,8 @@
+#include "../../file_processor.h"
 #include "../app.h"
 #include "../widget/dialogue.h"
 #include "../widget/fs_file_list.h"
 #include "../widget/group.h"
-#include "../../file_processor.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <string.h>
@@ -19,18 +19,19 @@ void upload_dialogue_modal_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   ui_fs_file_list_t *fui =
       (ui_fs_file_list_t *)d->g_content->elements[0].element;
-  if (response > -1) {
-    switch (response) {
-    case 0:
-      app->query_args->state = S_WAIT_SERVER;
-      destroy_dialogue(d, app);
-      break;
-    case 1:
-      file_upload_open(fui->d_path, fui->current->name, app->query_args);
-      destroy_dialogue(d, app);
-      app->query_args->state = S_UPLOAD_PARAMS;
-      break;
-    }
+  switch (response) {
+  case 0:
+    app->query_args->state = S_WAIT_SERVER;
+    d->needs_destroy = true;
+    break;
+  case 1:
+    file_upload_open(fui->d_path, fui->current->name, app->query_args);
+    d->needs_destroy = true;
+    app->query_args->state = S_UPLOAD_PARAMS;
+    break;
+  case -2:
+    d->needs_destroy = true;
+    app->query_args->state = WAIT_CLIENT;
   }
 }
 

@@ -25,7 +25,7 @@ void server_message_modal_cb(callback_args_t *args) {
   if (response > -1) {
     switch (response) {
     case 0:
-      destroy_dialogue(d, app);
+      d->needs_destroy = true;
       /* TODO: macros */
       free(app->query_args->server_message.text);
       app->query_args->server_message.text = NULL;

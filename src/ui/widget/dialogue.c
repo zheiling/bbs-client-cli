@@ -75,6 +75,9 @@ void dialogue_default_callback(callback_args_t *args) {
     }
     *resp_value = -1;
     break;
+  case '\33': /* Esc key */
+    *resp_value = -2;
+    break;
   case KEY_RIGHT:
     if (d->active.type == g_content) {
       if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
@@ -188,7 +191,6 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
         widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
         dialogue->active.id = w->id;
         return;
-        
       }
     }
   }
@@ -201,7 +203,6 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
         widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
         dialogue->active.id = w->id;
         return;
-        
       }
     }
   }
@@ -350,6 +351,7 @@ void destroy_dialogue(dialogue_t *d, void *_app) {
   delwin(d->win);
   d->win = NULL;
   d->is_initiated = 0;
+  d->needs_destroy = false;
   app->active_win_type = aw_left;
   app->active_win = app->left_win;
   app->active_callback = file_list_cb;

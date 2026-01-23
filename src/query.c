@@ -45,9 +45,6 @@ void query_loop(app_t *app) {
 
   for (;;) {
     /* update screen */
-    if (query_args->state == S_WAIT_SERVER && app->modal.is_initiated) {
-      destroy_dialogue(&(app->modal), app);
-    }
     app_draw_modal(app);
     app_refresh(app);
 

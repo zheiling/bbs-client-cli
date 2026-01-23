@@ -76,8 +76,8 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
       break;
     }
   default:
-      d_args->data = (void *)&c;
-      app->active_callback(d_args);
+    d_args->data = (void *)&c;
+    app->active_callback(d_args);
     break;
   }
   return OK;

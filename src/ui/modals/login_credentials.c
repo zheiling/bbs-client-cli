@@ -37,7 +37,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       app->params->pass[in_pass->value_len] = 0;
       write(app->params->sd, app->params->uname, in_name->value_len);
       app->query_args->state = S_WAIT_SERVER;
-      destroy_dialogue(d, app);
+      d->needs_destroy = true;
       print_bars(app);
       break;
     case 1:
