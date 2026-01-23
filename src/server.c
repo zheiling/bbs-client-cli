@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ui/widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -14,7 +15,7 @@
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);
 
-#define PRINT_SRV_MESSAGE(q_args, l_len, line)                                              \
+#define PRINT_SRV_MESSAGE(q_args, l_len, line)                                 \
   if (q_args->server_message.size > 0) {                                       \
     q_args->state = S_PRINT_SERVER_MESSAGE;                                    \
     q_args->next_server_command = malloc(l_len + 1);                           \
@@ -28,6 +29,9 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
   uint32_t answer;
   uint64_t new_capacity;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  char query[INBUFSIZE];
+  int32_t q_len = 0;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -69,7 +73,9 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   /* REGISTER CONFIRMATION */
   if (q_args->state == WAIT_REGISTER_CONFIRMATION) {
     if (!strcmp(line, "ok")) {
-      write(q_args->sd, "file list", sizeof("file list"));
+      sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+              &q_len);
+      write(q_args->sd, query, q_len);
       q_args->state = S_FILE_LIST;
       return 0;
     } else {
@@ -86,7 +92,9 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    write(q_args->sd, "file list\n", sizeof("file list\n")-1);
+    sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+            &q_len);
+    write(q_args->sd, query, q_len);
     q_args->state = S_FILE_LIST;
     return 0;
   }
@@ -110,8 +118,9 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
       strncat(q_args->server_message.text, line, l_len);
       q_args->server_message.text[q_args->server_message.size + l_len] = 0;
     }
-    char *end_char = strchr(q_args->server_message.text, '\04'); /* Search for the end of the notification */
-    if (end_char != NULL) { 
+    char *end_char = strchr(q_args->server_message.text,
+                            '\04'); /* Search for the end of the notification */
+    if (end_char != NULL) {
       *end_char = '\0'; /* Don't show this symbol */
       q_args->state = S_PRINT_SERVER_MESSAGE;
       q_args->server_message.size--;

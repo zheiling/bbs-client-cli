@@ -1,7 +1,7 @@
 #include "file_list.h"
 #include "../../file_processor.h"
-#include "../app.h"
 #include "../../fs.h"
+#include "../app.h"
 #include "progress_bar.h"
 #include <ncurses.h>
 #include <stdbool.h>
@@ -30,7 +30,8 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page < fui->pages) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "p%u\n%n", fui->current_page + 1, &q_len);
+      sprintf(query, "file list %u %u\n%n", fui->max_lines,
+              fui->current_page + 1, &q_len);
       write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
     }
@@ -42,7 +43,8 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page > 1) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "p%u\n%n", fui->current_page - 1, &q_len);
+      sprintf(query, "file list %u %u\n%n", fui->max_lines,
+              fui->current_page - 1, &q_len);
       write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
       fui->activate_last = true;
@@ -57,13 +59,15 @@ void file_list_cb(callback_args_t *args) {
 ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
   ui_file_list_t *fl_ui = malloc(sizeof(ui_file_list_t));
   init_widget(&(fl_ui->w), NULL, win, "");
+  WINDOW *parent_win = *(fl_ui->w.parent_win);
   fl_ui->current_idx = 0;
-  fl_ui->current_page = 0;
-  fl_ui->pages = 0;
+  fl_ui->current_page = 1;
+  fl_ui->pages = 1;
   fl_ui->current_count = 0;
   fl_ui->full_count = 0;
   fl_ui->activate_last = false;
   fl_ui->info_win = info_win;
+  fl_ui->max_lines = getmaxy(parent_win) - 3; /* 2+1 (bottom info line) */
   return fl_ui;
 }
 
@@ -79,9 +83,9 @@ void reset_file_list(ui_file_list_t *fl_ui) {
 void draw_file_list(ui_file_list_t *fl_ui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
-  WINDOW *win = *(fl_ui->w.parent_win);
-  getmaxyx(win, sz_y, sz_x);
-  int32_t sz_y_f = sz_y - 2; // actual size (without box)
+  WINDOW *parent_win = *(fl_ui->w.parent_win);
+  getmaxyx(parent_win, sz_y, sz_x);
+  int32_t sz_y_f = sz_y - 2; /* TODO: можно заменить на поле max_lines */
   p_y = 1;
   p_x = 1;
   fl_item_t *el = *(fl_ui->start);
@@ -105,14 +109,14 @@ void draw_file_list(ui_file_list_t *fl_ui) {
       continue;
     }
     if (cur_el_idx == fl_ui->current_idx) {
-      wattrset(win, A_BOLD | A_REVERSE);
+      wattrset(parent_win, A_BOLD | A_REVERSE);
       active_el = el;
     }
     p_x = 1;
-    mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
-    mvwprintw(win, p_y, p_x + 1, "%*s", sz_x - p_x, "");
+    mvwprintw(parent_win, p_y, p_x, "%s%n", el->name, &p_x);
+    mvwprintw(parent_win, p_y, p_x + 1, "%*s", sz_x - p_x, "");
     if (cur_el_idx == fl_ui->current_idx) {
-      wattroff(win, A_BOLD | A_REVERSE);
+      wattroff(parent_win, A_BOLD | A_REVERSE);
     }
     p_y++;
     cur_el_idx++;
@@ -121,7 +125,7 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   p_x = 1;
 
   for (; p_y < sz_y_f; p_y++) {
-    mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
+    mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
   }
   char p_info[24];
   uint32_t p_len;
@@ -132,9 +136,9 @@ void draw_file_list(ui_file_list_t *fl_ui) {
 
   uint32_t l_pad = (sz_x - p_len) / 2;
 
-  wattrset(win, A_BOLD);
-  mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
-  wattroff(win, A_BOLD);
+  wattrset(parent_win, A_BOLD);
+  mvwprintw(parent_win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
+  wattroff(parent_win, A_BOLD);
 
   /* draw file info */
   p_y = 1;

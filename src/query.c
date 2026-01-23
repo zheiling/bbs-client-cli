@@ -22,7 +22,6 @@
 #include "main.h"
 #include "server.h"
 #include "ui/app.h"
-#include "ui/widget/dialogue.h"
 
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);

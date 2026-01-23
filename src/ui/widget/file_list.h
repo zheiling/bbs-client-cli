@@ -12,8 +12,9 @@ typedef struct {
     uint32_t full_count;
     uint32_t pages;
     uint32_t current_page;
-    uint32_t activate_last : 1;
+    uint32_t max_lines;
     WINDOW *const* info_win;
+    uint32_t activate_last : 1;
 } ui_file_list_t;
 
 void draw_file_list(ui_file_list_t *fl_ui);

@@ -36,44 +36,42 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
+  bool list_end_reached = false;
 
   if (qbuf_used == 0)
     qbuf[0] = 0;
 
+  if (!list_end_reached) {
+    while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
+                                          &query))) {
+      if (!strcmp("list_end\n", query)) {
+        idx = 1;
+        list_end_reached = true;
+        break;
+      }
+      strcat(qbuf, query);
+      qbuf_used += strlen(qbuf);
+      if (strchr(qbuf, '\n') == NULL)
+        continue;
+      fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
+      fui->current_count++;
+      free(query);
+      query = NULL;
+      qbuf_used = 0;
+      qbuf[0] = 0;
+    }
+  }
+
+
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
-    if (!strcmp("list_end\n", query)) {
-      q_args->state = S_FILE_SELECT;
-      draw_file_list(fui);
+    if (4 == sscanf(query, "=== PAGE %u/%u COUNT: %u/%u ===", &fui->current_page,
+                    &fui->pages, &fui->current_count, &fui->full_count)) {
       if (d != NULL && d->is_initiated) {
         d->needs_update = true;
       }
-      idx = 1;
-      break;
-    }
-    strcat(qbuf, query);
-    qbuf_used += strlen(qbuf);
-    if (strchr(qbuf, '\n') == NULL)
-      continue;
-    fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
-    fui->current_count++;
-    free(query);
-    query = NULL;
-    qbuf_used = 0;
-    qbuf[0] = 0;
-  }
-
-  uint32_t current_page, pages, current_count, full_count;
-
-  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
-                                        &query))) {
-    if (4 == sscanf(query, "=== PAGE %u/%u COUNT: %u/%u ===", &current_page,
-                    &pages, &current_count, &full_count)) {
-      fui->current_page = current_page;
-      fui->current_count = current_count;
-      fui->full_count = full_count;
-      fui->pages = pages;
       draw_file_list(fui);
+      q_args->state = S_FILE_SELECT;
       return;
     }
   }
@@ -195,6 +193,8 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
   ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  uint32_t a_len = 0;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -223,7 +223,9 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       q_args->notification = malloc(strlen(answer) + 1);
       strcpy(q_args->notification, answer);
       free(f_selected->name);
-      write(q_args->sd, "file list\n", sizeof("file list\n") - 1);
+      sprintf(answer, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+              &a_len);
+      write(q_args->sd, answer, a_len);
       q_args->state = S_FILE_LIST;
     }
   }
