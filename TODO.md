@@ -1,19 +1,13 @@
-TODO:
-- [x] More universal Makefile
+# TODO:
+
+## Features:
+- [ ] Search files
+- [ ] Privilege settings for files
+- [ ] Files removal
+- [ ] Encryption
+## Fixes:
 - [ ] Check and fix registration and login
-- [x] UI: destroy child elements everywhere
-- [x] use parent widgets pointers to count the margins correctly
 - [ ] Hotkeys for buttons
 - [ ] Group elements as lists
-- [x] Process arrows
-- [x] Optimize modals re-drawings
-- [x] Bug with file list on downloading files
-- [x] Remember page numbers
 - [ ] "Server message" to notification
 - [ ] file list -> list template
-
-UPLOAD:
-- [x] Progress bar
-- [x] Show notifications and messages from the server (universal way)
-    use notification or something
-
