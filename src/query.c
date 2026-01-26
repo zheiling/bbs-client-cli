@@ -16,7 +16,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "client.h"
 #include "connection.h"
 #include "file_processor.h"
 #include "main.h"
@@ -233,19 +232,10 @@ static void wait_side(query_args_t *q_args) {
   int buf_used = q_args->buf_used;
   char *query = NULL;
 
-  if (q_args->state == WAIT_SERVER || q_args->state == WAIT_SERVER_INIT ||
-      q_args->from_server || q_args->state == S_WAIT_SERVER) {
-    while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
-      process_server_command(query, qlen, q_args);
-      free(query);
-      query = NULL;
-    }
-  } else if (q_args->state == WAIT_CLIENT) {
-    while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
-      process_client_command(query, qlen, q_args);
-      free(query);
-      query = NULL;
-    }
+  while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
+    process_server_command(query, qlen, q_args);
+    free(query);
+    query = NULL;
   }
 }
 
@@ -269,5 +259,5 @@ void init_query_args(query_args_t *q_args, params_t *params) {
 void user_request_description(query_args_t *q_args) {
   strcat(q_args->file->description, "\n\n:END:\n");
   write(q_args->sd, q_args->file->description,
-        strlen(q_args->file->description)-1);
+        strlen(q_args->file->description) - 1);
 }

@@ -127,11 +127,11 @@ void draw_file_list(ui_file_list_t *fl_ui) {
   for (; p_y < sz_y_f; p_y++) {
     mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
   }
-  char p_info[24];
+  char p_info[64];
   uint32_t p_len;
   p_x = 1;
 
-  sprintf(p_info, "page: %u/%u files: %u/%u%n", fl_ui->current_page,
+  sprintf(p_info, "page: %u/%u files: %u left: %u%n", fl_ui->current_page,
           fl_ui->pages, fl_ui->current_count, fl_ui->full_count, &p_len);
 
   uint32_t l_pad = (sz_x - p_len) / 2;

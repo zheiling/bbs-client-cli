@@ -14,7 +14,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-#include "client.h"
 #include "file_processor.h"
 #include "main.h"
 #include "query.h"
@@ -36,44 +35,33 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
-  bool list_end_reached = false;
 
   if (qbuf_used == 0)
     qbuf[0] = 0;
 
-  if (!list_end_reached) {
-    while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
-                                          &query))) {
-      if (!strcmp("list_end\n", query)) {
-        idx = 1;
-        list_end_reached = true;
-        break;
-      }
-      strcat(qbuf, query);
-      qbuf_used += strlen(qbuf);
-      if (strchr(qbuf, '\n') == NULL)
-        continue;
-      fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
-      fui->current_count++;
-      free(query);
-      query = NULL;
-      qbuf_used = 0;
-      qbuf[0] = 0;
-    }
-  }
-
-
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
-    if (4 == sscanf(query, "=== PAGE %u/%u COUNT: %u/%u ===", &fui->current_page,
-                    &fui->pages, &fui->current_count, &fui->full_count)) {
+    if (!strncmp(":END:", query, sizeof(":END:") - 1)) {
+      sscanf(query, ":END: PAGE %u/%u COUNT: %u/%u\n", &fui->current_page,
+             &fui->pages, &fui->current_count, &fui->full_count);
+      idx = 1;
       if (d != NULL && d->is_initiated) {
         d->needs_update = true;
       }
       draw_file_list(fui);
       q_args->state = S_FILE_SELECT;
-      return;
+      break;
     }
+    strcat(qbuf, query);
+    qbuf_used += strlen(qbuf);
+    if (strchr(qbuf, '\n') == NULL)
+      continue;
+    fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
+    fui->current_count++;
+    free(query);
+    query = NULL;
+    qbuf_used = 0;
+    qbuf[0] = 0;
   }
 }
 
@@ -98,7 +86,6 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
   }
 
   if (filenum == 0) {
-    print_prompt(q_args->params);
     q_args->state = WAIT_CLIENT;
     return;
   }
@@ -125,7 +112,6 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
     qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
     write(q_args->sd, send_buf, qlen);
     perror(f_selected->name);
-    print_prompt(q_args->params);
     q_args->state = WAIT_CLIENT;
     free(file_path);
     return;
@@ -166,7 +152,6 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
     qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
     write(q_args->sd, send_buf, qlen);
     perror(f_selected->name);
-    print_prompt(q_args->params);
     q_args->state = WAIT_CLIENT;
     free(file_path);
     return -2;
