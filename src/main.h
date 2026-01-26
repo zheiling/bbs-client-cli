@@ -1,4 +1,8 @@
+#ifndef MAIN_H
+#define MAIN_H
+
 #include <stddef.h>
+#include <stdint.h>
 #include "types.h"
 
 #define LOCAL_PORT 1999
@@ -6,6 +10,12 @@
 #define LISTEN_QLEN 32
 #define INBUFSIZE 1024
 #define DOWNLOADS_DIR "./Downloads"
+#define DIALOGUE_TITLE 64
+#define DIALOGUE_TEXT 4096
+#define INPUT_TEXT DIALOGUE_TITLE
+#ifndef __USE_GNU
+#define __USE_GNU 1
+#endif
 
 typedef struct params {
   unsigned short port;
@@ -13,26 +23,38 @@ typedef struct params {
   char *uname;
   char *pass;
   char privileges;
+  int32_t sd;
+  uint32_t is_connected : 1;
 } params_t;
 
 enum state {
+  S_N_D,
+  S_ASK_SEVER_IP,
+  S_ASK_LOGIN_TYPE,
+  S_ASK_LOGIN_USER,
+  S_WAIT_SERVER,
+  S_PRINT_SERVER_MESSAGE,
+  S_FILE_LIST,
+  S_FILE_SELECT,
+  S_FILE_DOWNLOAD,
+  S_UPLOAD_PARAMS,
+  S_UPLOAD_FILE,
+  S_UPLOAD_FILE_SELECT,
+  S_UPLOAD_REQUESTED,
+  S_ASK_USER_BEFORE_LOGIN,
+  S_ERR,
+  S_NEXT_ACTION,
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,
   WAIT_REGISTER_CONFIRMATION,
   WAIT_CLIENT,
-  UPLOAD_FILE,
-  STATE_FILE_LIST,
-  STATE_FILE_SELECT,
-  STATE_FILE_DOWNLOAD,
-  STATE_UPLOAD_PARAMS,
-  STATE_UPLOAD_FILE,
-  STATE_UPLOAD_REQUESTED,
-  STATE_ASK_USER_BEFORE_LOGIN,
-  ERR,
 };
+
 typedef struct p_file {
   char *name;
+  char *path;
+  char *description;
   size_t size;
   size_t rest;
   int fd;
@@ -54,38 +76,23 @@ typedef struct file_args {
 } file_args_t;
 
 typedef struct query_args {
-  int sd;
-  int buf_used;
+  int32_t sd;
+  int32_t buf_used;
   p_file_t *file;
   enum state state;
   char *buf;
-  char from_server;
+  uint32_t from_server : 1;
   params_t *params;
+  char *next_server_command;
+  struct {
+    char *text;
+    uint64_t capacity;
+    uint64_t size;
+  } server_message;
+  void *file_list_ui; /* TODO: find solution to insert actual type without void pointers */
+  void *progress_bar;
+  void *active_dialogue;
+  char *notification;
 } query_args_t;
 
-void init_params(params_t *restrict);
-void analyze_args(int argc, char *argv[], params_t *restrict);
-void get_missing_params(params_t *restrict);
-void connect_to_server(int sd, params_t *params);
-int init_client();
-void close_session(int sd);
-void wait_register(query_args_t *q_args);
-int process_query(query_args_t *query_args, file_args_t *file_args);
-void query_loop(int sd, params_t *);
-int query_extract_from_buf(char *buf, int *buf_used, char **output_line);
-int process_client_command(char *line, int l_len, query_args_t *q_args);
-int process_server_command(char *line, int l_len, query_args_t *q_args);
-void ask_register(params_t *params, char *email);
-
-void clear_params(params_t *params);
-
-/* file processor */
-void file_list(file_args_t *f_args, query_args_t *q_args);
-void file_download(file_args_t *f_args, query_args_t *q_args);
-void file_select(file_args_t *fargs, query_args_t *q_args);
-void init_file_args(file_args_t *fargs);
-int file_upload_request(char *, query_args_t *q_args);
-int file_upload_start(query_args_t *q_args);
-int file_upload(query_args_t *q_args);
-
-void print_prompt(params_t *params);
+#endif

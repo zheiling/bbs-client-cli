@@ -1,5 +1,5 @@
 #include "main.h"
-#include "ui.h"
+#include "ui/widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -15,12 +15,23 @@
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);
 
+#define PRINT_SRV_MESSAGE(q_args, l_len, line)                                 \
+  if (q_args->server_message.size > 0) {                                       \
+    q_args->state = S_PRINT_SERVER_MESSAGE;                                    \
+    q_args->next_server_command = malloc(l_len + 1);                           \
+    strcpy(q_args->next_server_command, line);                                 \
+    return 0;                                                                  \
+  }
+
 int process_server_command(char *line, int l_len, query_args_t *q_args) {
   int ws_pos = l_len;
   params_t *params = q_args->params;
   const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
-  char r_buf[INBUFSIZE];
   uint32_t answer;
+  uint64_t new_capacity;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  char query[INBUFSIZE];
+  int32_t q_len = 0;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -28,27 +39,14 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* LOGIN */
   if (!strncmp(line, "login>", ws_pos)) {
-    if (params->uname == NULL) {
-      fflush(stdout);
-      answer = print_ask_list("Select login type:", login_options);
-      switch (answer) {
-      case 1:
-        ask_uname_and_password(q_args->params);
-        break;
-      case 2:
-        params->uname = malloc(sizeof("anonymous"));
-        strcpy(params->uname, "anonymous");
-        q_args->state = WAIT_CLIENT;
-        break;
-      case 3:
-        wait_register(q_args);
-        return 3;
-      default:
-        return -1;
-      }
+    if (q_args->server_message.size > 0) {
+      PRINT_SRV_MESSAGE(q_args, l_len, line);
     }
-    write(q_args->sd, params->uname, strlen(params->uname));
-
+    if (q_args->params->uname != NULL && q_args->params->pass != NULL) {
+      write(params->sd, q_args->params->uname, strlen(q_args->params->uname));
+    } else {
+      q_args->state = S_ASK_LOGIN_TYPE;
+    }
     return 0;
   }
 
@@ -67,7 +65,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
     free(params->pass);
     params->uname = NULL;
     params->pass = NULL;
-    get_missing_params(params);
+    // get_missing_params(params);
     write(q_args->sd, params->uname, strlen(params->uname));
     return 0;
   }
@@ -75,9 +73,10 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   /* REGISTER CONFIRMATION */
   if (q_args->state == WAIT_REGISTER_CONFIRMATION) {
     if (!strcmp(line, "ok")) {
-      printf("Welcome, %s\n", q_args->params->uname);
-      print_prompt(q_args->params);
-      q_args->state = WAIT_CLIENT;
+      sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+              &q_len);
+      write(q_args->sd, query, q_len);
+      q_args->state = S_FILE_LIST;
       return 0;
     } else {
       write(STDOUT_FILENO, line, strlen(line));
@@ -93,20 +92,38 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    printf("%s\n", line);
-    print_prompt(q_args->params);
-    q_args->state = WAIT_CLIENT;
+    sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+            &q_len);
+    write(q_args->sd, query, q_len);
+    q_args->state = S_FILE_LIST;
     return 0;
   }
 
-  if (q_args->state == WAIT_SERVER_INIT) {
-    write(STDOUT_FILENO, line, l_len);
-  } else {
-    char buf[INBUFSIZE + sizeof("server: ")] = "server: ";
-    strcat(buf, line);
-    write(STDOUT_FILENO, buf, l_len + sizeof("server: "));
-    if (q_args->state == WAIT_CLIENT) {
-      print_prompt(q_args->params);
+  if (q_args->state == S_WAIT_SERVER) {
+    if (q_args->server_message.text == NULL) {
+      q_args->server_message.text = malloc(l_len + 1);
+      memcpy(q_args->server_message.text, line, l_len);
+      q_args->server_message.text[l_len] = 0;
+      q_args->server_message.size = l_len + 1;
+      q_args->server_message.capacity = l_len + 1;
+    } else {
+      if (q_args->server_message.size + l_len >
+          q_args->server_message.capacity) {
+        new_capacity = (l_len + q_args->server_message.capacity) * 2;
+        q_args->server_message.text =
+            realloc(q_args->server_message.text, new_capacity);
+        q_args->server_message.capacity = new_capacity;
+      }
+      q_args->server_message.size += l_len;
+      strncat(q_args->server_message.text, line, l_len);
+      q_args->server_message.text[q_args->server_message.size + l_len] = 0;
+    }
+    char *end_char = strchr(q_args->server_message.text,
+                            '\04'); /* Search for the end of the notification */
+    if (end_char != NULL) {
+      *end_char = '\0'; /* Don't show this symbol */
+      q_args->state = S_PRINT_SERVER_MESSAGE;
+      q_args->server_message.size--;
     }
   }
 

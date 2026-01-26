@@ -1,4 +1,3 @@
-#include "main.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -15,11 +14,16 @@
 #include <termios.h>
 #include <unistd.h>
 
-static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
-static fl_item_t *fl_select(fl_item_t *start, int num);
-static void fl_clear(fl_item_t **start, fl_item_t **current);
+#include "file_processor.h"
+#include "main.h"
+#include "query.h"
+#include "ui/widget/dialogue.h"
+#include "ui/widget/file_list.h"
+#include "ui/widget/progress_bar.h"
 
-static void clear_file_in_query(query_args_t *q_args);
+static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
+fl_item_t *fl_select(fl_item_t *start, int num);
+void fl_clear(fl_item_t **start, fl_item_t **current);
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
   uint32_t qlen;
@@ -27,56 +31,61 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t idx = 1;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
+  fui->start = &(f_args->l_start);
+  fui->current = &(f_args->l_current);
 
-  if (qbuf_used == 0) qbuf[0] = 0;
+  if (qbuf_used == 0)
+    qbuf[0] = 0;
 
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
-    if (!strcmp("list_end\n", query)) {
-      q_args->state = STATE_FILE_SELECT;
+    if (!strncmp(":END:", query, sizeof(":END:") - 1)) {
+      sscanf(query, ":END: PAGE %u/%u COUNT: %u/%u\n", &fui->current_page,
+             &fui->pages, &fui->current_count, &fui->full_count);
       idx = 1;
+      if (d != NULL && d->is_initiated) {
+        d->needs_update = true;
+      }
+      draw_file_list(fui);
+      q_args->state = S_FILE_SELECT;
       break;
     }
     strcat(qbuf, query);
     qbuf_used += strlen(qbuf);
-    if (strchr(qbuf, '\n') == NULL) continue;
+    if (strchr(qbuf, '\n') == NULL)
+      continue;
     fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
-    printf("[%d] [%s | %s]\n%s\n", idx++, f_args->l_current->name,
-           f_args->l_current->owner, f_args->l_current->description);
+    fui->current_count++;
     free(query);
     query = NULL;
     qbuf_used = 0;
     qbuf[0] = 0;
   }
-
-  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
-                                        &query))) {
-    write(STDOUT_FILENO, query, strlen(query));
-  }
 }
 
+/* file_select: old function, can be removed in the future */
 void file_select(file_args_t *f_args, query_args_t *q_args) {
   char *buf = q_args->buf;
   fl_item_t *l_start = f_args->l_start;
-  fl_item_t *l_current = f_args->l_current;
+  // fl_item_t *l_current = f_args->l_current;
   fl_item_t *l_selected; /* from the list */
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
   uint32_t filenum;
-  uint32_t pagenum;
   uint32_t qlen;
   char send_buf[256];
   struct stat st = {0};
-  
-  if (!(sscanf(buf, "%d", &filenum))) {
+
+  if (!(sscanf(buf, "%u", &filenum))) {
     write(q_args->sd, buf, strlen(buf));
-    q_args->state = STATE_FILE_LIST;
+    q_args->state = S_FILE_LIST;
     fl_clear(&f_args->l_start, &f_args->l_current);
     return;
   }
 
   if (filenum == 0) {
-    print_prompt(q_args->params);
     q_args->state = WAIT_CLIENT;
     return;
   }
@@ -103,15 +112,55 @@ void file_select(file_args_t *f_args, query_args_t *q_args) {
     qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
     write(q_args->sd, send_buf, qlen);
     perror(f_selected->name);
-    print_prompt(q_args->params);
     q_args->state = WAIT_CLIENT;
     free(file_path);
     return;
   }
   qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
   write(q_args->sd, send_buf, qlen);
-  q_args->state = STATE_FILE_DOWNLOAD;
+  q_args->state = S_FILE_DOWNLOAD;
   free(file_path);
+}
+
+int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
+  fl_item_t *l_selected; /* from the list */
+  fl_item_t *f_selected =
+      &(f_args->f_selected); /* new copy of file struct (list be cleared) */
+  uint32_t qlen;
+  char send_buf[256];
+  struct stat st = {0};
+
+  l_selected = fl_select(f_args->l_start, idx);
+
+  if (l_selected == NULL) {
+    return -1;
+  }
+
+  memcpy(f_selected, l_selected, sizeof(fl_item_t));
+
+  if (stat(DOWNLOADS_DIR, &st) == -1) {
+    mkdir(DOWNLOADS_DIR, 0700);
+  }
+  char *file_path = malloc(sizeof(DOWNLOADS_DIR) + strlen(l_selected->name) +
+                           2); // + '/' + '\0'
+  f_selected->name = NULL;
+  sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
+  f_selected->name = strdup(l_selected->name);
+  fl_clear(&f_args->l_start, &f_args->l_current);
+  f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  if (f_args->file_d == -1) {
+    qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
+    write(q_args->sd, send_buf, qlen);
+    perror(f_selected->name);
+    q_args->state = WAIT_CLIENT;
+    free(file_path);
+    return -2;
+  }
+  qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
+  write(q_args->sd, send_buf, qlen);
+  q_args->state = S_FILE_DOWNLOAD;
+  free(file_path);
+  return OK;
 }
 
 void file_download(file_args_t *f_args, query_args_t *q_args) {
@@ -119,11 +168,18 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   static uint32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
-    it_interval = (f_selected->size / INBUFSIZE / 100) * 10; /* every 10% */
+    it_interval = (f_selected->size / INBUFSIZE / 100) * 5; /* every 1% */
     if (it_interval == 0)
       it_interval = 1;
   }
+  char answer[256];
+
   static size_t size_rest = 0;
+  uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
+  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  uint32_t a_len = 0;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -131,10 +187,11 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   if (qlen) {
     it_count++;
     if (!(it_count % it_interval)) {
-      printf("%zu / %zu\n", f_selected->size - size_rest, f_selected->size);
-    }
-    if (it_count % it_interval)
+      pb->procent = progress;
+      d->needs_update = true;
+    } else {
       q_args->buf_used = 0;
+    }
     if (size_rest < qlen) {
       size_rest = 0;
     } else {
@@ -144,15 +201,21 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       it_count = 0;
       it_interval = 0;
       f_selected->size = 0;
-      printf("File %s is downloaded\n", f_selected->name);
       close(f_args->file_d);
+      d->needs_destroy = true;
+      sprintf(answer, "File %s is downloaded from the server!",
+              f_selected->name);
+      q_args->notification = malloc(strlen(answer) + 1);
+      strcpy(q_args->notification, answer);
       free(f_selected->name);
-      print_prompt(q_args->params);
-      q_args->state = WAIT_CLIENT;
+      sprintf(answer, "file list %u %u\n%n", fui->max_lines, fui->current_page,
+              &a_len);
+      write(q_args->sd, answer, a_len);
+      q_args->state = S_FILE_LIST;
     }
   }
 }
-
+/* obsolete */
 int32_t file_upload_request(char *query, query_args_t *q_args) {
   char qbuf[INBUFSIZE];
   char fpath[512];
@@ -183,6 +246,27 @@ int32_t file_upload_request(char *query, query_args_t *q_args) {
   return 0;
 }
 
+int32_t file_upload_open(char *dpath, char *fname, query_args_t *q_args) {
+  char a_perm;
+  q_args->file = malloc(sizeof(p_file_t));
+  q_args->file->path = malloc(strlen(dpath) + strlen(fname) + 2);
+  sprintf(q_args->file->path, "%s/%s", dpath, fname);
+  int fd = open(q_args->file->path, O_RDONLY);
+  if (fd == -1) {
+    perror(q_args->file->path);
+    return -1;
+  }
+  size_t fsize = lseek(fd, 0, SEEK_END);
+  lseek(fd, 0, SEEK_SET);
+  q_args->file->fd = fd;
+  q_args->file->name = malloc(strlen(fname) + 1);
+  strcpy(q_args->file->name, fname);
+  q_args->file->size = fsize;
+  q_args->file->rest = fsize;
+  q_args->file->description = NULL;
+  return 0;
+}
+
 int32_t file_upload_start(query_args_t *q_args) {
   char *query;
   query_extract_from_buf(q_args->buf, &(q_args->buf_used), &query);
@@ -195,35 +279,44 @@ int32_t file_upload_start(query_args_t *q_args) {
 }
 
 int32_t file_upload(query_args_t *q_args) {
-  /* static size_t it_int = 0;
-   static int it_count = 0;
-
-   if (it_int == 0) {
-     it_int = (q_args->file->size / INBUFSIZE / 100) * 10; // every 10%
-} */
-
+  static uint32_t it_count = 0;
+  static size_t it_interval = 0;
+  if (it_interval == 0) {
+    it_interval = (q_args->file->size / INBUFSIZE / 100) * 5; /* every 1% */
+    if (it_interval == 0)
+      it_interval = 1;
+  }
+  uint32_t progress =
+      (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
+  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
+  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   if (q_args->buf_used > 0) {
     int wlen = write(q_args->sd, q_args->buf, q_args->buf_used);
     if (q_args->buf_used != wlen) {
       /* TODO: ошибка */
       return -1;
     } else {
+      it_count++;
+      if (!(it_count % it_interval)) {
+        pb->procent = progress;
+        d->needs_update = true;
+      }
       q_args->buf[0] = 0;
       q_args->buf_used = 0;
       q_args->file->rest -= wlen;
     }
   } else {
-    /* file upload is finished */
-    printf("Upload of %s is finished.\n", q_args->file->name);
-    /* TODO: ждать ответа от сервера */
-    clear_file_in_query(q_args);
+    it_count = 0;
+    it_interval = 0;
     return 1;
   }
   return 0;
 }
 
-static void clear_file_in_query(query_args_t *q_args) {
+void clear_file_in_query(query_args_t *q_args) {
   free(q_args->file->name);
+  free(q_args->file->path);
+  free(q_args->file->description);
   free(q_args->file);
   q_args->file = NULL;
 }
@@ -240,7 +333,6 @@ void init_file_args(file_args_t *f_args) {
 /* work with file list */
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
   char fname[128];
-  size_t fsize;
   char fowner[32];
   int h_len;
   fl_item_t *fitem = malloc(sizeof(fl_item_t));
@@ -271,7 +363,7 @@ static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
   *cur = fitem;
 }
 
-static fl_item_t *fl_select(fl_item_t *start, int num) {
+fl_item_t *fl_select(fl_item_t *start, int num) {
   fl_item_t *current = start;
   for (; num != 1; num--) {
     if (current->next != NULL) {
@@ -283,7 +375,7 @@ static fl_item_t *fl_select(fl_item_t *start, int num) {
   return current;
 }
 
-static void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
+void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
   if (*start == NULL)
     return;
   fl_item_t *next, *current;

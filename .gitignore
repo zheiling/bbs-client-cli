@@ -71,3 +71,4 @@ build
 Downloads
 
 deps.mk
+src/deps.mk

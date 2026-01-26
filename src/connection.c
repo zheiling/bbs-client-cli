@@ -1,5 +1,7 @@
 #include "main.h"
+#include "ui/app.h"
 #include <arpa/inet.h>
+#include <ncurses.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,15 +12,18 @@
 #include <termios.h>
 #include <unistd.h>
 
-void connect_to_server(int sd, params_t *params) {
+void connect_to_server(app_t *app) {
   struct sockaddr_in server;
   server.sin_family = AF_INET;
-  server.sin_addr.s_addr = params->addr;
-  server.sin_port = params->port;
-  if (-1 == connect(sd, (struct sockaddr *)&server, sizeof(server))) {
+  server.sin_addr.s_addr = app->params->addr;
+  server.sin_port = app->params->port;
+  if (-1 ==
+      connect(app->params->sd, (struct sockaddr *)&server, sizeof(server))) {
     perror("connect");
-    exit(2);
+    destroy_app(app, 2);
   }
+  app->params->is_connected = TRUE;
+  print_bars(app);
 }
 
 void init_params(params_t *params) {
@@ -27,6 +32,7 @@ void init_params(params_t *params) {
   params->uname = NULL;
   params->privileges = 0;
   params->port = htons(SERVER_PORT);
+  params->is_connected = FALSE;
 }
 
 void clear_params(params_t *params) {
@@ -41,20 +47,11 @@ void clear_params(params_t *params) {
   params->uname = NULL;
 }
 
-void get_missing_params(params_t *params) {
-  size_t lsize;
-  char *bufptr = NULL;
-
+void get_ip_port(params_t *params, char *ip, char *port) {
   struct sockaddr_in addr;
-
-  if (!params->addr) {
-    printf("host> ");
-    getline(&bufptr, &lsize, stdin);
-    inet_aton(bufptr, &(addr.sin_addr));
-    params->addr = addr.sin_addr.s_addr;
-    free(bufptr);
-    bufptr = NULL;
-  }
+  inet_aton(ip, &(addr.sin_addr));
+  params->addr = addr.sin_addr.s_addr;
+  params->port = htons(atoi(port));
 }
 
 void close_session(int sd) { close(sd); }
