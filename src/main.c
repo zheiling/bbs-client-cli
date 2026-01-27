@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
   app_t *app;
   params_t params;
   query_args_t *q_args = malloc(sizeof(query_args_t));
-  char buf[INBUFSIZE];
 
   app = calloc(1, sizeof(app_t));
 

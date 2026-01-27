@@ -145,8 +145,6 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
 void draw_group(WINDOW *win, group_t *group, int32_t active_id,
                 widget_t *dialog_w) {
   group_el_t *children = group->elements;
-  group_el_t *active_element = NULL;
-  uint32_t active_idx;
   for (int i = 0; i < group->count; i++) {
     group_el_t *el = &children[i];
     switch (el->type) {

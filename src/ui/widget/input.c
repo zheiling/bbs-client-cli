@@ -56,7 +56,6 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
     wattrset(win, COLOR_PAIR(0) | A_BOLD);
   }
 
-  uint32_t x_c = 0;
   if (input->is_hidden) {
     mvwprintw(win, margin_y + 1, margin_x, "%.*s%*s", (int) input->value_len, stars,
               input->w.x - input->value_len - 2, "");

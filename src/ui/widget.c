@@ -21,10 +21,9 @@ void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
 }
 
 int32_t get_max_line_len(const char *text, uint32_t *line_count) {
-  uint32_t nl_pos = 0;  // new line position
-  uint32_t c_start = 0; // current line start position
-  uint32_t c_len = 0;   // current line length
-  uint32_t m_len = 0;   // max length
+  uint32_t nl_pos = 0; /* new line position */
+  uint32_t c_len = 0;  /* current line length */
+  uint32_t m_len = 0;  /* max length */
   uint32_t line_num = 1;
   for (int i = 0; text[i] != '\0'; i++, c_len++) {
     if (text[i] == '\n') {
@@ -32,7 +31,6 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
         m_len = c_len;
       }
       nl_pos = i;
-      c_start = i + 1;
       c_len = 0;
       line_num++;
     }
@@ -109,8 +107,6 @@ uint32_t print_multiline_text(WINDOW *win, const char *_text,
 
 int32_t rsize_to_value(int32_t size, enum rsize rsize) {
   switch (rsize) {
-  case s_auto:
-    return size;
   case s_1:
     return size;
   case s_1_2:
@@ -123,5 +119,8 @@ int32_t rsize_to_value(int32_t size, enum rsize rsize) {
     return size / 4;
   case s_3_4:
     return size / 4 * 3;
+  case s_auto:
+  default:
+    return size;
   }
 }

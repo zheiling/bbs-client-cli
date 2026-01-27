@@ -184,6 +184,9 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case S_ASK_SEVER_IP:
   case S_ASK_LOGIN_TYPE:
   case S_N_D:
+  case S_ASK_LOGIN_USER:
+  case S_PRINT_SERVER_MESSAGE:
+  case S_UPLOAD_FILE_SELECT:
     break;
   }
   return 0;

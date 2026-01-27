@@ -13,8 +13,17 @@
 #define DIALOGUE_TITLE 64
 #define DIALOGUE_TEXT 4096
 #define INPUT_TEXT DIALOGUE_TITLE
+
 #ifndef __USE_GNU
 #define __USE_GNU 1
+#endif
+
+#ifndef __USE_MISC
+#define __USE_MISC 1
+#endif
+
+#ifndef __USE_XOPEN_EXTENDED
+#define __USE_XOPEN_EXTENDED 1
 #endif
 
 typedef struct params {
