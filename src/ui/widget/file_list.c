@@ -20,8 +20,6 @@ void file_list_cb(callback_args_t *args) {
   int32_t key = *((int32_t *)args->data);
   char query[256];
   int32_t q_len = 0;
-  fl_item_t *f_item;
-  ui_progress_bar_t *pb;
   switch (key) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
@@ -128,7 +126,7 @@ void draw_file_list(ui_file_list_t *fl_ui) {
     mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
   }
   char p_info[64];
-  uint32_t p_len;
+  int32_t p_len;
   p_x = 1;
 
   sprintf(p_info, "page: %u/%u files: %u left: %u%n", fl_ui->current_page,

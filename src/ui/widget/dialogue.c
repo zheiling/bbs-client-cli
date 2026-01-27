@@ -56,10 +56,8 @@ widget_t *get_active_widget(dialogue_t *d) {
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
-  app_t *app = (app_t *)args->app;
   callback_args_t new_args;
   int32_t *resp_value = (int32_t *)args->resp_data;
-  group_el_t *default_element = NULL;
   memcpy(&new_args, args, sizeof(callback_args_t));
   new_args.active_id = d->active.id;
   int32_t diff;
@@ -120,7 +118,7 @@ void dialogue_default_callback(callback_args_t *args) {
       break;
     } /* Default cases */
     if (d->active.type == g_action) {
-      new_args.element = new_args.element = d->g_action;
+      new_args.element = d->g_action;
       group_default_callback(&new_args);
     } else if (d->g_action != NULL) {
       for (int i = 0; i < d->g_action->count; i++) {
@@ -156,9 +154,9 @@ void dialogue_default_callback(callback_args_t *args) {
   default:
     /* run callback function */
     if (d->active.type == g_content) {
-      new_args.element = new_args.element = d->g_content;
+      new_args.element = d->g_content;
     } else {
-      new_args.element = new_args.element = d->g_action;
+      new_args.element = d->g_action;
     }
     group_default_callback(&new_args);
   }
@@ -317,8 +315,9 @@ int32_t draw_dialogue(dialogue_t *d) {
   if (d->g_content != NULL) {
     FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
   }
-  if (ae_ptr == NULL && d->g_action != NULL)
+  if (ae_ptr == NULL && d->g_action != NULL) {
     FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
+  }
 
   if (ae_ptr != NULL && ae_ptr->id == d->active.id) {
     if (ae_ptr->type == w_input) {
@@ -338,7 +337,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   d->needs_update = false;
 
   return 0;
-};
+}
 
 void destroy_dialogue(dialogue_t *d, void *_app) {
   app_t *app = (app_t *)_app;

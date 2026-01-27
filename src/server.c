@@ -26,8 +26,6 @@ void ask_register(params_t *params, char *email);
 int process_server_command(char *line, int l_len, query_args_t *q_args) {
   int ws_pos = l_len;
   params_t *params = q_args->params;
-  const char *login_options[] = {"Username", "Anonymous", "Register", NULL};
-  uint32_t answer;
   uint64_t new_capacity;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
   char query[INBUFSIZE];
@@ -128,33 +126,6 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   }
 
   return 0;
-}
-
-static void file_receive(int sd, char *line) {
-  char fname[128];
-  char command[32];
-  size_t fsize;
-  sscanf(line, "%s %s %zu", command, fname, &fsize);
-  char buf[INBUFSIZE];
-  int rlen;
-
-  int file_d = open(fname, O_WRONLY);
-
-  if (file_d == -1) {
-    char err_mes[256];
-    int mlen;
-    mlen = sprintf(err_mes, "Can't write file named \"%s\"\n", fname);
-    write(sd, err_mes, mlen);
-    close(file_d);
-    return;
-  }
-
-  while (fsize && (rlen = read(sd, buf, INBUFSIZE))) {
-    write(file_d, buf, rlen);
-    fsize -= rlen;
-  }
-
-  close(file_d);
 }
 
 void ask_uname_and_password(params_t *params) {

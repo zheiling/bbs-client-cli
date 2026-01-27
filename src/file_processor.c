@@ -28,7 +28,6 @@ void fl_clear(fl_item_t **start, fl_item_t **current);
 void file_list(file_args_t *f_args, query_args_t *q_args) {
   uint32_t qlen;
   char *query = NULL;
-  static uint32_t idx = 1;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
@@ -44,7 +43,6 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     if (!strncmp(":END:", query, sizeof(":END:") - 1)) {
       sscanf(query, ":END: PAGE %u/%u COUNT: %u/%u\n", &fui->current_page,
              &fui->pages, &fui->current_count, &fui->full_count);
-      idx = 1;
       if (d != NULL && d->is_initiated) {
         d->needs_update = true;
       }
@@ -179,7 +177,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
-  uint32_t a_len = 0;
+  int32_t a_len = 0;
 
   if (size_rest == 0)
     size_rest = f_selected->size;
@@ -247,7 +245,6 @@ int32_t file_upload_request(char *query, query_args_t *q_args) {
 }
 
 int32_t file_upload_open(char *dpath, char *fname, query_args_t *q_args) {
-  char a_perm;
   q_args->file = malloc(sizeof(p_file_t));
   q_args->file->path = malloc(strlen(dpath) + strlen(fname) + 2);
   sprintf(q_args->file->path, "%s/%s", dpath, fname);

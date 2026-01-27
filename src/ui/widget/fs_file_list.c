@@ -55,7 +55,7 @@ static void fl_clear(fs_fl_item_t **start, fs_fl_item_t **arg_current) {
 fs_fl_item_t *get_files_from_fs(char *path) {
   DIR *dir;
   struct dirent *dent;
-  char name[64];
+  char name[257];
   struct fl_args f_args;
 
   fs_fl_item_t *d_start = NULL, *d_current = NULL; /* directories */
@@ -118,9 +118,6 @@ void select_item(ui_fs_file_list_t *fui, int32_t *resp_data) {
 void fs_file_list_cb(callback_args_t *args) {
   ui_fs_file_list_t *fui = args->element;
   int32_t key = *((int32_t *)args->data);
-  int32_t q_len = 0;
-  fs_fl_item_t *f_item;
-  ui_progress_bar_t *pb;
   switch (key) {
   case KEY_DOWN:
     if (fui->current->next != NULL) {
@@ -169,7 +166,6 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
   p_y = 1;
   p_x = 1;
   fs_fl_item_t *el = fl_ui->start;
-  fs_fl_item_t *active_el = fl_ui->start;
 
   if (fl_ui->current_idx + 1 >= sz_y_f) {
     p_y -= fl_ui->current_idx - sz_y_f + 2;
@@ -184,7 +180,6 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
     }
     if (el == fl_ui->current) {
       wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
-      active_el = el;
     }
     p_x = 1;
     mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
