@@ -1,5 +1,7 @@
 add_executable(zbbs-client-tui)
 
+set_property(TARGET zbbs-client-tui PROPERTY C_STANDARD 23)
+
 file(GLOB M_HEADERS "*.h")
 file(GLOB M_SOURCES "*.c")
 
@@ -27,3 +29,21 @@ target_link_libraries(zbbs-client-tui
         modals
         ${CURSES_LIBRARIES}
 )
+
+if (ZBBS_DEBUG)
+if(
+  (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR
+  (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+)
+
+  target_compile_options(zbbs-client-tui PRIVATE /W3)
+
+elseif(
+  (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR
+  (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+)
+
+  target_compile_options(zbbs-client-tui PRIVATE -Wall -ggdb -pedantic)
+
+endif()
+endif()

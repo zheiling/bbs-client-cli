@@ -1,0 +1,23 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "ZBBS_DEBUG": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Release build",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "ZBBS_DEBUG": "OFF"
+      }
+    }
+  ]
+}
