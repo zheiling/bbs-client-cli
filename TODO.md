@@ -11,3 +11,4 @@
 - [ ] Group elements as lists
 - [ ] "Server message" to notification
 - [ ] file list -> list template
+- [x] CMAKE

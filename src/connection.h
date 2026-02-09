@@ -1,7 +1,7 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 #include "main.h"
-#include "ui/app.h"
+#include <widget.h>
 
 void connect_to_server(app_t *params);
 void init_params(params_t *restrict);

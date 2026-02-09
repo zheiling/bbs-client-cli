@@ -16,7 +16,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 $(OBJ_DIR)/ui/%.o: $(SRC_DIR)/ui/%.c $(SRC_DIR)/ui/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/ui/widget/%.o: $(SRC_DIR)/ui/widget/%.c $(SRC_DIR)/ui/widget/%.h
+$(OBJ_DIR)/widget/%.o: $(SRC_DIR)/widget/%.c $(SRC_DIR)/widget/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/ui/modals/%.o: $(SRC_DIR)/ui/modals/%.c $(SRC_DIR)/ui/modals/%.h

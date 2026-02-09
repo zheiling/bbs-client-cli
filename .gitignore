@@ -72,3 +72,5 @@ Downloads
 
 deps.mk
 src/deps.mk
+.cache/
+install/

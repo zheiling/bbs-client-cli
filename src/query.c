@@ -20,7 +20,8 @@
 #include "file_processor.h"
 #include "main.h"
 #include "server.h"
-#include "ui/app.h"
+#include "app.h"
+#include "draw-modal.h"
 
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);

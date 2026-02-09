@@ -12,9 +12,7 @@
 #include "connection.h"
 #include "main.h"
 #include "query.h"
-#include "ui/app.h"
-#include "ui/widget.h"
-#include "ui/widget/file_list.h"
+#include <widget.h>
 
 uint32_t m_id = 0;
 

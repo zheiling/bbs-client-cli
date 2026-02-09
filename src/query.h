@@ -2,7 +2,7 @@
 #define QUERY_H
 
 #include "main.h"
-#include "ui/app.h"
+#include "app.h"
 
 void query_loop(app_t *);
 void wait_register(query_args_t *q_args);

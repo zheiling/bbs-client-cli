@@ -1,5 +1,5 @@
 #include "main.h"
-#include "ui/widget/file_list.h"
+#include "widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>

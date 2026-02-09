@@ -1,5 +1,5 @@
 #include "main.h"
-#include "ui/app.h"
+#include "app.h"
 #include <arpa/inet.h>
 #include <ncurses.h>
 #include <netinet/in.h>

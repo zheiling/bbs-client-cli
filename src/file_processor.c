@@ -17,9 +17,9 @@
 #include "file_processor.h"
 #include "main.h"
 #include "query.h"
-#include "ui/widget/dialogue.h"
-#include "ui/widget/file_list.h"
-#include "ui/widget/progress_bar.h"
+#include "widget/dialogue.h"
+#include "widget/file_list.h"
+#include "widget/progress_bar.h"
 
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 fl_item_t *fl_select(fl_item_t *start, int num);
