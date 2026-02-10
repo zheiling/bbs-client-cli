@@ -37,6 +37,7 @@ if(
 )
 
   target_compile_options(zbbs-client-tui PRIVATE /W3)
+  message("Include debug info (Microsoft)")
 
 elseif(
   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR
@@ -44,6 +45,7 @@ elseif(
 )
 
   target_compile_options(zbbs-client-tui PRIVATE -Wall -ggdb -pedantic)
+  message("Include debug info (GNU/Clang)")
 
 endif()
 endif()
