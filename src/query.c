@@ -22,6 +22,7 @@
 #include "server.h"
 #include "app.h"
 #include "draw-modal.h"
+#include "types.h"
 
 static void wait_side(query_args_t *q_args);
 void user_request_description(query_args_t *q_args);
