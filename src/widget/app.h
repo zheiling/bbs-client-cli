@@ -5,7 +5,8 @@
 #include "../common.h"
 #include "dialogue.h"
 #include <ncurses.h>
-#include <ui-widget-core.h>
+#include <widget_core.h>
+#include <bstrlib.h>
 
 typedef enum {
   modal_color_pair = 3,

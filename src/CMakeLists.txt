@@ -2,6 +2,8 @@ add_executable(zbbs-client-tui)
 
 set_property(TARGET zbbs-client-tui PROPERTY C_STANDARD 23)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(
   (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR
   (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -38,14 +40,16 @@ target_sources(zbbs-client-tui
             ${M_HEADERS}
 )
 
-add_subdirectory(ui-widget-core)
+add_subdirectory(widget_core)
 add_subdirectory(widget)
 add_subdirectory(modals)
+add_subdirectory(lib)
 
 target_link_libraries(zbbs-client-tui 
     PRIVATE
-        ui-widget-core
+        widget_core
         widget
         modals
+        bstring
         ${CURSES_LIBRARIES}
 )

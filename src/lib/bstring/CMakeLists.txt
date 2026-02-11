@@ -1,9 +1,9 @@
-add_library(ui-widget-core STATIC)
+add_library(bstring STATIC)
 
 file(GLOB M_HEADERS "*.h")
 file(GLOB M_SOURCES "*.c")
 
-target_sources(ui-widget-core
+target_sources(bstring
     PRIVATE
         ${M_SOURCES}
     PUBLIC

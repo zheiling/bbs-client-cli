@@ -5,7 +5,7 @@
 #include "group.h"
 #include <ncurses.h>
 #include <stdint.h>
-#include <ui-widget-core.h>
+#include <widget_core.h>
 
 enum g_type { g_content, g_action };
 

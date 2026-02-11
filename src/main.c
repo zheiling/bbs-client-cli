@@ -11,6 +11,7 @@
 
 #include "connection.h"
 #include "main.h"
+#include "file_list.h"
 #include "query.h"
 #include <widget.h>
 
@@ -61,6 +62,7 @@ int main(int argc, char **argv) {
 
 int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   int32_t c;
+  ui_file_list_t *fui = (ui_file_list_t *) app->query_args->file_list_ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
@@ -71,6 +73,13 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
     if (!app->modal.is_initiated) {
       app->query_args->state = S_UPLOAD_FILE_SELECT;
       break;
+    }
+  case 's':
+  case 'S':
+    if (!app->modal.is_initiated && !fui->active_search) {
+      fui->active_search = true;
+      draw_file_list(fui);
+      return OK;
     }
   default:
     d_args->data = (void *)&c;

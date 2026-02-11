@@ -2,7 +2,7 @@
 #define BUTTON_H
 
 #include "../main.h"
-#include <ui-widget-core.h>
+#include <widget_core.h>
 #include <stdint.h>
 
 typedef struct {

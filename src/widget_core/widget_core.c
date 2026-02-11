@@ -1,4 +1,4 @@
-#include "ui-widget-core.h"
+#include "widget_core.h"
 #include "../main.h"
 #include <ncurses.h>
 #include <stdint.h>

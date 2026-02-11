@@ -1,6 +1,6 @@
 #ifndef PROGRESS_BAR_H
 #define PROGRESS_BAR_H
-#include <ui-widget-core.h>
+#include <widget_core.h>
 typedef struct {
   widget_t w;
   uint32_t procent;

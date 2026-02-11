@@ -2,7 +2,7 @@
 #define GROUP_H
 
 #include <stdint.h>
-#include <ui-widget-core.h>
+#include <widget_core.h>
 
 enum g_direction {
   horizontal,

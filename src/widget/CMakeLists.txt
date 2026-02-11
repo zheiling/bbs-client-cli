@@ -16,7 +16,9 @@ target_sources(widget
 
 target_link_libraries(widget 
     PRIVATE
-        ui-widget-core
+        bstring
+        widget_core
 )
 
-target_include_directories(widget PRIVATE "../ui-widget-core")
+target_include_directories(widget PRIVATE "../widget_core")
+target_include_directories(widget PRIVATE "../lib/")

@@ -3,7 +3,7 @@ add_library(modals STATIC)
 file(GLOB M_HEADERS "*.h")
 file(GLOB M_SOURCES "*.c")
 
-target_link_libraries(modals PRIVATE widget ui-widget-core)
+target_link_libraries(modals PRIVATE widget widget_core bstring)
 
 target_sources(modals
     PRIVATE
@@ -15,4 +15,5 @@ target_sources(modals
 )
 
 target_include_directories(modals PRIVATE "../widget")
-target_include_directories(modals PRIVATE "../ui-widget-core")
+target_include_directories(modals PRIVATE "../widget_core")
+target_include_directories(modals PRIVATE "../lib/")

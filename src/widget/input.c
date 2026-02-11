@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "app.h"
-#include <ui-widget-core.h>
+#include <widget_core.h>
 #include "input.h"
 
 input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,

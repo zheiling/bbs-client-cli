@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "app.h"
-#include <ui-widget-core.h>
+#include <widget_core.h>
 #include "button.h"
 
 button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {

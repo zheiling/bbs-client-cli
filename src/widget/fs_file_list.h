@@ -1,6 +1,6 @@
 #ifndef FS_FILE_LIST_H
 #define FS_FILE_LIST_H
-#include <ui-widget-core.h>
+#include <widget_core.h>
 #include <ncurses.h>
 #include <stdint.h>
 #include <sys/types.h>
