@@ -176,6 +176,7 @@ void draw_file_list(ui_file_list_t *fui) {
   if (fui->active_search) {
     mvwprintw(parent_win, p_y, p_x, "%s%*s", p_info, sz_x - p_len, "");
   } else {
+    /* TODO: Correct spacing when lack of space (with search keyword) */
     if (fui->search_key->slen > 0) {
       wattrset(parent_win, A_REVERSE);
       mvwprintw(parent_win, p_y, p_x, "[%s]", fui->search_key->data);
