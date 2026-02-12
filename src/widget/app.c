@@ -109,7 +109,7 @@ void print_bars(app_t *app) {
 
   /* add content to the bottom bar */
   mvwprintw(app->win, app->coordinates.cur_y - 2, 2,
-            "F1 - Help | U - upload | F9 - Quit");
+            "F1 - Help | U - upload | S - search | F9 - Quit");
 
   wattroff(app->win, A_REVERSE);
 }

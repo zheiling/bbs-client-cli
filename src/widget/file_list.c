@@ -19,16 +19,34 @@ void file_list_cb(callback_args_t *args) {
   ui_file_list_t *fui = app->query_args->file_list_ui;
   int32_t key = *((int32_t *)args->data);
   char query[256];
+  char q_prefix[128];
   int32_t q_len = 0;
+  if (fui->search_key->slen > 0) {
+    sprintf(q_prefix, "file search name %s", fui->search_key->data);
+  } else {
+    sprintf(q_prefix, "file list");
+  }
   if (fui->active_search) {
     if (key == KEY_BACKSPACE || key == KEY_DL) {
       if (blength(fui->search_key)) {
         btrunc(fui->search_key, blength(fui->search_key) - 1);
+        draw_file_list(fui);
       }
+    } else if (key == '\n') {
+      fui->active_search = false;
+      fl_clear(fui->start, fui->current);
+      app->query_args->state = S_FILE_LIST;
+      if (fui->search_key->slen > 0) {
+        sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
+      } else {
+        sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
+      }
+      write(app->query_args->sd, query, q_len);
+      reset_file_list(fui);
     } else {
       bconchar(fui->search_key, key);
+      draw_file_list(fui);
     }
-    draw_file_list(fui);
     return;
   }
   switch (key) {
@@ -39,7 +57,7 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page < fui->pages) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "file list %u %u\n%n", fui->max_lines,
+      sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
               fui->current_page + 1, &q_len);
       write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
@@ -52,7 +70,7 @@ void file_list_cb(callback_args_t *args) {
     } else if (fui->current_page > 1) {
       fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "file list %u %u\n%n", fui->max_lines,
+      sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
               fui->current_page - 1, &q_len);
       write(app->query_args->sd, query, q_len);
       reset_file_list(fui);
@@ -89,6 +107,7 @@ void reset_file_list(ui_file_list_t *fl_ui) {
   fl_ui->current_count = 0;
   fl_ui->full_count = 0;
   fl_ui->activate_last = false;
+  fl_ui->active_search = false;
 }
 
 void draw_file_list(ui_file_list_t *fui) {
@@ -114,6 +133,8 @@ void draw_file_list(ui_file_list_t *fui) {
   }
 
   do {
+    if (el == NULL)
+      break;
     if (p_y < 1) {
       p_y++;
       cur_el_idx++;
@@ -155,7 +176,15 @@ void draw_file_list(ui_file_list_t *fui) {
   if (fui->active_search) {
     mvwprintw(parent_win, p_y, p_x, "%s%*s", p_info, sz_x - p_len, "");
   } else {
-    mvwprintw(parent_win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
+    if (fui->search_key->slen > 0) {
+      wattrset(parent_win, A_REVERSE);
+      mvwprintw(parent_win, p_y, p_x, "[%s]", fui->search_key->data);
+      wattroff(parent_win, A_REVERSE);
+      mvwprintw(parent_win, p_y, p_x + fui->search_key->slen + 2, " %s",
+                p_info);
+    } else {
+      mvwprintw(parent_win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
+    }
   }
   wattroff(parent_win, A_BOLD);
 
@@ -166,6 +195,8 @@ void draw_file_list(ui_file_list_t *fui) {
   wclear(i_win);
 
   /* Write to the right side the information about the file */
+  if (active_el == NULL)
+    return;
 
   char size_text[64];
   size_to_text(active_el->size, size_text);
