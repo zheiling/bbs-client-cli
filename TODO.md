@@ -7,6 +7,7 @@
 - [ ] Files removal
 - [ ] Encryption
 - [ ] Input: mark cursor position with "_"
+- [ ] UTF-8 support
 ## Fixes:
 - [ ] Check and fix registration and login
 - [ ] Hotkeys for buttons
