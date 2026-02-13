@@ -2,11 +2,10 @@
 
 ## Features:
 - [x] Search files
-- [ ] Correct spacing in the search bar
+- [x] Correct spacing in the search bar
 - [ ] Privilege settings for files
 - [ ] Files removal
 - [ ] Encryption
-- [ ] Input: mark cursor position with "_"
 - [ ] UTF-8 support
 ## Fixes:
 - [ ] Check and fix registration and login

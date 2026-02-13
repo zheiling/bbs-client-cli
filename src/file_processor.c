@@ -47,6 +47,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
         d->needs_update = true;
       }
       draw_file_list(fui);
+      free(query);
       q_args->state = S_FILE_SELECT;
       break;
     }

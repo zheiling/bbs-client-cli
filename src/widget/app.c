@@ -118,8 +118,8 @@ void app_refresh(app_t *app) {
   draw_borders(app);
 
   wnoutrefresh(app->win);
-  wnoutrefresh(app->left_win);
   wnoutrefresh(app->right_win);
+  wnoutrefresh(app->left_win);
   if (app->modal.win != NULL) {
     if (app->modal.is_initiated != 0) {
       wnoutrefresh(app->modal.win);
