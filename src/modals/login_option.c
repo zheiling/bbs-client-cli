@@ -1,7 +1,9 @@
 #include <ncurses.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>
 #include <widget.h>
 
 typedef struct {
@@ -22,10 +24,20 @@ void login_modal_option_cb(callback_args_t *args) {
   if (response > -1) {
     switch (response) {
     case 0:
+      d->needs_destroy = true;
+      app->params->uname = malloc(sizeof "anonymous");
+      strcpy(app->params->uname, "anonymous");
+      write(app->params->sd, app->params->uname, sizeof "anonymous"-1);
+      app->query_args->state = S_WAIT_SERVER;
+      print_bars(app);
       break;
     case 1:
       d->needs_destroy = true;
       app->query_args->state = S_ASK_LOGIN_USER;
+      break;
+    case 2:
+      d->needs_destroy = true;
+      app->query_args->state = S_ASK_REGISTER;
       break;
     }
   }

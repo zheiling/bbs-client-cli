@@ -24,10 +24,12 @@ typedef struct params {
 } params_t;
 
 enum state {
+  /* TUI-based */
   S_N_D,
   S_ASK_SEVER_IP,
   S_ASK_LOGIN_TYPE,
   S_ASK_LOGIN_USER,
+  S_ASK_REGISTER,
   S_WAIT_SERVER,
   S_PRINT_SERVER_MESSAGE,
   S_FILE_LIST,
@@ -40,6 +42,8 @@ enum state {
   S_ASK_USER_BEFORE_LOGIN,
   S_ERR,
   S_NEXT_ACTION,
+  S_WAIT_REGISTER_CONFIRMATION,
+  /* Legacy */
   WAIT_SERVER_INIT,
   WAIT_SERVER,
   WAIT_REGISTER,
@@ -76,6 +80,7 @@ typedef struct query_args {
   int32_t buf_used;
   p_file_t *file;
   enum state state;
+  enum state next_state;
   char *buf;
   uint32_t from_server : 1;
   params_t *params;

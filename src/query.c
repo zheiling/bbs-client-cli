@@ -143,6 +143,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case S_NEXT_ACTION:
   case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
+  case S_WAIT_REGISTER_CONFIRMATION:
     wait_side(query_args);
     break;
   case S_ERR:

@@ -173,6 +173,7 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   dialogue->is_initiated = true;
   dialogue->needs_update = true;
   dialogue->needs_destroy = false;
+  dialogue->color_scheme = dc_normal;
   strcpy(dialogue->w.title, title);
   strcpy(dialogue->text, text);
 }
@@ -284,7 +285,14 @@ int32_t draw_dialogue(dialogue_t *d) {
     d->win = newwin(y, x, d->w.m_y, d->w.m_x);
   }
 
-  wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
+  switch (d->color_scheme) {
+  case dc_normal:
+    wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
+    break;
+  case dc_alert:
+    wattrset(d->win, COLOR_PAIR(4) | A_BOLD  | A_REVERSE);
+    break;
+  }
 
   /* background */
   for (int yp = 1; yp < d->w.y - 1; yp++) {

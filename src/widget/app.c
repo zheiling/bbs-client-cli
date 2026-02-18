@@ -73,6 +73,7 @@ void init_nc() {
     init_pair(1, COLOR_RED, COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
     init_pair(modal_color_pair, COLOR_BLUE, COLOR_WHITE);
+    init_pair(4, COLOR_CYAN, COLOR_WHITE);
   }
 }
 

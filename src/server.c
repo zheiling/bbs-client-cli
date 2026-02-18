@@ -1,5 +1,6 @@
 #include "main.h"
 #include "widget/file_list.h"
+#include "modals/alert.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -69,7 +70,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
   }
 
   /* REGISTER CONFIRMATION */
-  if (q_args->state == WAIT_REGISTER_CONFIRMATION) {
+  if (q_args->state == S_WAIT_REGISTER_CONFIRMATION) {
     if (!strcmp(line, "ok")) {
       sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
               &q_len);
@@ -77,8 +78,7 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
       q_args->state = S_FILE_LIST;
       return 0;
     } else {
-      write(STDOUT_FILENO, line, strlen(line));
-      q_args->state = WAIT_REGISTER;
+      PRINT_SRV_MESSAGE(q_args, l_len, line)
       return 1;
     }
   }

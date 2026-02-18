@@ -8,6 +8,7 @@
 #include <widget_core.h>
 
 enum g_type { g_content, g_action };
+enum d_color_scheme { dc_normal, dc_alert };
 
 typedef struct {
   widget_t w;
@@ -21,8 +22,9 @@ typedef struct {
   char text[DIALOGUE_TEXT];
   uint32_t is_initiated : 1;
   uint32_t needs_update : 1;
-  uint32_t needs_destroy: 1;
+  uint32_t needs_destroy : 1;
   coordinates_t *p_coordinates;
+  enum d_color_scheme color_scheme;
 } dialogue_t;
 
 void init_dialogue(dialogue_t *d, const char title[], const char text[],

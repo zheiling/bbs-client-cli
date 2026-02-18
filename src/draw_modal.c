@@ -6,6 +6,7 @@
 #include "modals/server_message.h"
 #include "modals/upload_dialogue.h"
 #include "modals/upload_props_dialogue.h"
+#include "modals/register.h"
 #include "widget/dialogue.h"
 #include "main.h"
 
@@ -36,6 +37,9 @@ void app_draw_modal(app_t *app) {
       break;
     case S_UPLOAD_FILE_SELECT:
       init_upload_dialogue_modal(app);
+      break;
+    case S_ASK_REGISTER:
+      init_register_modal(app);
       break;
     case S_UPLOAD_PARAMS:
       init_upload_props_dialogue_modal(app);
