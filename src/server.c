@@ -1,6 +1,8 @@
+#include "app.h"
+#include "dialogue.h"
 #include "main.h"
-#include "widget/file_list.h"
 #include "modals/alert.h"
+#include "widget/file_list.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -16,6 +18,7 @@
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);
 
+/* TODO: questionable solution. Do better  */
 #define PRINT_SRV_MESSAGE(q_args, l_len, line)                                 \
   if (q_args->server_message.size > 0) {                                       \
     q_args->state = S_PRINT_SERVER_MESSAGE;                                    \
@@ -24,8 +27,9 @@ void ask_register(params_t *params, char *email);
     return 0;                                                                  \
   }
 
-int process_server_command(char *line, int l_len, query_args_t *q_args) {
+int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
+  query_args_t *q_args = app->query_args;
   params_t *params = q_args->params;
   uint64_t new_capacity;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
@@ -71,14 +75,22 @@ int process_server_command(char *line, int l_len, query_args_t *q_args) {
 
   /* REGISTER CONFIRMATION */
   if (q_args->state == S_WAIT_REGISTER_CONFIRMATION) {
-    if (!strcmp(line, "ok")) {
+    if (!strcmp(line, "ok\n")) {
       sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
               &q_len);
       write(q_args->sd, query, q_len);
       q_args->state = S_FILE_LIST;
+      destroy_dialogue(&(app->modal), app);
+      sprintf(query,
+              "You've been successfully registered.\n"
+              "Welcome, %s!",
+              app->params->uname);
+      notification("Registration", query, dc_normal);
+      print_bars(app);
       return 0;
     } else {
-      PRINT_SRV_MESSAGE(q_args, l_len, line)
+      q_args->state = S_ASK_REGISTER;
+      alert(line);
       return 1;
     }
   }

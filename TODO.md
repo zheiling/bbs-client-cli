@@ -3,7 +3,8 @@
 ## Features:
 - [x] Search files
 - [x] Correct spacing in the search bar
-- [ ] Finish registration
+- [x] Finish registration
+- [ ] Get rid of old notification mechanism
 - [ ] Privilege settings for files
 - [ ] Files removal
 - [ ] Encryption

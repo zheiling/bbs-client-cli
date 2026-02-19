@@ -16,18 +16,27 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "app.h"
 #include "connection.h"
+#include "draw_modal.h"
 #include "file_processor.h"
 #include "main.h"
+#include "modals/alert.h"
 #include "server.h"
-#include "app.h"
-#include "draw_modal.h"
 #include "types.h"
+#include "widget/app.h"
 
-static void wait_side(query_args_t *q_args);
+static void wait_side(app_t *app);
 void user_request_description(query_args_t *q_args);
-int process_query(query_args_t *query_args, file_args_t *file_args);
+int process_query(app_t *app);
 int32_t process_user_input(app_t *app, callback_args_t *d_args);
+
+#define EXIT_APP(message, app, exit_code)                                      \
+  {                                                                            \
+    alert(message);                                                            \
+    close_session(app->params->sd);                                            \
+    destroy_app(app, exit_code);                                               \
+  }
 
 void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
@@ -67,16 +76,15 @@ void query_loop(app_t *app) {
       free(query_args->next_server_command);
       query_args->next_server_command = NULL;
       query_args->from_server = TRUE;
-      if (ERR == process_query(query_args, &file_args)) {
-        close_session(sd);
-        exit(1);
+      if (ERR == process_query(app)) {
+        EXIT_APP("*** error while processing query ***", app, 1)
       }
       continue;
     } else {
       sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
       if (sr == -1) {
-        perror("select");
-        exit(3);
+        /* perror("select"); */
+        EXIT_APP("*** error while processing 'select' call ***", app, 3)
       }
     }
 
@@ -84,15 +92,12 @@ void query_loop(app_t *app) {
       /* process request from the server */
       qlen = read(sd, query_args->buf, INBUFSIZE);
       if (qlen == 0) {
-        close_session(sd);
-        printf("\n*** server closed the connection. ***\n");
-        exit(1);
+        EXIT_APP("*** server closed the connection ***", app, 1)
       } else {
         query_args->buf_used = qlen;
         query_args->from_server = TRUE;
-        if (ERR == process_query(query_args, &file_args)) {
-          close_session(sd);
-          exit(1);
+        if (ERR == process_query(app)) {
+          EXIT_APP("*** error while processing query ***", app, 1)
         }
       }
     }
@@ -102,22 +107,12 @@ void query_loop(app_t *app) {
       /* process upload/download */
       query_args->buf_used =
           read(query_args->file->fd, query_args->buf, INBUFSIZE);
-      process_query(query_args, &file_args);
+      process_query(app);
     }
 
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
-      /* process request from the client */
-      /* qlen = read(STDIN_FILENO, buf, INBUFSIZE); */
-      /* if (qlen == 0) {
-        close_session(sd);
-        exit(0);
-      } else { */
-      /*       query_args->buf_used = qlen;
-            query_args->from_server = 0; */
-      // if (-1 == process_query(&query_args, &file_args)) {
       if (ERR == process_user_input(app, &d_args)) {
-        close_session(sd);
-        exit(1);
+        EXIT_APP("*** error while processing user input ***", app, 4)
       }
     }
   }
@@ -133,7 +128,9 @@ void wait_register(query_args_t *q_args) {
   write(q_args->sd, r_buf, strlen(r_buf) - 1);
 }
 
-int process_query(query_args_t *query_args, file_args_t *file_args) {
+int process_query(app_t *app) {
+  query_args_t *query_args = app->query_args;
+  file_args_t *file_args = app->file_args;
   query_args->buf[query_args->buf_used] = 0;
   int32_t res = 0;
   switch (query_args->state) {
@@ -144,7 +141,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
   case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
   case S_WAIT_REGISTER_CONFIRMATION:
-    wait_side(query_args);
+    wait_side(app);
     break;
   case S_ERR:
     break;
@@ -153,7 +150,7 @@ int process_query(query_args_t *query_args, file_args_t *file_args) {
     break;
   case S_FILE_SELECT:
     if (query_args->from_server) {
-      wait_side(query_args);
+      wait_side(app);
     } else {
       file_select(file_args, query_args);
     }
@@ -233,13 +230,14 @@ int query_extract_from_buf(char *buf, int *buf_used, char **output_line) {
   return pos + 1;
 }
 
-static void wait_side(query_args_t *q_args) {
+static void wait_side(app_t *app) {
+  query_args_t *q_args = app->query_args;
   int qlen;
   int buf_used = q_args->buf_used;
   char *query = NULL;
 
   while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
-    process_server_command(query, qlen, q_args);
+    process_server_command(query, qlen, app);
     free(query);
     query = NULL;
   }

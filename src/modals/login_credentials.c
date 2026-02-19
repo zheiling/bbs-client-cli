@@ -38,7 +38,8 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       print_bars(app);
       break;
     case 1:
-      destroy_app(app, 0);
+      app->query_args->state = S_ASK_LOGIN_TYPE;
+      app->modal.needs_destroy = true;
     }
   }
 }

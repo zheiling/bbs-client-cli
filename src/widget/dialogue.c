@@ -164,6 +164,7 @@ void dialogue_default_callback(callback_args_t *args) {
 
 void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
                    coordinates_t *p_coordinates) {
+  uint32_t t_size = 0;
   dialogue->win = 0;
   dialogue->g_content = NULL;
   dialogue->w.x = 0;
@@ -175,7 +176,10 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   dialogue->needs_destroy = false;
   dialogue->color_scheme = dc_normal;
   strcpy(dialogue->w.title, title);
+  t_size = strlen(text);
   strcpy(dialogue->text, text);
+  /* trim the last new line symbol */
+  if (t_size && dialogue->text[t_size-1] == '\n') dialogue->text[t_size-1] = '\0';
 }
 
 void dialogue_init_active_id(dialogue_t *dialogue) {
@@ -290,7 +294,7 @@ int32_t draw_dialogue(dialogue_t *d) {
     wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
     break;
   case dc_alert:
-    wattrset(d->win, COLOR_PAIR(4) | A_BOLD  | A_REVERSE);
+    wattrset(d->win, COLOR_PAIR(4) | A_BOLD | A_REVERSE);
     break;
   }
 

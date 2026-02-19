@@ -1,6 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -80,9 +81,8 @@ typedef struct query_args {
   int32_t buf_used;
   p_file_t *file;
   enum state state;
-  enum state next_state;
   char *buf;
-  uint32_t from_server : 1;
+  bool from_server;
   params_t *params;
   char *next_server_command;
   struct {

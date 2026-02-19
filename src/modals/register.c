@@ -33,7 +33,7 @@ void init_register_modal_cb(callback_args_t *args) {
     switch (response) {
     case 0:
       if (strcmp(in_pass->value, in_pass_r->value)) {
-        alert(app, "Your passwords do not match");
+        alert("Your passwords do not match");
         in_pass->value[0] = '\0';
         in_pass->value_len = 0;
         in_pass_r->value[0] = '\0';
@@ -50,11 +50,10 @@ void init_register_modal_cb(callback_args_t *args) {
               &qlen);
       write(app->params->sd, query, qlen);
       app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
-      /* d->needs_destroy = true;
-      print_bars(app); */
       break;
     case 1:
-      destroy_app(app, 0);
+      app->query_args->state = S_ASK_LOGIN_TYPE;
+      app->modal.needs_destroy = true;
     }
   }
 }

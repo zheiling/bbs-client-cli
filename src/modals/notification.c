@@ -5,6 +5,8 @@
 
 #include <widget.h>
 
+/* TODO: get rid of this mechanism */
+
 typedef struct {
   button_t *element;
   enum w_type type;

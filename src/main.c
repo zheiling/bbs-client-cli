@@ -8,12 +8,13 @@
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+#include <widget.h>
 
 #include "connection.h"
-#include "main.h"
 #include "file_list.h"
+#include "main.h"
 #include "query.h"
-#include <widget.h>
+#include "modals/alert.h"
 
 uint32_t m_id = 0;
 
@@ -32,6 +33,9 @@ int main(int argc, char **argv) {
   init_params(&params);
   app->params = &params;
   analyze_args(argc, argv, &params);
+
+  /* init alert */
+  init_alert(app);
 
   wrefresh(app->left_win);
   wrefresh(app->right_win);
@@ -62,7 +66,7 @@ int main(int argc, char **argv) {
 
 int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   int32_t c;
-  ui_file_list_t *fui = (ui_file_list_t *) app->query_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)app->query_args->file_list_ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
