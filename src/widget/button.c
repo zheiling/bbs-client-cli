@@ -21,8 +21,16 @@ button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
 int32_t draw_button(button_t *btn, uint32_t active_id) {
   char title[DIALOGUE_TITLE + 6];
   WINDOW *win = *(btn->w.parent_win);
-  uint32_t margin_y = btn->w.m_y + btn->w.w_parent->m_y;
-  uint32_t margin_x = btn->w.m_x + btn->w.w_parent->m_x;
+  uint32_t margin_y = btn->w.m_y;
+  uint32_t margin_x = btn->w.m_x;
+
+  widget_t *w_par = btn->w.w_parent;
+
+  while (w_par->parent_win == btn->w.parent_win) {
+    margin_y += w_par->m_y;
+    margin_x += w_par->m_x;
+    w_par = w_par->w_parent;
+  }
 
   if (btn->w.id == active_id) {
     sprintf(title, "[< %s >]", btn->w.title);

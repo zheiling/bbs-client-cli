@@ -179,7 +179,8 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   t_size = strlen(text);
   strcpy(dialogue->text, text);
   /* trim the last new line symbol */
-  if (t_size && dialogue->text[t_size-1] == '\n') dialogue->text[t_size-1] = '\0';
+  if (t_size && dialogue->text[t_size - 1] == '\n')
+    dialogue->text[t_size - 1] = '\0';
 }
 
 void dialogue_init_active_id(dialogue_t *dialogue) {
@@ -210,34 +211,6 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
     }
   }
 }
-
-// void dialogue_init_active_id(dialogue_t *dialogue) {
-//   enum w_type widget_type;
-
-//   if (dialogue->g_content != NULL) {
-//     for (int i = 0; i < dialogue->g_content->count; i++) {
-//       widget_type = dialogue->g_content->elements[i].type;
-//       if (widget_type == w_button || widget_type == w_input ||
-//           widget_type == w_fs_file_list) { /* Add here new types */
-//         dialogue->active.type = g_content;
-//         widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
-//         dialogue->active.id = w->id;
-//         break;
-//       }
-//     }
-//   } else if (dialogue->g_action != NULL) {
-//     for (int i = 0; i < dialogue->g_action->count; i++) {
-//       widget_type = dialogue->g_action->elements[i].type;
-//       if (widget_type == w_button || widget_type == w_input ||
-//           widget_type == w_fs_file_list) {
-//         dialogue->active.type = g_action;
-//         widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
-//         dialogue->active.id = w->id;
-//         break;
-//       }
-//     }
-//   }
-// }
 
 #define DETECT_GROUP_SIZE(group, line_max_len, y, x)                           \
   if (group) {                                                                 \
@@ -317,10 +290,10 @@ int32_t draw_dialogue(dialogue_t *d) {
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {
-    draw_group(d->win, d->g_content, d->active.id, &(d->w));
+    draw_group(d->win, d->g_content, d->active.id);
   }
   if (d->g_action != NULL) {
-    draw_group(d->win, d->g_action, d->active.id, &(d->w));
+    draw_group(d->win, d->g_action, d->active.id);
   }
 
   /* move cursor */
@@ -331,19 +304,18 @@ int32_t draw_dialogue(dialogue_t *d) {
     FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
   }
 
-  if (ae_ptr != NULL && ae_ptr->id == d->active.id) {
-    if (ae_ptr->type == w_input) {
-      input_t *input = ae_ptr->element;
-      d->w.cur.y = input->w.cur.y;
-      d->w.cur.x = input->w.cur.x + input->value_len;
-      d->w.cur.x -= input->cur_pos;
-      if (d->w.cur.y || d->w.cur.x) {
-        wmove(d->win, d->w.cur.y, d->w.cur.x);
-        curs_set(true);
-      }
-    } else {
-      curs_set(false);
+  if (ae_ptr != NULL && ae_ptr->id == d->active.id && ae_ptr->type == w_input) {
+    input_t *input = ae_ptr->element;
+    d->w.cur.y = input->w.cur.y;
+    d->w.cur.x = input->w.cur.x + input->value_len;
+    d->w.cur.x -= input->cur_pos;
+    if (d->w.cur.y || d->w.cur.x) {
+      wmove(d->win, d->w.cur.y, d->w.cur.x);
+      curs_set(true);
     }
+
+  } else {
+    curs_set(false);
   }
 
   d->needs_update = false;

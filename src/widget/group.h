@@ -16,12 +16,14 @@ typedef struct {
   uint32_t is_default : 1;
 } group_el_t;
 
-typedef struct {
+typedef struct group_el_init_t {
   enum w_type type;
-  uint32_t is_default : 1;
-  uint32_t is_hidden_value : 1;
+  bool is_default;
+  bool is_hidden_value;
   char label[DIALOGUE_TITLE];
   uint32_t length;
+  enum g_direction direction;
+  struct group_el_init_t *children;
 } group_el_init_t;
 
 typedef struct {
@@ -38,8 +40,7 @@ typedef struct {
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction dir);
-void draw_group(WINDOW *win, group_t *group, int32_t active_id,
-                widget_t *dialog_w);
+void draw_group(WINDOW *win, group_t *group, int32_t active_id);
 void destroy_group(group_t *group);
 void group_default_callback(callback_args_t *args);
 

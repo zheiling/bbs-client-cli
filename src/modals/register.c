@@ -8,6 +8,8 @@
 #include <widget.h>
 
 #include "alert.h"
+#include "group.h"
+#include "widget_core.h"
 
 typedef struct {
   button_t *element;
@@ -46,8 +48,8 @@ void init_register_modal_cb(callback_args_t *args) {
       app->params->uname[in_name->value_len] = 0;
       strncpy(app->params->pass, in_pass->value, in_pass->value_len);
       app->params->pass[in_pass->value_len] = 0;
-      sprintf(query, "register %s %s\n%n", app->params->uname, app->params->pass,
-              &qlen);
+      sprintf(query, "register %s %s\n%n", app->params->uname,
+              app->params->pass, &qlen);
       write(app->params->sd, query, qlen);
       app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
       break;
@@ -61,16 +63,24 @@ void init_register_modal_cb(callback_args_t *args) {
 dialogue_t *init_register_modal(app_t *app) {
   if (app == NULL)
     return NULL;
+  group_el_init_t content_name_email[] = {
+      {.type = w_input, .label = "Username", .length = 18},
+      {.type = w_input, .label = "Email", .length = 18},
+      {.type = w_end}};
+
+  group_el_init_t content_pass[] = {{.type = w_input,
+                                     .label = "Password",
+                                     .length = 18,
+                                     .is_hidden_value = true},
+                                    {.type = w_input,
+                                     .label = "Password (repeat)",
+                                     .length = 18,
+                                     .is_hidden_value = true},
+                                    {.type = w_end}};
+
   group_el_init_t content[] = {
-      {.type = w_input, .label = "Username", .length = 15},
-      {.type = w_input,
-       .label = "Password",
-       .length = 15,
-       .is_hidden_value = true},
-      {.type = w_input,
-       .label = "Password (repeat)",
-       .length = 15,
-       .is_hidden_value = true},
+      {.type = w_group, .direction = vertical, .children = content_name_email},
+      {.type = w_group, .direction = vertical, .children = content_pass},
       {.type = w_end}};
 
   group_el_init_t actions[] = {

@@ -114,6 +114,8 @@ ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
   fui->max_lines = getmaxy(parent_win) - 3; /* 2+1 (bottom info line) */
   fui->active_search = false;
   fui->search_key = bfromcstrrangealloc(12, 64, "");
+  fui->start = NULL;
+  fui->current = NULL;
   return fui;
 }
 
@@ -135,10 +137,15 @@ void draw_file_list(ui_file_list_t *fui) {
   int32_t sz_y_f = sz_y - 2; /* TODO: можно заменить на поле max_lines */
   p_y = 1;
   p_x = 1;
-  fl_item_t *el = *(fui->start);
-  fl_item_t *active_el = *(fui->start);
+  fl_item_t *el = NULL;
+  fl_item_t *active_el = NULL;
   int32_t cur_el_idx = 0;
   curs_set(false);
+
+  if (fui->start != NULL) {
+    el = *(fui->start);
+    active_el = el;
+  }
 
   if (fui->activate_last) {
     fui->current_idx = fui->current_count - 1;

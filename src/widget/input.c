@@ -4,16 +4,16 @@
 #include <string.h>
 
 #include "app.h"
-#include <widget_core.h>
 #include "input.h"
+#include <widget_core.h>
 
 input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
                     uint32_t length, uint32_t is_hidden_value) {
   input_t *input = malloc(sizeof(input_t));
   init_widget(&(input->w), w_parent, win, label);
   input->is_disabled = 0;
-  input->w.y = 3;                              // with borders
-  input->w.x = length + 3;                     // with borders and extra space for the last element
+  input->w.y = 3;          // with borders
+  input->w.x = length + 3; // with borders and extra space for the last element
   uint32_t t_len = strlen(input->w.title) + 4; // with borders and space
   if (input->w.x < t_len)
     input->w.x = t_len;
@@ -29,8 +29,16 @@ input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
 int32_t draw_input(input_t *input, uint32_t active_id) {
   const char stars[] = "*******************";
   WINDOW *win = *(input->w.parent_win);
-  uint32_t margin_y = input->w.m_y + input->w.w_parent->m_y;
-  uint32_t margin_x = input->w.m_x + input->w.w_parent->m_x;
+  uint32_t margin_y = input->w.m_y;
+  uint32_t margin_x = input->w.m_x;
+  
+  /* counts margins of the ancestors of the same window */
+  widget_t *w_par = input->w.w_parent;
+  while (w_par->parent_win == input->w.parent_win) {
+    margin_y += w_par->m_y;
+    margin_x += w_par->m_x;
+    w_par = w_par->w_parent;
+  }
 
   wattrset(win, COLOR_PAIR(modal_color_pair));
 
@@ -57,13 +65,13 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   }
 
   if (input->is_hidden) {
-    mvwprintw(win, margin_y + 1, margin_x, "%.*s%*s", (int) input->value_len, stars,
-              input->w.x - input->value_len - 2, "");
+    mvwprintw(win, margin_y + 1, margin_x, "%.*s%*s", (int)input->value_len,
+              stars, input->w.x - input->value_len - 2, "");
   } else {
     mvwprintw(win, margin_y + 1, margin_x, "%s%*s", input->value,
               input->w.x - input->value_len - 2, "");
   }
-  
+
   input->w.cur.y = margin_y + 1;
   input->w.cur.x = margin_x;
 
