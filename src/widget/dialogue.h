@@ -20,9 +20,9 @@ typedef struct {
     enum g_type type;
   } active;
   char text[DIALOGUE_TEXT];
-  uint32_t is_initiated : 1;
-  uint32_t needs_update : 1;
-  uint32_t needs_destroy : 1;
+  bool is_initiated;
+  bool needs_update;
+  bool needs_destroy;
   coordinates_t *p_coordinates;
   enum d_color_scheme color_scheme;
 } dialogue_t;

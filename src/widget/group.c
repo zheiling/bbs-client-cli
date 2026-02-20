@@ -77,9 +77,17 @@ void group_default_callback(callback_args_t *args) {
   }
 }
 
+union current_element {
+  group_t *group;
+  enum w_type type;
+};
+
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
                     enum g_direction direction) {
   group_t *group = malloc(sizeof(group_t));
+  union current_element current;
+  group->parent_group = NULL;
+  current.type = w_end;
   init_widget(&(group->w), w_parent, win, "");
   /* count elements */
   group->count = 0;
@@ -111,7 +119,16 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     case w_group:
       elements[i].element = init_group(win, &(group->w), children[i].children,
                                        children[i].direction);
-      w = &(((input_t *)elements[i].element)->w);
+      w = &(((group_t *)elements[i].element)->w);
+      current.group = (group_t *)elements[i].element;
+      current.group->parent_group = group;
+      if (i == 0) {
+        group->first_id = current.group->first_id;
+        group->last_id = current.group->last_id;
+      } else {
+        group->last_id = current.group->last_id;
+      }
+      current.type = w_group;
       break;
     case w_input:
       elements[i].element =
@@ -128,6 +145,14 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       w = &(((ui_progress_bar_t *)elements[i].element)->w);
       break;
     }
+    if (current.type != w_group) {
+      if (i == 0) {
+        group->first_id = w->id;
+        group->last_id = w->id;
+      } else {
+        group->last_id = w->id;
+      }
+    }
     /* set dimensions */
     elements[i].id = w->id;
     if (direction == horizontal) {
@@ -142,12 +167,6 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       group->w.y += w->y;
       if (group->w.x < w->x)
         group->w.x = w->x;
-    }
-    if (i == 0) {
-      group->first_id = w->id;
-      group->last_id = w->id;
-    } else {
-      group->last_id = w->id;
     }
   }
 

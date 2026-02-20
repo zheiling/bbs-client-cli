@@ -13,7 +13,7 @@ typedef struct {
   uint32_t id;
   void *element;
   enum w_type type;
-  uint32_t is_default : 1;
+  bool is_default;
 } group_el_t;
 
 typedef struct group_el_init_t {
@@ -26,12 +26,13 @@ typedef struct group_el_init_t {
   struct group_el_init_t *children;
 } group_el_init_t;
 
-typedef struct {
+typedef struct group_t{
   widget_t w;
   group_el_t *elements;
   enum g_direction direction;
   uint32_t count;
   uint32_t first_id, last_id;
+  struct group_t *parent_group;
 } group_t;
 
 #define FIND_ACTIVE_ELEMENT(g, active_id, element_ptr, element_idx)            \
