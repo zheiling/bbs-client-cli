@@ -27,7 +27,7 @@ void login_modal_option_cb(callback_args_t *args) {
       d->needs_destroy = true;
       app->params->uname = malloc(sizeof "anonymous");
       strcpy(app->params->uname, "anonymous");
-      write(app->params->sd, app->params->uname, sizeof "anonymous"-1);
+      write(app->params->sd, app->params->uname, sizeof "anonymous" - 1);
       app->query_args->state = S_WAIT_SERVER;
       print_bars(app);
       break;
@@ -55,9 +55,8 @@ dialogue_t *init_login_option_modal(app_t *app) {
                 "Select your login "
                 "option",
                 &(app->coordinates));
-  app->modal.g_action =
-      init_group(&(app->modal.win), &(app->modal.w), children,
-                 horizontal);
+  app->modal.g_action = init_group(&(app->modal.win), &(app->modal.w), children,
+                                   &(app->modal.id_map), horizontal);
   app->modal.w.callback = login_modal_option_cb;
   dialogue_init_active_id(&(app->modal));
 

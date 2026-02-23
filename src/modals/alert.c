@@ -33,7 +33,7 @@ void notification(const char *title, const char *message,
 
   d->w.callback = alert_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
+  d->g_action = init_group(&(d->win), &(d->w), actions,&(d->id_map), horizontal);
 
   dialogue_init_active_id(d);
   d->color_scheme = color;

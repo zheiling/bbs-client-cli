@@ -64,8 +64,8 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = upload_props_dialogue_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
-  d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal);
 
   app->query_args->active_dialogue = d;
 

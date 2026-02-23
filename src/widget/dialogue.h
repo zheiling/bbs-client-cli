@@ -6,7 +6,8 @@
 #include <ncurses.h>
 #include <stdint.h>
 #include <widget_core.h>
-
+#include <utils.h>
+#define MAX_IDS 64
 enum g_type { g_content, g_action };
 enum d_color_scheme { dc_normal, dc_alert };
 
@@ -25,6 +26,7 @@ typedef struct {
   bool needs_destroy;
   coordinates_t *p_coordinates;
   enum d_color_scheme color_scheme;
+  d_array_ptr_t id_map;
 } dialogue_t;
 
 void init_dialogue(dialogue_t *d, const char title[], const char text[],

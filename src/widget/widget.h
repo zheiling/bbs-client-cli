@@ -8,5 +8,4 @@
 #include "group.h"
 #include "input.h"
 #include "progress_bar.h"
-
 #endif

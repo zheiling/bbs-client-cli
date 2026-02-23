@@ -1,5 +1,6 @@
 #include "group.h"
 #include "button.h"
+#include "d_array.h"
 #include "fs_file_list.h"
 #include "input.h"
 #include "progress_bar.h"
@@ -9,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <utils.h>
 
 /* make response -1 */
 #define MAKE_RESPONSE_M1(args, resp_data, response)                            \
@@ -83,7 +85,7 @@ union current_element {
 };
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    enum g_direction direction) {
+                    d_array_ptr_t *id_map, enum g_direction direction) {
   group_t *group = malloc(sizeof(group_t));
   union current_element current;
   group->parent_group = NULL;
@@ -118,7 +120,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       break;
     case w_group:
       elements[i].element = init_group(win, &(group->w), children[i].children,
-                                       children[i].direction);
+                                       id_map, children[i].direction);
       w = &(((group_t *)elements[i].element)->w);
       current.group = (group_t *)elements[i].element;
       current.group->parent_group = group;
@@ -155,6 +157,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     }
     /* set dimensions */
     elements[i].id = w->id;
+    add_d_arr_ptr(id_map, &(elements[i]), w->id);
     if (direction == horizontal) {
       w->m_x = group->w.m_x + 1 + group->w.x;
       w->m_y = group->w.m_y;

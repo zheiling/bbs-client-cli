@@ -44,7 +44,7 @@ void *init_server_message_modal(app_t *app) {
   init_dialogue(&(app->modal), "Server response",
                 app->query_args->server_message.text, &(app->coordinates));
   app->modal.g_action =
-      init_group(&(app->modal.win), &(app->modal.w), children, horizontal);
+      init_group(&(app->modal.win), &(app->modal.w), children, &(app->modal.id_map), horizontal);
   app->modal.w.callback = server_message_modal_cb;
   dialogue_init_active_id(&(app->modal));
 

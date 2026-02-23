@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <widget_core.h>
+#include <utils.h>
 
 enum g_direction {
   horizontal,
@@ -26,7 +27,7 @@ typedef struct group_el_init_t {
   struct group_el_init_t *children;
 } group_el_init_t;
 
-typedef struct group_t{
+typedef struct group_t {
   widget_t w;
   group_el_t *elements;
   enum g_direction direction;
@@ -40,7 +41,7 @@ typedef struct group_t{
   element_ptr = &(g->elements[element_idx]);
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    enum g_direction dir);
+                    d_array_ptr_t *id_map, enum g_direction dir);
 void draw_group(WINDOW *win, group_t *group, int32_t active_id);
 void destroy_group(group_t *group);
 void group_default_callback(callback_args_t *args);

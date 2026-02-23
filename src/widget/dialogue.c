@@ -178,6 +178,7 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   strcpy(dialogue->w.title, title);
   t_size = strlen(text);
   strcpy(dialogue->text, text);
+  init_d_arr_ptr(&(dialogue->id_map), MAX_IDS);
   /* trim the last new line symbol */
   if (t_size && dialogue->text[t_size - 1] == '\n')
     dialogue->text[t_size - 1] = '\0';
