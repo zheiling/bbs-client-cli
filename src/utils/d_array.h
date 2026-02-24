@@ -6,6 +6,8 @@ typedef struct d_array_ptr_t {
   int64_t capacity;
   int64_t length;
   void **arr;
+  void *fist_el;
+  void *last_el;
 } d_array_ptr_t;
 
 void init_d_arr_ptr(d_array_ptr_t *arr, int64_t init_capacity);

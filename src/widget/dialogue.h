@@ -8,7 +8,7 @@
 #include <widget_core.h>
 #include <utils.h>
 #define MAX_IDS 64
-enum g_type { g_content, g_action };
+
 enum d_color_scheme { dc_normal, dc_alert };
 
 typedef struct {
@@ -16,10 +16,7 @@ typedef struct {
   WINDOW *win;
   group_t *g_content;
   group_t *g_action;
-  struct {
-    int32_t id;
-    enum g_type type;
-  } active;
+  group_el_t *active_el;
   char text[DIALOGUE_TEXT];
   bool is_initiated;
   bool needs_update;

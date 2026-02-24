@@ -1,3 +1,4 @@
+#include "group.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -56,7 +57,7 @@ dialogue_t *init_login_option_modal(app_t *app) {
                 "option",
                 &(app->coordinates));
   app->modal.g_action = init_group(&(app->modal.win), &(app->modal.w), children,
-                                   &(app->modal.id_map), horizontal);
+                                   &(app->modal.id_map), horizontal, g_action);
   app->modal.w.callback = login_modal_option_cb;
   dialogue_init_active_id(&(app->modal));
 

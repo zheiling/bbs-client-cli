@@ -1,3 +1,4 @@
+#include "group.h"
 #include <widget.h>
 #include <ncurses.h>
 #include <stdint.h>
@@ -24,8 +25,8 @@ dialogue_t *init_dwn_pr_modal(app_t *app, bool is_upload) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = dwn_pr_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal);
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal, g_content);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
 
   app->query_args->progress_bar = d->g_content->elements[0].element;
   app->query_args->active_dialogue = d;

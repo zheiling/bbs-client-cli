@@ -94,9 +94,9 @@ dialogue_t *init_register_modal(app_t *app) {
 
   d->w.callback = init_register_modal_cb;
   d->g_content =
-      init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal);
+      init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal, g_content);
   d->g_action =
-      init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal);
+      init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
 
   dialogue_init_active_id(d);
 

@@ -21,6 +21,7 @@ typedef struct {
   void *data;
   void *resp_data;
   uint32_t active_id;
+  void *active_el;
 } callback_args_t;
 
 enum rsize {

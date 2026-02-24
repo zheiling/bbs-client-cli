@@ -1,3 +1,4 @@
+#include "group.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ dialogue_t *init_notification_modal(app_t *app) {
 
   d->w.callback = init_notification_modal_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
 
   dialogue_init_active_id(d);
 

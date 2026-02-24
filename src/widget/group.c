@@ -18,24 +18,23 @@
     *response = -1;                                                            \
   }
 
+/* TODO: adapt to a new indexation method */
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->element;
   int32_t key = *((int32_t *)args->data);
   int32_t *response = (int32_t *)args->resp_data;
   input_t *input;
   widget_t *widget;
-  group_el_t *element_ptr;
-  int32_t element_idx = -1;
+  group_el_t *element_ptr = args->active_el;
+  int32_t element_idx = element_ptr->id - g->first_id; ;
   u_int32_t start_pos = 0;
   callback_args_t new_args;
   switch (key) {
   case '\n': /* Enter */
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     *response = element_idx;
     break;
   case KEY_BACKSPACE:
   case KEY_DL:
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->value_len) {
@@ -51,7 +50,6 @@ void group_default_callback(callback_args_t *args) {
     MAKE_RESPONSE_M1(args, resp_data, response);
     break;
   default:
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->max_len > input->value_len) {
@@ -85,7 +83,7 @@ union current_element {
 };
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    d_array_ptr_t *id_map, enum g_direction direction) {
+                    d_array_ptr_t *id_map, enum g_direction direction, enum g_type g_type) {
   group_t *group = malloc(sizeof(group_t));
   union current_element current;
   group->parent_group = NULL;
@@ -105,6 +103,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   for (int32_t i = 0; i < group->count; i++) {
     elements[i].type = children[i].type;
     elements[i].is_default = children[i].is_default;
+    elements[i].g_type = g_type;
   }
 
   /* init child elements */
@@ -120,7 +119,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       break;
     case w_group:
       elements[i].element = init_group(win, &(group->w), children[i].children,
-                                       id_map, children[i].direction);
+                                       id_map, children[i].direction, g_type);
       w = &(((group_t *)elements[i].element)->w);
       current.group = (group_t *)elements[i].element;
       current.group->parent_group = group;
@@ -157,7 +156,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     }
     /* set dimensions */
     elements[i].id = w->id;
-    add_d_arr_ptr(id_map, &(elements[i]), w->id);
+    add_d_arr_ptr(id_map, elements + i, w->id);
     if (direction == horizontal) {
       w->m_x = group->w.m_x + 1 + group->w.x;
       w->m_y = group->w.m_y;

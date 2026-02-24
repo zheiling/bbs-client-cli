@@ -8,26 +8,42 @@
 #include "file_list.h"
 #include "group.h"
 #include "input.h"
+#include "widget_core.h"
 
-#define INCR_ACTIVE_ID(d, current, next)                                       \
-  if (d->active.id != d->current->last_id) {                                   \
-    d->active.id = d->active.id + 1;                                           \
-  } else if (d->next != NULL) {                                                \
-    d->active.id = d->next->first_id;                                          \
-    d->active.type = next;                                                     \
-  } else {                                                                     \
-    d->active.id = d->current->first_id;                                       \
+void incr_active_id(dialogue_t *d) {
+  group_el_t *active_el = NULL;
+  while (true) {
+    for (int i = d->active_el->id + 1;
+         active_el == NULL && d->id_map.length > i; i++) {
+      active_el = d->id_map.arr[i];
+    }
+    d->active_el = active_el;
+    if (d->active_el == NULL) {
+      d->active_el = d->id_map.fist_el;
+      break;
+    } else if (d->active_el->type != w_box && d->active_el->type != w_group) {
+      break;
+    }
+    active_el = NULL;
   }
+}
 
-#define DECR_ACTIVE_ID(d, current, next)                                       \
-  if (d->active.id != d->current->first_id) {                                  \
-    d->active.id = d->active.id - 1;                                           \
-  } else if (d->next != NULL) {                                                \
-    d->active.id = d->next->last_id;                                           \
-    d->active.type = next;                                                     \
-  } else {                                                                     \
-    d->active.id = d->current->last_id;                                        \
+void decr_active_id(dialogue_t *d) {
+  group_el_t *active_el = NULL;
+  while (true) {
+    for (int i = d->active_el->id - 1; active_el == NULL && i > 0; i--) {
+      active_el = d->id_map.arr[i];
+    }
+    d->active_el = active_el;
+    if (d->active_el == NULL) {
+      d->active_el = d->id_map.last_el;
+      break;
+    } else if (d->active_el->type != w_box && d->active_el->type != w_group) {
+      break;
+    }
+    active_el = NULL;
   }
+}
 
 #define CH_GROUP(d, current, next)                                             \
   {                                                                            \
@@ -42,82 +58,43 @@
     }                                                                          \
   }
 
-widget_t *get_active_widget(dialogue_t *d) {
-  group_t *g;
-  if (d->active.type == g_action) {
-    g = d->g_action;
-  } else {
-    g = d->g_content;
-  }
-  widget_t *w = (widget_t *)g->elements[d->active.id - g->first_id].element;
-  return w;
-}
-
 void dialogue_default_callback(callback_args_t *args) {
   dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
   callback_args_t new_args;
+  new_args.active_el = d->active_el;
   int32_t *resp_value = (int32_t *)args->resp_data;
   memcpy(&new_args, args, sizeof(callback_args_t));
-  new_args.active_id = d->active.id;
+  new_args.active_id = d->active_el->id;
   int32_t diff;
   d->needs_update = true;
   input_t *input;
   widget_t *widget;
+
   switch (key) {
   case '\t':
-    if (d->active.type == g_content) {
-      INCR_ACTIVE_ID(d, g_content, g_action);
-    } else if (d->active.type == g_action) {
-      INCR_ACTIVE_ID(d, g_action, g_content);
-    }
+    incr_active_id(d);
     *resp_value = -1;
     break;
   case '\33': /* Esc key */
     *resp_value = -2;
     break;
   case KEY_RIGHT:
-    if (d->active.type == g_content) {
-      if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
-          w_input) {
-        input = d->g_content->elements[d->active.id - d->g_content->first_id]
-                    .element;
-        if (input->cur_pos > 0) {
-          input->cur_pos -= 1;
-        }
-      } else {
-        INCR_ACTIVE_ID(d, g_content, g_action);
-      }
-    } else if (d->active.type == g_action) {
-      INCR_ACTIVE_ID(d, g_action, g_content);
-    }
+    incr_active_id(d);
     *resp_value = -1;
     break;
   case KEY_LEFT:
-    if (d->active.type == g_content) {
-      if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
-          w_input) {
-        input = d->g_content->elements[d->active.id - d->g_content->first_id]
-                    .element;
-        if (input->value_len > input->cur_pos) {
-          input->cur_pos += 1;
-        }
-      } else {
-        DECR_ACTIVE_ID(d, g_content, g_action);
-      }
-    } else if (d->active.type == g_action) {
-      DECR_ACTIVE_ID(d, g_action, g_content);
-    }
+    decr_active_id(d);
     *resp_value = -1;
     break;
   case '\n':
-    widget = get_active_widget(d);
+    widget = (widget_t *)d->active_el->element;
     if (widget->callback != NULL) { /* Existing callback case */
       new_args.element = widget;
       widget->callback(&new_args);
       break;
     } /* Default cases */
-    if (d->active.type == g_action) {
+    if (d->active_el->g_type == g_action) {
       new_args.element = d->g_action;
       group_default_callback(&new_args);
     } else if (d->g_action != NULL) {
@@ -129,31 +106,29 @@ void dialogue_default_callback(callback_args_t *args) {
       }
     } else {
       /* TODO: temp solution, improve */
-      *resp_value = d->active.id - d->g_content->first_id;
+      *resp_value = d->active_el->id - d->g_content->first_id;
       return;
     }
     break;
   case KEY_UP:
-    if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
-        w_fs_file_list) {
+    if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
       group_default_callback(&new_args);
     } else {
-      CH_GROUP(d, g_action, g_content);
+      /* CH_GROUP(d, g_action, g_content); */
     }
     break;
   case KEY_DOWN:
-    if (d->g_content->elements[d->active.id - d->g_content->first_id].type ==
-        w_fs_file_list) {
+    if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
       group_default_callback(&new_args);
     } else {
-      CH_GROUP(d, g_content, g_action);
+      /* CH_GROUP(d, g_content, g_action); */
     }
     break;
   default:
     /* run callback function */
-    if (d->active.type == g_content) {
+    if (d->active_el->g_type == g_content) {
       new_args.element = d->g_content;
     } else {
       new_args.element = d->g_action;
@@ -192,9 +167,7 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
       widget_type = dialogue->g_content->elements[i].type;
       if (widget_type == w_button || widget_type == w_input ||
           widget_type == w_fs_file_list) { /* Add here new types */
-        dialogue->active.type = g_content;
-        widget_t *w = (widget_t *)dialogue->g_content->elements[i].element;
-        dialogue->active.id = w->id;
+        dialogue->active_el = &(dialogue->g_content->elements[i]);
         return;
       }
     }
@@ -204,9 +177,7 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
       widget_type = dialogue->g_action->elements[i].type;
       if (widget_type == w_button || widget_type == w_input ||
           widget_type == w_fs_file_list) {
-        dialogue->active.type = g_action;
-        widget_t *w = (widget_t *)dialogue->g_action->elements[i].element;
-        dialogue->active.id = w->id;
+        dialogue->active_el = &(dialogue->g_action->elements[i]);
         return;
       }
     }
@@ -233,7 +204,6 @@ int32_t draw_dialogue(dialogue_t *d) {
   }
 
   group_el_t *ae_ptr = NULL; /* active element */
-  uint32_t ae_idx;           /* active element */
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -291,22 +261,15 @@ int32_t draw_dialogue(dialogue_t *d) {
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {
-    draw_group(d->win, d->g_content, d->active.id);
+    draw_group(d->win, d->g_content, d->active_el->id);
   }
   if (d->g_action != NULL) {
-    draw_group(d->win, d->g_action, d->active.id);
+    draw_group(d->win, d->g_action, d->active_el->id);
   }
 
   /* move cursor */
-  if (d->g_content != NULL) {
-    FIND_ACTIVE_ELEMENT(d->g_content, d->active.id, ae_ptr, ae_idx);
-  }
-  if (ae_ptr == NULL && d->g_action != NULL) {
-    FIND_ACTIVE_ELEMENT(d->g_action, d->active.id, ae_ptr, ae_idx);
-  }
-
-  if (ae_ptr != NULL && ae_ptr->id == d->active.id && ae_ptr->type == w_input) {
-    input_t *input = ae_ptr->element;
+  if (d->active_el != NULL && d->active_el->type == w_input) {
+    input_t *input = d->active_el->element;
     d->w.cur.y = input->w.cur.y;
     d->w.cur.x = input->w.cur.x + input->value_len;
     d->w.cur.x -= input->cur_pos;
