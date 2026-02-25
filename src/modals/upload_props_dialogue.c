@@ -8,20 +8,18 @@
 #include <unistd.h>
 
 void upload_props_dialogue_modal_cb(callback_args_t *args) {
-  int32_t response = -1;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
   char query[256];
   int32_t query_len = 0;
   input_t *desc_input = (input_t *)d->g_content->elements[0].element;
-  if (response > -1) {
-    switch (response) {
+  if (d_args.resp_data.code == cbrp_val) {
+    switch (d_args.resp_data.val.val.num) {
     case 0:
       query_len =
           sprintf(query, "file upload \"%s\" %zu 1\n",

@@ -11,6 +11,7 @@
 #include <widget.h>
 #include "../connection.h"
 #include "group.h"
+#include "widget_core.h"
 
 typedef struct {
   button_t *element;
@@ -18,19 +19,17 @@ typedef struct {
 } group_bt_t;
 
 void asa_modal_dialogue_callback(callback_args_t *args) {
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   input_t *in_ip = d->g_content->elements[0].element;
   input_t *in_port = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
-  if (response > -1) {
-    switch (response) {
+  if (d_args.resp_data.code == cbrp_val) {
+    switch (d_args.resp_data.val.val.num) {
     case 0:
       get_ip_port(app->params, in_ip->value, in_port->value);
       connect_to_server(app);

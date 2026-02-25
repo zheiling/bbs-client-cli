@@ -6,21 +6,17 @@
 
 #include <widget.h>
 
-/* TODO: get rid of this mechanism */
-
 typedef struct {
   button_t *element;
   enum w_type type;
 } group_bt_t;
 
 void init_notification_modal_cb(callback_args_t *args) {
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
 
@@ -33,7 +29,8 @@ dialogue_t *init_notification_modal(app_t *app) {
     return NULL;
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "OK", .is_default = 1}, {.type = w_end}};
+      {.type = w_button, .label = "OK", .is_default = 1, .val.num = 1},
+      {.type = w_end}};
 
   init_dialogue(&(app->modal), "Notification", app->query_args->notification,
                 &(app->coordinates));
@@ -44,7 +41,8 @@ dialogue_t *init_notification_modal(app_t *app) {
 
   d->w.callback = init_notification_modal_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+                           horizontal, g_action);
 
   dialogue_init_active_id(d);
 

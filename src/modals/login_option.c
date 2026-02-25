@@ -13,17 +13,15 @@ typedef struct {
 } group_bt_t;
 
 void login_modal_option_cb(callback_args_t *args) {
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
-  if (response > -1) {
-    switch (response) {
+  if (d_args.resp_data.code == cbrp_val) {
+    switch (d_args.resp_data.val.val.num) {
     case 0:
       d->needs_destroy = true;
       app->params->uname = malloc(sizeof "anonymous");

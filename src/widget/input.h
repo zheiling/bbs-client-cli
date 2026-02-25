@@ -8,11 +8,11 @@
 typedef struct {
   widget_t w;
   char value[INPUT_TEXT];
-  uint32_t cur_pos; /* is relative to the end of a string */
-  uint32_t value_len;
-  uint32_t max_len;
-  uint32_t is_disabled : 1;
-  uint32_t is_hidden : 1;
+  int64_t cur_pos; /* is relative to the end of a string */
+  int64_t value_len;
+  int64_t max_len;
+  bool is_disabled;
+  bool is_hidden;
 } input_t;
 
 input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,

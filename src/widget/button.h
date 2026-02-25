@@ -1,7 +1,6 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-#include "../main.h"
 #include <widget_core.h>
 #include <stdint.h>
 

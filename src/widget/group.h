@@ -5,21 +5,6 @@
 #include <utils.h>
 #include <widget_core.h>
 
-enum g_type { g_content, g_action };
-
-enum g_direction {
-  horizontal,
-  vertical,
-};
-
-typedef struct {
-  uint32_t id;
-  void *element;
-  enum w_type type;
-  enum g_type g_type;
-  bool is_default;
-} group_el_t;
-
 typedef struct group_el_init_t {
   enum w_type type;
   bool is_default;
@@ -27,6 +12,9 @@ typedef struct group_el_init_t {
   char label[DIALOGUE_TITLE];
   uint32_t length;
   enum g_direction direction;
+  union {
+    int64_t num;
+  } val;
   struct group_el_init_t *children;
 } group_el_init_t;
 

@@ -12,26 +12,19 @@
 #include <sys/types.h>
 #include <utils.h>
 
-/* make response -1 */
-#define MAKE_RESPONSE_M1(args, resp_data, response)                            \
-  if (args->resp_data != NULL) {                                               \
-    *response = -1;                                                            \
-  }
-
-/* TODO: adapt to a new indexation method */
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->element;
   int32_t key = *((int32_t *)args->data);
-  int32_t *response = (int32_t *)args->resp_data;
+  int64_t response = args->resp_data.val.val.num;
   input_t *input;
   widget_t *widget;
   group_el_t *element_ptr = args->active_el;
-  int32_t element_idx = element_ptr->id - g->first_id; ;
   u_int32_t start_pos = 0;
   callback_args_t new_args;
   switch (key) {
   case '\n': /* Enter */
-    *response = element_idx;
+    args->resp_data.code = cbrp_val;
+    mempcpy(&(args->resp_data.val), &(element_ptr->val), sizeof(struct val_t));
     break;
   case KEY_BACKSPACE:
   case KEY_DL:
@@ -47,7 +40,7 @@ void group_default_callback(callback_args_t *args) {
         }
       }
     }
-    MAKE_RESPONSE_M1(args, resp_data, response);
+    args->resp_data.code = cbrc_none;
     break;
   default:
     if (element_ptr->type == w_input) {
@@ -64,6 +57,7 @@ void group_default_callback(callback_args_t *args) {
         }
       }
     } else {
+      /* callback case */
       widget = (widget_t *)element_ptr->element;
       if (widget->callback != NULL) {
         memccpy(&new_args, args, 1, sizeof(callback_args_t));
@@ -72,7 +66,7 @@ void group_default_callback(callback_args_t *args) {
         break;
       }
     }
-    MAKE_RESPONSE_M1(args, resp_data, response);
+    args->resp_data.code = cbrc_none;
     break;
   }
 }
@@ -104,6 +98,8 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     elements[i].type = children[i].type;
     elements[i].is_default = children[i].is_default;
     elements[i].g_type = g_type;
+    elements[i].idx = i;
+    elements[i].val.type = val_nul;
   }
 
   /* init child elements */
@@ -112,6 +108,8 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     switch (elements[i].type) {
     case w_button:
       elements[i].element = init_button(win, &(group->w), children[i].label);
+      elements[i].val.type = val_num;
+      elements[i].val.val.num = children[i].val.num;
       w = &(((button_t *)elements[i].element)->w);
       break;
     case w_box:

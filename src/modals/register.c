@@ -19,20 +19,19 @@ typedef struct {
 void init_register_modal_cb(callback_args_t *args) {
   char query[256];
   int32_t qlen = 0;
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   input_t *in_name = d->g_content->elements[0].element;
   input_t *in_pass = d->g_content->elements[1].element;
   input_t *in_pass_r = d->g_content->elements[2].element;
   dialogue_default_callback(&d_args);
-  if (response > -1) {
-    switch (response) {
+  if (d_args.resp_data.code == cbrp_val &&
+      d_args.resp_data.val.type == val_num) {
+    switch (d_args.resp_data.val.val.num) {
     case 0:
       if (strcmp(in_pass->value, in_pass_r->value)) {
         alert("Your passwords do not match");
@@ -93,10 +92,10 @@ dialogue_t *init_register_modal(app_t *app) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = init_register_modal_cb;
-  d->g_content =
-      init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal, g_content);
-  d->g_action =
-      init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map),
+                            horizontal, g_content);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+                           horizontal, g_action);
 
   dialogue_init_active_id(d);
 

@@ -3,7 +3,8 @@
 ## Current:
 - [ ] UI: vertical layout (needs for email in registration)
 - [ ] Nested groups
-- [ ] Create dynamic map of elements IDs and their pointers
+- [x] Create dynamic map of elements IDs and their pointers
+- [ ] Adapt modals to new value-forwarding method
 
 ## Features:
 - [x] Search files

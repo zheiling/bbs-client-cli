@@ -13,19 +13,17 @@ typedef struct {
 } group_bt_t;
 
 void init_login_credentials_modal_cb(callback_args_t *args) {
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   input_t *in_name = d->g_content->elements[0].element;
   input_t *in_pass = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
-  if (response > -1) {
-    switch (response) {
+  if (d_args.resp_data.code == cbrp_val) {
+    switch (d_args.resp_data.val.val.num) {
     case 0:
       app->params->uname = malloc(in_name->value_len + 1);
       app->params->pass = malloc(in_pass->value_len + 1);
