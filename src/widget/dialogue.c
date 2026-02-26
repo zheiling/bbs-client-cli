@@ -95,7 +95,8 @@ void dialogue_default_callback(callback_args_t *args) {
     if (d->active_el->g_type == g_action) {
       new_args.element = d->g_action;
       group_default_callback(&new_args);
-      mempcpy(&(args->resp_data), &(new_args.resp_data), sizeof(new_args.resp_data));
+      mempcpy(&(args->resp_data), &(new_args.resp_data),
+              sizeof(new_args.resp_data));
     } else if (d->g_action != NULL) {
       for (int i = 0; i < d->g_action->count; i++) {
         if (d->g_action->elements[i].is_default) {
@@ -105,7 +106,6 @@ void dialogue_default_callback(callback_args_t *args) {
         }
       }
     } else {
-      /* TODO: temp solution, improve */
       args->resp_data.code = cbrp_val;
       args->resp_data.val.val.num = d->active_el->idx;
       return;
@@ -160,27 +160,32 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
     dialogue->text[t_size - 1] = '\0';
 }
 
-void dialogue_init_active_id(dialogue_t *dialogue) {
-  enum w_type widget_type;
+int group_init_active_id(group_t *g, dialogue_t *d) {
+  enum w_type wt;
 
+  for (int i = 0; i < g->count; i++) {
+    wt = g->elements[i].type;
+    if (wt == w_button || wt == w_input ||
+        wt == w_fs_file_list) { /* Add here new types */
+      d->active_el = g->elements + i;
+      return 1;
+    } else if (wt == w_group) {
+      group_t *child_g = g->elements[i].element;
+      return group_init_active_id(child_g, d);
+    }
+  }
+  return 0;
+}
+
+void dialogue_init_active_id(dialogue_t *dialogue) {
   if (dialogue->g_content != NULL) {
-    for (int i = 0; i < dialogue->g_content->count; i++) {
-      widget_type = dialogue->g_content->elements[i].type;
-      if (widget_type == w_button || widget_type == w_input ||
-          widget_type == w_fs_file_list) { /* Add here new types */
-        dialogue->active_el = dialogue->g_content->elements + i;
-        return;
-      }
+    if (group_init_active_id(dialogue->g_content, dialogue)) {
+      return;
     }
   }
   if (dialogue->g_action != NULL) {
-    for (int i = 0; i < dialogue->g_action->count; i++) {
-      widget_type = dialogue->g_action->elements[i].type;
-      if (widget_type == w_button || widget_type == w_input ||
-          widget_type == w_fs_file_list) {
-        dialogue->active_el = dialogue->g_action->elements + i;
-        return;
-      }
+    if (group_init_active_id(dialogue->g_action, dialogue)) {
+      return;
     }
   }
 }

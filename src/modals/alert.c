@@ -25,7 +25,7 @@ void notification(const char *title, const char *message,
     return;
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "OK", .is_default = 1}, {.type = w_end}};
+      {.type = w_button, .label = "OK", .is_default = true}, {.type = w_end}};
 
   dialogue_t *d = malloc(sizeof(dialogue_t));
 

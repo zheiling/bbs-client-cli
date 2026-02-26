@@ -42,7 +42,7 @@ dialogue_t *init_upload_dialogue_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Cancel", .is_default = 0}, {.type = w_end}};
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 0}, {.type = w_end}};
 
   app->modal.w.parent_win = &app->win;
   init_dialogue(&(app->modal), "Upload new file", "Enter essential data",

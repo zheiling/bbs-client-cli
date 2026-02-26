@@ -1,10 +1,12 @@
 # TODO:
 
 ## Current:
-- [ ] UI: vertical layout (needs for email in registration)
-- [ ] Nested groups
+- [x] UI: vertical layout (needs for email in registration)
+- [x] Nested groups
 - [x] Create dynamic map of elements IDs and their pointers
-- [ ] Adapt modals to new value-forwarding method
+- [x] Adapt modals to new value-forwarding method
+- [ ] Move text to the end if text in the input is larger, than field
+- [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 
 ## Features:
 - [x] Search files

@@ -25,14 +25,17 @@ void init_register_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.element = app->active_widget;
-  input_t *in_name = d->g_content->elements[0].element;
-  input_t *in_pass = d->g_content->elements[1].element;
-  input_t *in_pass_r = d->g_content->elements[2].element;
+  group_t *g_email_user = d->g_content->elements[0].element;
+  group_t *g_passwords = d->g_content->elements[1].element;
+  input_t *in_name = g_email_user->elements[0].element;
+  input_t *in_email = g_email_user->elements[1].element;
+  input_t *in_pass = g_passwords->elements[0].element;
+  input_t *in_pass_r = g_passwords->elements[1].element;
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val &&
       d_args.resp_data.val.type == val_num) {
     switch (d_args.resp_data.val.val.num) {
-    case 0:
+    case 1:
       if (strcmp(in_pass->value, in_pass_r->value)) {
         alert("Your passwords do not match");
         in_pass->value[0] = '\0';
@@ -47,12 +50,12 @@ void init_register_modal_cb(callback_args_t *args) {
       app->params->uname[in_name->value_len] = 0;
       strncpy(app->params->pass, in_pass->value, in_pass->value_len);
       app->params->pass[in_pass->value_len] = 0;
-      sprintf(query, "register %s %s\n%n", app->params->uname,
-              app->params->pass, &qlen);
+      sprintf(query, "register %s %s %*s\n%n", app->params->uname,
+              app->params->pass, (int) in_email->value_len, in_email->value, &qlen);
       write(app->params->sd, query, qlen);
       app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
       break;
-    case 1:
+    case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;
       app->modal.needs_destroy = true;
     }
@@ -83,8 +86,8 @@ dialogue_t *init_register_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Register", .is_default = true},
-      {.type = w_button, .label = "Cancel", .is_default = false},
+      {.type = w_button, .label = "Register", .is_default = true, .val.num = 1},
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end}};
 
   init_dialogue(&(app->modal), "Credentials", "There is information needed",

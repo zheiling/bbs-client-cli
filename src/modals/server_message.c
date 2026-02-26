@@ -38,7 +38,7 @@ void *init_server_message_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t children[] = {
-      {.type = w_button, .label = "OK", .is_default = 1, .val.num = 1}, {.type = w_end}};
+      {.type = w_button, .label = "OK", .is_default = true, .val.num = 1}, {.type = w_end}};
 
   init_dialogue(&(app->modal), "Server response",
                 app->query_args->server_message.text, &(app->coordinates));

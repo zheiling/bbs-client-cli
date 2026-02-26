@@ -17,7 +17,7 @@ dialogue_t *init_dwn_pr_modal(app_t *app, bool is_upload) {
   sprintf(text, "%s file: %s", is_upload ? "Uploading" : "Downloading",
           is_upload ? app->query_args->file->name : app->file_args->f_selected.name);
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Cancel", .is_default = 1}, {.type = w_end}};
+      {.type = w_button, .label = "Cancel", .is_default = true, .val.num = 1}, {.type = w_end}};
 
   app->modal.w.parent_win = &app->win;
   init_dialogue(&(app->modal), is_upload ? "Upload" : "Download", text,

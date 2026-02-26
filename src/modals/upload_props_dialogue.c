@@ -52,8 +52,8 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Upload", .is_default = 1},
-      {.type = w_button, .label = "Cancel", .is_default = 0},
+      {.type = w_button, .label = "Upload", .is_default = true},
+      {.type = w_button, .label = "Cancel", .is_default = false},
       {.type = w_end},
   };
 

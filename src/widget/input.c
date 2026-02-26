@@ -31,7 +31,7 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   WINDOW *win = *(input->w.parent_win);
   uint32_t margin_y = input->w.m_y;
   uint32_t margin_x = input->w.m_x;
-  
+
   /* counts margins of the ancestors of the same window */
   widget_t *w_par = input->w.w_parent;
   while (w_par->parent_win == input->w.parent_win) {
@@ -40,12 +40,14 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
     w_par = w_par->w_parent;
   }
 
-  wattrset(win, COLOR_PAIR(modal_color_pair));
+  if (input->w.id == active_id) {
+    wattrset(win, COLOR_PAIR(3));
+  } else {
+    wattrset(win, COLOR_PAIR(0) | A_REVERSE | A_BOLD);
+  }
 
   mvwhline(win, margin_y, margin_x, 0, input->w.x);
   mvwhline(win, margin_y + 2, margin_x, 0, input->w.x);
-
-  mvwprintw(win, margin_y, margin_x + 1, " %s ", input->w.title);
 
   // left
   mvwvline(win, margin_y, margin_x, ACS_ULCORNER, 1);
@@ -55,6 +57,9 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   mvwvline(win, margin_y, margin_x + input->w.x - 1, ACS_URCORNER, 1);
   mvwvline(win, margin_y + 1, margin_x + input->w.x - 1, 0, 1);
   mvwvline(win, margin_y + 2, margin_x + input->w.x - 1, ACS_LRCORNER, 1);
+
+  wattrset(win, COLOR_PAIR(0) | A_REVERSE);
+  mvwprintw(win, margin_y, margin_x + 1, " %s ", input->w.title);
 
   margin_x++;
 
@@ -66,10 +71,10 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
 
   if (input->is_hidden) {
     mvwprintw(win, margin_y + 1, margin_x, "%.*s%*s", (int)input->value_len,
-              stars, input->w.x - input->value_len - 2, "");
+              stars, (int)(input->w.x - input->value_len - 2), "");
   } else {
     mvwprintw(win, margin_y + 1, margin_x, "%s%*s", input->value,
-              input->w.x - input->value_len - 2, "");
+              (int)(input->w.x - input->value_len - 2), "");
   }
 
   input->w.cur.y = margin_y + 1;

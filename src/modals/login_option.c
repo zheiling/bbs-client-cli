@@ -22,7 +22,7 @@ void login_modal_option_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
-    case 0:
+    case 1:
       d->needs_destroy = true;
       app->params->uname = malloc(sizeof "anonymous");
       strcpy(app->params->uname, "anonymous");
@@ -30,11 +30,11 @@ void login_modal_option_cb(callback_args_t *args) {
       app->query_args->state = S_WAIT_SERVER;
       print_bars(app);
       break;
-    case 1:
+    case 2:
       d->needs_destroy = true;
       app->query_args->state = S_ASK_LOGIN_USER;
       break;
-    case 2:
+    case 3:
       d->needs_destroy = true;
       app->query_args->state = S_ASK_REGISTER;
       break;
@@ -45,9 +45,9 @@ void login_modal_option_cb(callback_args_t *args) {
 dialogue_t *init_login_option_modal(app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t children[] = {{.type = w_button, .label = "Anonymous"},
-                                {.type = w_button, .label = "User"},
-                                {.type = w_button, .label = "Register"},
+  group_el_init_t children[] = {{.type = w_button, .label = "Anonymous", .val.num = 1},
+                                {.type = w_button, .label = "User", .val.num = 2},
+                                {.type = w_button, .label = "Register", .val.num = 3},
                                 {.type = w_end}};
 
   init_dialogue(&(app->modal), "Login",

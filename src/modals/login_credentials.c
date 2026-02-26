@@ -24,7 +24,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
-    case 0:
+    case 1:
       app->params->uname = malloc(in_name->value_len + 1);
       app->params->pass = malloc(in_pass->value_len + 1);
       strncpy(app->params->uname, in_name->value, in_name->value_len);
@@ -36,7 +36,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       d->needs_destroy = true;
       print_bars(app);
       break;
-    case 1:
+    case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;
       app->modal.needs_destroy = true;
     }
@@ -55,8 +55,8 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Login", .is_default = true},
-      {.type = w_button, .label = "Cancel", .is_default = false},
+      {.type = w_button, .label = "Login", .is_default = true, .val.num = 1},
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end}};
 
   init_dialogue(&(app->modal), "Login", "Your login credentials",

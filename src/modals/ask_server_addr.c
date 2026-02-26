@@ -1,17 +1,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <ncurses.h>
-
-// #include "../app.h"
-// #include "../widget/dialogue.h"
-// #include "../widget/group.h"
-// #include "../widget/input.h"
-// #include "../widget/button.h"
-
 #include <widget.h>
+#include <widget_core.h>
 #include "../connection.h"
 #include "group.h"
-#include "widget_core.h"
 
 typedef struct {
   button_t *element;
@@ -51,8 +44,8 @@ dialogue_t *init_asa_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Connect", .is_default = 1},
-      {.type = w_button, .label = "Cancel", .is_default = 0},
+      {.type = w_button, .label = "Connect", .is_default = true, .val.num = 1},
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end}};
 
   init_dialogue(&(app->modal), "Connect to server",
