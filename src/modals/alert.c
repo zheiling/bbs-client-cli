@@ -25,7 +25,7 @@ void notification(const char *title, const char *message,
     return;
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "OK", .is_default = 1}, {.type = w_end}};
+      {.type = w_button, .label = "OK", .is_default = true}, {.type = w_end}};
 
   dialogue_t *d = malloc(sizeof(dialogue_t));
 
@@ -33,7 +33,7 @@ void notification(const char *title, const char *message,
 
   d->w.callback = alert_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
+  d->g_action = init_group(&(d->win), &(d->w), actions,&(d->id_map), horizontal, g_action);
 
   dialogue_init_active_id(d);
   d->color_scheme = color;

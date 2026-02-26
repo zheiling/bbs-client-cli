@@ -1,37 +1,33 @@
 #include "group.h"
 #include "button.h"
+#include "d_array.h"
 #include "fs_file_list.h"
 #include "input.h"
 #include "progress_bar.h"
+#include "widget_core.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-
-#define MAKE_RESPONSE_M1(args, resp_data, response)                            \
-  if (args->resp_data != NULL) {                                               \
-    *response = -1;                                                            \
-  }
+#include <utils.h>
 
 void group_default_callback(callback_args_t *args) {
   group_t *g = (group_t *)args->element;
   int32_t key = *((int32_t *)args->data);
-  int32_t *response = (int32_t *)args->resp_data;
+  int64_t response = args->resp_data.val.val.num;
   input_t *input;
   widget_t *widget;
-  group_el_t *element_ptr;
-  int32_t element_idx = -1;
+  group_el_t *element_ptr = args->active_el;
   u_int32_t start_pos = 0;
   callback_args_t new_args;
   switch (key) {
   case '\n': /* Enter */
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
-    *response = element_idx;
+    args->resp_data.code = cbrp_val;
+    mempcpy(&(args->resp_data.val), &(element_ptr->val), sizeof(struct val_t));
     break;
   case KEY_BACKSPACE:
   case KEY_DL:
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->value_len) {
@@ -44,10 +40,9 @@ void group_default_callback(callback_args_t *args) {
         }
       }
     }
-    MAKE_RESPONSE_M1(args, resp_data, response);
+    args->resp_data.code = cbrc_none;
     break;
   default:
-    FIND_ACTIVE_ELEMENT(g, args->active_id, element_ptr, element_idx);
     if (element_ptr->type == w_input) {
       input = (input_t *)element_ptr->element;
       if (input->max_len > input->value_len) {
@@ -62,7 +57,8 @@ void group_default_callback(callback_args_t *args) {
         }
       }
     } else {
-      widget = (widget_t *) element_ptr->element;
+      /* callback case */
+      widget = (widget_t *)element_ptr->element;
       if (widget->callback != NULL) {
         memccpy(&new_args, args, 1, sizeof(callback_args_t));
         new_args.element = element_ptr->element;
@@ -70,14 +66,22 @@ void group_default_callback(callback_args_t *args) {
         break;
       }
     }
-    MAKE_RESPONSE_M1(args, resp_data, response);
+    args->resp_data.code = cbrc_none;
     break;
   }
 }
 
+union current_element {
+  group_t *group;
+  enum w_type type;
+};
+
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    enum g_direction direction) {
+                    d_array_ptr_t *id_map, enum g_direction direction, enum g_type g_type) {
   group_t *group = malloc(sizeof(group_t));
+  union current_element current;
+  group->parent_group = NULL;
+  current.type = w_end;
   init_widget(&(group->w), w_parent, win, "");
   /* count elements */
   group->count = 0;
@@ -93,6 +97,9 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
   for (int32_t i = 0; i < group->count; i++) {
     elements[i].type = children[i].type;
     elements[i].is_default = children[i].is_default;
+    elements[i].g_type = g_type;
+    elements[i].idx = i;
+    elements[i].val.type = val_nul;
   }
 
   /* init child elements */
@@ -101,11 +108,26 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     switch (elements[i].type) {
     case w_button:
       elements[i].element = init_button(win, &(group->w), children[i].label);
+      elements[i].val.type = val_num;
+      elements[i].val.val.num = children[i].val.num;
       w = &(((button_t *)elements[i].element)->w);
       break;
     case w_box:
-    case w_group:
     case w_end:
+      break;
+    case w_group:
+      elements[i].element = init_group(win, &(group->w), children[i].children,
+                                       id_map, children[i].direction, g_type);
+      w = &(((group_t *)elements[i].element)->w);
+      current.group = (group_t *)elements[i].element;
+      current.group->parent_group = group;
+      if (i == 0) {
+        group->first_id = current.group->first_id;
+        group->last_id = current.group->last_id;
+      } else {
+        group->last_id = current.group->last_id;
+      }
+      current.type = w_group;
       break;
     case w_input:
       elements[i].element =
@@ -122,28 +144,39 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       w = &(((ui_progress_bar_t *)elements[i].element)->w);
       break;
     }
+    if (current.type != w_group) {
+      if (i == 0) {
+        group->first_id = w->id;
+        group->last_id = w->id;
+      } else {
+        group->last_id = w->id;
+      }
+    }
     /* set dimensions */
     elements[i].id = w->id;
+    add_d_arr_ptr(id_map, elements + i, w->id);
     if (direction == horizontal) {
       w->m_x = group->w.m_x + 1 + group->w.x;
       w->m_y = group->w.m_y;
       group->w.x += w->x + 1;
       if (group->w.y < w->y)
         group->w.y = w->y;
-    }
-    if (i == 0) {
-      group->first_id = w->id;
-      group->last_id = w->id;
     } else {
-      group->last_id = w->id;
+      w->m_x = group->w.m_x;
+      w->m_y = group->w.m_y + group->w.y;
+      group->w.y += w->y;
+      if (group->w.x < w->x)
+        group->w.x = w->x;
     }
   }
+
+  if (direction == vertical)
+    group->w.y++;
 
   return group;
 }
 
-void draw_group(WINDOW *win, group_t *group, int32_t active_id,
-                widget_t *dialog_w) {
+void draw_group(WINDOW *win, group_t *group, int32_t active_id) {
   group_el_t *children = group->elements;
   for (int i = 0; i < group->count; i++) {
     group_el_t *el = &children[i];
@@ -151,8 +184,10 @@ void draw_group(WINDOW *win, group_t *group, int32_t active_id,
     case w_button:
       draw_button((button_t *)el->element, active_id);
       break;
-    case w_box:
     case w_group:
+      draw_group(win, (group_t *)el->element, active_id);
+      break;
+    case w_box:
     case w_end:
       break;
     case w_input:
@@ -176,8 +211,10 @@ void destroy_group(group_t *group) {
     case w_button:
       destroy_button(el->element);
       break;
-    case w_box:
     case w_group:
+      destroy_group(el->element);
+      break;
+    case w_box:
     case w_end:
       break;
     case w_input:

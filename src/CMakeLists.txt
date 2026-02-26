@@ -44,6 +44,7 @@ add_subdirectory(widget_core)
 add_subdirectory(widget)
 add_subdirectory(modals)
 add_subdirectory(lib)
+add_subdirectory(utils)
 
 target_link_libraries(zbbs-client-tui 
     PRIVATE
@@ -51,5 +52,6 @@ target_link_libraries(zbbs-client-tui
         widget
         modals
         bstring
+        utils
         ${CURSES_LIBRARIES}
 )

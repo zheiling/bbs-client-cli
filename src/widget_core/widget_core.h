@@ -5,6 +5,13 @@
 #include <ncurses.h>
 #include <stdint.h>
 
+enum g_type { g_content, g_action };
+
+enum g_direction {
+  horizontal,
+  vertical,
+};
+
 enum w_type {
   w_end,
   w_button,
@@ -15,12 +22,46 @@ enum w_type {
   w_fs_file_list,
 };
 
+enum val_type {
+  val_num,
+  val_ptr,
+  val_nul,
+};
+
+struct val_t {
+  enum val_type type;
+  union {
+    void *ptr;
+    int64_t num;
+  } val;
+};
+
+typedef struct {
+  int64_t id;
+  int64_t idx; /* element index in the group */
+  void *element;
+  enum w_type type;
+  enum g_type g_type;
+  bool is_default;
+  struct val_t val;
+} group_el_t;
+
+enum cbrp_code {
+  cbrc_none, /* default */
+  cbrp_val,
+  cbrp_g_el, /* element of type group_el_t */
+  cbrp_err
+};
+
 typedef struct {
   void *app;
   void *element;
   void *data;
-  void *resp_data;
-  uint32_t active_id;
+  struct {
+    enum cbrp_code code;
+    struct val_t val;
+  } resp_data;
+  void *active_el;
 } callback_args_t;
 
 enum rsize {
@@ -34,19 +75,18 @@ enum rsize {
 };
 
 typedef struct widget_t {
-  uint32_t id;
+  int64_t id;
   char title[DIALOGUE_TITLE];
-  uint32_t x;
-  uint32_t y;
-  uint32_t m_x;
-  uint32_t m_y;
+  int64_t x;
+  int64_t y;
+  int64_t m_x;
+  int64_t m_y;
   struct {
-    uint32_t y;
-    uint32_t x;
+    int64_t y;
+    int64_t x;
   } cur;
   WINDOW *const *parent_win;
   struct widget_t *w_parent;
-  // enum rsize rsize;
   void (*callback)(callback_args_t *args);
 } widget_t;
 
@@ -59,7 +99,8 @@ enum pmt_attrs {
 
 void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title);
 int32_t get_max_line_len(const char *text, uint32_t *line_count);
-uint32_t print_multiline_text(WINDOW *win, const char *text, const uint32_t win_width, const uint32_t y,
+uint32_t print_multiline_text(WINDOW *win, const char *text,
+                              const uint32_t win_width, const uint32_t y,
                               const uint32_t x, const uint16_t attrs);
 
 #endif

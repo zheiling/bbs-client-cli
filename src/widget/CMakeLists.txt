@@ -18,7 +18,9 @@ target_link_libraries(widget
     PRIVATE
         bstring
         widget_core
+        utils
 )
 
 target_include_directories(widget PRIVATE "../widget_core")
 target_include_directories(widget PRIVATE "../lib/")
+target_include_directories(widget PRIVATE "../utils/")

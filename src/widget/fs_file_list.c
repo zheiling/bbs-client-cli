@@ -133,7 +133,7 @@ void fs_file_list_cb(callback_args_t *args) {
     }
     break;
   case '\n':
-    select_item(fui, (int32_t *) args->resp_data);
+    select_item(fui, (int32_t *) args->resp_data.val.val.num);
     break;
   }
 }

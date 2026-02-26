@@ -10,7 +10,6 @@
 
 typedef enum {
   modal_color_pair = 3,
-  modal_border_color_pair = 4,
 } color;
 
 typedef enum {

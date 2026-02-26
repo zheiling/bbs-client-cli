@@ -44,6 +44,7 @@ int main(int argc, char **argv) {
   q_args->buf = malloc(INBUFSIZE);
   app->query_args = q_args;
   q_args->file_list_ui = init_file_list(&(app->left_win), &(app->right_win));
+  draw_file_list(q_args->file_list_ui);
 
   /* init client to connect to the server */
   app->params->sd = init_client();

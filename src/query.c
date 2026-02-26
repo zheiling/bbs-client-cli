@@ -16,7 +16,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "app.h"
 #include "connection.h"
 #include "draw_modal.h"
 #include "file_processor.h"
@@ -25,6 +24,7 @@
 #include "server.h"
 #include "types.h"
 #include "widget/app.h"
+#include "widget_core/widget_core.h"
 
 static void wait_side(app_t *app);
 void user_request_description(query_args_t *q_args);
@@ -45,8 +45,10 @@ void query_loop(app_t *app) {
   size_t qlen;
   int sr;
   static file_args_t file_args;
-  callback_args_t d_args = {
-      .app = app, .element = NULL, .data = NULL, .resp_data = NULL};
+  callback_args_t d_args = {.app = app,
+                            .element = NULL,
+                            .data = NULL,
+                            .resp_data.code = cbrc_none};
 
   init_file_args(&file_args);
   query_args->sd = sd;

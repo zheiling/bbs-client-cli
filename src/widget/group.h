@@ -2,44 +2,35 @@
 #define GROUP_H
 
 #include <stdint.h>
+#include <utils.h>
 #include <widget_core.h>
 
-enum g_direction {
-  horizontal,
-  vertical,
-};
-
-typedef struct {
-  uint32_t id;
-  void *element;
+typedef struct group_el_init_t {
   enum w_type type;
-  uint32_t is_default : 1;
-} group_el_t;
-
-typedef struct {
-  enum w_type type;
-  uint32_t is_default : 1;
-  uint32_t is_hidden_value : 1;
+  bool is_default;
+  bool is_hidden_value;
   char label[DIALOGUE_TITLE];
   uint32_t length;
+  enum g_direction direction;
+  union {
+    int64_t num;
+  } val;
+  struct group_el_init_t *children;
 } group_el_init_t;
 
-typedef struct {
+typedef struct group_t {
   widget_t w;
   group_el_t *elements;
   enum g_direction direction;
   uint32_t count;
   uint32_t first_id, last_id;
+  struct group_t *parent_group;
 } group_t;
 
-#define FIND_ACTIVE_ELEMENT(g, active_id, element_ptr, element_idx)            \
-  element_idx = active_id - g->first_id;                                       \
-  element_ptr = &(g->elements[element_idx]);
-
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    enum g_direction dir);
-void draw_group(WINDOW *win, group_t *group, int32_t active_id,
-                widget_t *dialog_w);
+                    d_array_ptr_t *id_map, enum g_direction dir,
+                    enum g_type g_type);
+void draw_group(WINDOW *win, group_t *group, int32_t active_id);
 void destroy_group(group_t *group);
 void group_default_callback(callback_args_t *args);
 

@@ -1,3 +1,4 @@
+#include "group.h"
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,20 +13,18 @@ typedef struct {
 } group_bt_t;
 
 void init_login_credentials_modal_cb(callback_args_t *args) {
-  int32_t response;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
-  d_args.resp_data = &response;
   d_args.element = app->active_widget;
   input_t *in_name = d->g_content->elements[0].element;
   input_t *in_pass = d->g_content->elements[1].element;
   dialogue_default_callback(&d_args);
-  if (response > -1) {
-    switch (response) {
-    case 0:
+  if (d_args.resp_data.code == cbrp_val) {
+    switch (d_args.resp_data.val.val.num) {
+    case 1:
       app->params->uname = malloc(in_name->value_len + 1);
       app->params->pass = malloc(in_pass->value_len + 1);
       strncpy(app->params->uname, in_name->value, in_name->value_len);
@@ -37,7 +36,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       d->needs_destroy = true;
       print_bars(app);
       break;
-    case 1:
+    case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;
       app->modal.needs_destroy = true;
     }
@@ -56,8 +55,8 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Login", .is_default = true},
-      {.type = w_button, .label = "Cancel", .is_default = false},
+      {.type = w_button, .label = "Login", .is_default = true, .val.num = 1},
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end}};
 
   init_dialogue(&(app->modal), "Login", "Your login credentials",
@@ -65,8 +64,8 @@ dialogue_t *init_login_credentials_modal(app_t *app) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = init_login_credentials_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, horizontal);
-  d->g_action = init_group(&(d->win), &(d->w), actions, horizontal);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal, g_content);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
 
   dialogue_init_active_id(d);
 
