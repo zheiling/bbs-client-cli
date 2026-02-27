@@ -77,12 +77,14 @@ union current_element {
 };
 
 group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
-                    d_array_ptr_t *id_map, enum g_direction direction, enum g_type g_type) {
+                    d_array_ptr_t *id_map, enum g_direction direction,
+                    enum g_type g_type) {
   group_t *group = malloc(sizeof(group_t));
   union current_element current;
   group->parent_group = NULL;
   current.type = w_end;
   init_widget(&(group->w), w_parent, win, "");
+  group->w.m.x = 1; /* margin left */
   /* count elements */
   group->count = 0;
   for (; children[group->count].type != w_end; group->count++)
@@ -153,25 +155,26 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       }
     }
     /* set dimensions */
+    /* TODO: revise */
     elements[i].id = w->id;
     add_d_arr_ptr(id_map, elements + i, w->id);
     if (direction == horizontal) {
-      w->m_x = group->w.m_x + 1 + group->w.x;
-      w->m_y = group->w.m_y;
-      group->w.x += w->x + 1;
-      if (group->w.y < w->y)
-        group->w.y = w->y;
+      w->ps.x = group->w.ps.x + group->w.sz.x;
+      w->ps.y = group->w.ps.y;
+      group->w.sz.x += w->sz.x + 1;
+      if (group->w.sz.y < w->sz.y)
+        group->w.sz.y = w->sz.y;
     } else {
-      w->m_x = group->w.m_x;
-      w->m_y = group->w.m_y + group->w.y;
-      group->w.y += w->y;
-      if (group->w.x < w->x)
-        group->w.x = w->x;
+      w->ps.x = group->w.ps.x;
+      w->ps.y = group->w.ps.y + group->w.sz.y;
+      group->w.sz.y += w->sz.y;
+      if (group->w.sz.x < w->sz.x)
+        group->w.sz.x = w->sz.x;
     }
   }
 
   if (direction == vertical)
-    group->w.y++;
+    group->w.sz.y++;
 
   return group;
 }

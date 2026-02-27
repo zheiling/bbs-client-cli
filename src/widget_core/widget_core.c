@@ -10,10 +10,17 @@ int32_t rsize_to_value(int32_t size, enum rsize rsize);
 
 void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   w->id = m_id++;
-  w->x = 0;
-  w->y = 0;
-  w->m_x = 0;
-  w->m_y = 0;
+  w->sz.x = 0;
+  w->sz.y = 0;
+  w->ps.x = 0;
+  w->ps.y = 0;
+  if (w_parent != NULL && w_parent->w_parent != NULL) { /* not root element of the window */
+    w->m.x = w_parent->m.x;
+    w->m.y = w_parent->m.y;
+  } else {
+    w->m.x = 0;
+    w->m.y = 0;
+  }
   w->parent_win = win;
   w->w_parent = w_parent;
   w->callback = NULL;

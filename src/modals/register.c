@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <widget.h>
+#include <widget_core.h>
 
 #include "alert.h"
 #include "group.h"
-#include "widget_core.h"
 
 typedef struct {
   button_t *element;
@@ -25,15 +24,16 @@ void init_register_modal_cb(callback_args_t *args) {
   memcpy(&d_args, args, sizeof(callback_args_t));
   d_args.app = NULL;
   d_args.element = app->active_widget;
-  group_t *g_email_user = d->g_content->elements[0].element;
-  group_t *g_passwords = d->g_content->elements[1].element;
-  input_t *in_name = g_email_user->elements[0].element;
-  input_t *in_email = g_email_user->elements[1].element;
-  input_t *in_pass = g_passwords->elements[0].element;
-  input_t *in_pass_r = g_passwords->elements[1].element;
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val &&
       d_args.resp_data.val.type == val_num) {
+    /* TODO: Fix cancel case */
+    group_t *g_email_user = d->g_content->elements[0].element;
+    group_t *g_passwords = d->g_content->elements[1].element;
+    input_t *in_name = g_email_user->elements[0].element;
+    input_t *in_email = g_email_user->elements[1].element;
+    input_t *in_pass = g_passwords->elements[0].element;
+    input_t *in_pass_r = g_passwords->elements[1].element;
     switch (d_args.resp_data.val.val.num) {
     case 1:
       if (strcmp(in_pass->value, in_pass_r->value)) {
@@ -51,7 +51,8 @@ void init_register_modal_cb(callback_args_t *args) {
       strncpy(app->params->pass, in_pass->value, in_pass->value_len);
       app->params->pass[in_pass->value_len] = 0;
       sprintf(query, "register %s %s %*s\n%n", app->params->uname,
-              app->params->pass, (int) in_email->value_len, in_email->value, &qlen);
+              app->params->pass, (int)in_email->value_len, in_email->value,
+              &qlen);
       write(app->params->sd, query, qlen);
       app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
       break;
@@ -65,10 +66,6 @@ void init_register_modal_cb(callback_args_t *args) {
 dialogue_t *init_register_modal(app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t content_name_email[] = {
-      {.type = w_input, .label = "Username", .length = 18},
-      {.type = w_input, .label = "Email", .length = 18},
-      {.type = w_end}};
 
   group_el_init_t content_pass[] = {{.type = w_input,
                                      .label = "Password",
@@ -81,8 +78,9 @@ dialogue_t *init_register_modal(app_t *app) {
                                     {.type = w_end}};
 
   group_el_init_t content[] = {
-      {.type = w_group, .direction = vertical, .children = content_name_email},
-      {.type = w_group, .direction = vertical, .children = content_pass},
+      {.type = w_input, .label = "Username", .length = 18},
+      {.type = w_group, .direction = horizontal, .children = content_pass},
+      {.type = w_input, .label = "Email", .length = 40},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
@@ -95,8 +93,8 @@ dialogue_t *init_register_modal(app_t *app) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = init_register_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map),
-                            horizontal, g_content);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), vertical,
+                            g_content);
   d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
                            horizontal, g_action);
 

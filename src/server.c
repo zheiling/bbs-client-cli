@@ -1,8 +1,7 @@
-#include "app.h"
 #include "dialogue.h"
 #include "main.h"
-#include "modals/alert.h"
-#include "widget/file_list.h"
+#include <modals.h>
+#include <widget.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>

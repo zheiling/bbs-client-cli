@@ -143,8 +143,8 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   uint32_t t_size = 0;
   dialogue->win = 0;
   dialogue->g_content = NULL;
-  dialogue->w.x = 0;
-  dialogue->w.y = 0;
+  dialogue->w.sz.x = 0;
+  dialogue->w.sz.y = 0;
   dialogue->p_coordinates = p_coordinates;
   dialogue->w.callback = dialogue_default_callback;
   dialogue->is_initiated = true;
@@ -192,14 +192,14 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
 
 #define DETECT_GROUP_SIZE(group, line_max_len, y, x)                           \
   if (group) {                                                                 \
-    group->w.m_y = y;                                                          \
-    if (line_max_len < group->w.x) {                                           \
-      line_max_len = group->w.x;                                               \
-      group->w.m_x = 0;                                                        \
+    group->w.ps.y = y;                                                          \
+    if (line_max_len < group->w.sz.x) {                                           \
+      line_max_len = group->w.sz.x;                                               \
+      group->w.ps.x = 0;                                                        \
     } else {                                                                   \
-      group->w.m_x = (line_max_len - group->w.x) / 2;                          \
+      group->w.ps.x = (line_max_len - group->w.sz.x) / 2;                          \
     }                                                                          \
-    y += group->w.y;                                                           \
+    y += group->w.sz.y;                                                           \
   }
 
 int32_t draw_dialogue(dialogue_t *d) {
@@ -229,14 +229,14 @@ int32_t draw_dialogue(dialogue_t *d) {
   x += 1; /* when uses box */
   y += 1; /* when uses box */
 
-  d->w.x = x;
-  d->w.y = y;
-  d->w.m_y = (d->p_coordinates->max_y - y) / 2;
-  d->w.m_x = (d->p_coordinates->max_x - x) / 2;
+  d->w.sz.x = x;
+  d->w.sz.y = y;
+  d->w.ps.y = (d->p_coordinates->max_y - y) / 2;
+  d->w.ps.x = (d->p_coordinates->max_x - x) / 2;
 
   /* render window */
   if (d->win == NULL) {
-    d->win = newwin(y, x, d->w.m_y, d->w.m_x);
+    d->win = newwin(y, x, d->w.ps.y, d->w.ps.x);
   }
 
   switch (d->color_scheme) {
@@ -249,12 +249,12 @@ int32_t draw_dialogue(dialogue_t *d) {
   }
 
   /* background */
-  for (int yp = 1; yp < d->w.y - 1; yp++) {
-    mvwprintw(d->win, yp, 1, "%*s", d->w.x, "");
+  for (int yp = 1; yp < d->w.sz.y - 1; yp++) {
+    mvwprintw(d->win, yp, 1, "%*s", d->w.sz.x, "");
   }
 
   /* title */
-  const uint32_t title_mx_pos = (d->w.x - strlen(d->w.title)) / 2;
+  const uint32_t title_mx_pos = (d->w.sz.x - strlen(d->w.title)) / 2;
   box(d->win, 0, 0);
   mvwprintw(d->win, 0, title_mx_pos - 1, " ");
   mvwprintw(d->win, 0, title_mx_pos, "%s", d->w.title);
@@ -262,8 +262,8 @@ int32_t draw_dialogue(dialogue_t *d) {
 
   /* text */
   wattroff(d->win, A_BOLD);
-  /* mvwhline(d->win, d->w.y - 3, 1, 0, d->w.x - 2); */
-  print_multiline_text(d->win, d->text, d->w.x, 2, 1, PMT_ALIGN_CENTER);
+  /* mvwhline(d->win, d->w.sz.y - 3, 1, 0, d->w.sz.x - 2); */
+  print_multiline_text(d->win, d->text, d->w.sz.x, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {

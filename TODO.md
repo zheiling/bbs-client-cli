@@ -5,7 +5,7 @@
 - [x] Nested groups
 - [x] Create dynamic map of elements IDs and their pointers
 - [x] Adapt modals to new value-forwarding method
-- [ ] Move text to the end if text in the input is larger, than field
+- [ ] Advanced ui element positioning system
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 
 ## Features:

@@ -14,7 +14,7 @@
 #include "file_list.h"
 #include "main.h"
 #include "query.h"
-#include "modals/alert.h"
+#include <modals.h>
 
 uint32_t m_id = 0;
 

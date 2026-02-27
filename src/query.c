@@ -20,11 +20,11 @@
 #include "draw_modal.h"
 #include "file_processor.h"
 #include "main.h"
-#include "modals/alert.h"
 #include "server.h"
 #include "types.h"
-#include "widget/app.h"
-#include "widget_core/widget_core.h"
+#include <modals.h>
+#include <widget.h>
+#include <widget_core.h>
 
 static void wait_side(app_t *app);
 void user_request_description(query_args_t *q_args);

@@ -11,8 +11,8 @@ button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
   button_t *btn = malloc(sizeof(button_t));
   init_widget(&(btn->w), w_parent, win, label);
   btn->is_disabled = 0;
-  btn->w.x = strlen(btn->w.title) + 6; // + "[  ]"
-  btn->w.y = 1;                        // TODO: detect new line
+  btn->w.sz.x = strlen(btn->w.title) + 6; // + "[  ]"
+  btn->w.sz.y = 1;                        // TODO: detect new line
   btn->w.cur.y = 0;
   btn->w.cur.x = 0;
   return btn;
@@ -21,14 +21,14 @@ button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
 int32_t draw_button(button_t *btn, uint32_t active_id) {
   char title[DIALOGUE_TITLE + 6];
   WINDOW *win = *(btn->w.parent_win);
-  uint32_t margin_y = btn->w.m_y;
-  uint32_t margin_x = btn->w.m_x;
+  uint32_t margin_y = btn->w.ps.y + btn->w.m.y;
+  uint32_t margin_x = btn->w.ps.x + btn->w.m.x;
 
   widget_t *w_par = btn->w.w_parent;
 
   while (w_par->parent_win == btn->w.parent_win) {
-    margin_y += w_par->m_y;
-    margin_x += w_par->m_x;
+    margin_y += w_par->ps.y;
+    margin_x += w_par->ps.x;
     w_par = w_par->w_parent;
   }
 

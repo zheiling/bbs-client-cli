@@ -77,14 +77,22 @@ enum rsize {
 typedef struct widget_t {
   int64_t id;
   char title[DIALOGUE_TITLE];
-  int64_t x;
-  int64_t y;
-  int64_t m_x;
-  int64_t m_y;
   struct {
     int64_t y;
     int64_t x;
-  } cur;
+  } cur; /* cursor position */
+  struct {
+    int64_t y;
+    int64_t x;
+  } sz; /* size */
+  struct {
+    int64_t y;
+    int64_t x;
+  } m; /* margin (relative to the parent) */
+  struct {
+    int64_t y;
+    int64_t x;
+  } ps; /* position (relative to the window) */
   WINDOW *const *parent_win;
   struct widget_t *w_parent;
   void (*callback)(callback_args_t *args);

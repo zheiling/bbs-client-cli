@@ -148,8 +148,8 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   fl_ui->start = get_files_from_fs(fl_ui->d_path);
   fl_ui->current = fl_ui->start;
   fl_ui->w.callback = fs_file_list_cb;
-  fl_ui->w.x = getmaxx(win_par) / 10 * 8;
-  fl_ui->w.y = getmaxy(win_par) / 10 * 8;
+  fl_ui->w.sz.x = getmaxx(win_par) / 10 * 8;
+  fl_ui->w.sz.y = getmaxy(win_par) / 10 * 8;
   return fl_ui;
 }
 
