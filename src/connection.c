@@ -1,5 +1,5 @@
 #include "main.h"
-#include "app.h"
+#include <widget.h>
 #include <arpa/inet.h>
 #include <ncurses.h>
 #include <netinet/in.h>

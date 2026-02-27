@@ -1,6 +1,4 @@
-#include "app.h"
-#include "dialogue.h"
-#include "widget_core.h"
+#include <widget.h>
 #include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>

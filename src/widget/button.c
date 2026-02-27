@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "app.h"
 #include <widget_core.h>
 #include "button.h"
+#include "app.h"
 
 button_t *init_button(WINDOW **win, widget_t *w_parent, char *label) {
   button_t *btn = malloc(sizeof(button_t));

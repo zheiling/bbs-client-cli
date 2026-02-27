@@ -1,13 +1,5 @@
-#include "modals/ask_server_addr.h"
-#include "modals/download_pr.h"
-#include "modals/login_credentials.h"
-#include "modals/login_option.h"
-#include "modals/notification.h"
-#include "modals/server_message.h"
-#include "modals/upload_dialogue.h"
-#include "modals/upload_props_dialogue.h"
-#include "modals/register.h"
-#include "widget/dialogue.h"
+#include <modals.h>
+#include <widget.h>
 #include "main.h"
 
 void app_draw_modal(app_t *app) {

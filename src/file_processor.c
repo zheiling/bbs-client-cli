@@ -13,14 +13,11 @@
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+#include <widget.h>
 
 #include "file_processor.h"
 #include "main.h"
 #include "query.h"
-#include "widget/dialogue.h"
-#include "widget/file_list.h"
-#include "widget/progress_bar.h"
-
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 fl_item_t *fl_select(fl_item_t *start, int num);
 void fl_clear(fl_item_t **start, fl_item_t **current);

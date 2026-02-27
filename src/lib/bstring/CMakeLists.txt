@@ -9,5 +9,5 @@ target_sources(bstring
     PUBLIC
         FILE_SET HEADERS
         FILES
-            ${M_HEADERS}
+            bstrlib.h
 )

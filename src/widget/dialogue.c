@@ -8,7 +8,7 @@
 #include "file_list.h"
 #include "group.h"
 #include "input.h"
-#include "widget_core.h"
+#include <widget_core.h>
 
 void incr_active_id(dialogue_t *d) {
   group_el_t *active_el = NULL;

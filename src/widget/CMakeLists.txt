@@ -1,18 +1,6 @@
 add_library(widget STATIC)
 
-file(GLOB M_HEADERS "*.h")
 file(GLOB M_SOURCES "*.c")
-
-list(REMOVE_ITEM M_HEADERS "widget.h")
-
-target_sources(widget
-    PRIVATE
-        ${M_SOURCES}
-    PUBLIC
-        FILE_SET HEADERS
-        FILES
-            ${M_HEADERS}
-)
 
 target_link_libraries(widget 
     PRIVATE
@@ -21,6 +9,11 @@ target_link_libraries(widget
         utils
 )
 
-target_include_directories(widget PRIVATE "../widget_core")
-target_include_directories(widget PRIVATE "../lib/")
-target_include_directories(widget PRIVATE "../utils/")
+target_sources(widget
+    PRIVATE
+        ${M_SOURCES}
+    PUBLIC
+        FILE_SET HEADERS
+        FILES
+            widget.h
+)
