@@ -250,7 +250,7 @@ int32_t draw_dialogue(dialogue_t *d) {
 
   /* background */
   for (int yp = 1; yp < d->w.sz.y - 1; yp++) {
-    mvwprintw(d->win, yp, 1, "%*s", d->w.sz.x, "");
+    mvwprintw(d->win, yp, 1, "%*s", (int)d->w.sz.x, "");
   }
 
   /* title */
@@ -309,5 +309,6 @@ void destroy_dialogue(dialogue_t *d, void *_app) {
   app->active_win = app->left_win;
   app->active_callback = file_list_cb;
   app->query_args->active_dialogue = NULL;
+  free_d_arr(&(d->id_map));
   app_refresh(app);
 }

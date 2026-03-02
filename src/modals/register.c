@@ -27,39 +27,49 @@ void init_register_modal_cb(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val &&
       d_args.resp_data.val.type == val_num) {
-    /* TODO: Fix cancel case */
-    group_t *g_email_user = d->g_content->elements[0].element;
-    group_t *g_passwords = d->g_content->elements[1].element;
-    input_t *in_name = g_email_user->elements[0].element;
-    input_t *in_email = g_email_user->elements[1].element;
-    input_t *in_pass = g_passwords->elements[0].element;
-    input_t *in_pass_r = g_passwords->elements[1].element;
-    switch (d_args.resp_data.val.val.num) {
-    case 1:
-      if (strcmp(in_pass->value, in_pass_r->value)) {
-        alert("Your passwords do not match");
-        in_pass->value[0] = '\0';
-        in_pass->value_len = 0;
-        in_pass_r->value[0] = '\0';
-        in_pass_r->value_len = 0;
-        return;
-      }
-      app->params->uname = malloc(in_name->value_len + 1);
-      app->params->pass = malloc(in_pass->value_len + 1);
-      strncpy(app->params->uname, in_name->value, in_name->value_len);
-      app->params->uname[in_name->value_len] = 0;
-      strncpy(app->params->pass, in_pass->value, in_pass->value_len);
-      app->params->pass[in_pass->value_len] = 0;
-      sprintf(query, "register %s %s %*s\n%n", app->params->uname,
-              app->params->pass, (int)in_email->value_len, in_email->value,
-              &qlen);
-      write(app->params->sd, query, qlen);
-      app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
-      break;
-    case 2:
+
+    if (d_args.resp_data.val.val.num == 2) {
       app->query_args->state = S_ASK_LOGIN_TYPE;
       app->modal.needs_destroy = true;
+      return;
     }
+
+    input_t *in_name = d->g_content->elements[0].element;
+    group_t *g_passwords = d->g_content->elements[1].element;
+    input_t *in_email = d->g_content->elements[2].element;
+    input_t *in_pass = g_passwords->elements[0].element;
+    input_t *in_pass_r = g_passwords->elements[1].element;
+    if (in_name->value_len == 0) {
+      alert("Name field is empty!");
+      return;
+    }
+    if (in_email->value_len == 0) {
+      alert("Email field is empty!");
+      return;
+    }
+    if (!in_pass->value_len || !in_pass->value_len) {
+      alert("One of password's field is empty!");
+      return;
+    }
+    if (strcmp(in_pass->value, in_pass_r->value)) {
+      alert("Your passwords do not match!");
+      in_pass->value[0] = '\0';
+      in_pass->value_len = 0;
+      in_pass_r->value[0] = '\0';
+      in_pass_r->value_len = 0;
+      return;
+    }
+    app->params->uname = malloc(in_name->value_len + 1);
+    app->params->pass = malloc(in_pass->value_len + 1);
+    strncpy(app->params->uname, in_name->value, in_name->value_len);
+    app->params->uname[in_name->value_len] = 0;
+    strncpy(app->params->pass, in_pass->value, in_pass->value_len);
+    app->params->pass[in_pass->value_len] = 0;
+    sprintf(query, "register %s %s %*s\n%n", app->params->uname,
+            app->params->pass, (int)in_email->value_len, in_email->value,
+            &qlen);
+    write(app->params->sd, query, qlen);
+    app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
   }
 }
 
