@@ -1,4 +1,4 @@
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

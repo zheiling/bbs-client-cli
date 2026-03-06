@@ -3,7 +3,7 @@
 #include "../fs.h"
 #include "app.h"
 #include <bstrlib.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

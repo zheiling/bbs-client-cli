@@ -1,6 +1,6 @@
 #include "../file_processor.h"
 #include "group.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <string.h>
 #include <widget.h>

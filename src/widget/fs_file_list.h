@@ -1,7 +1,7 @@
 #ifndef FS_FILE_LIST_H
 #define FS_FILE_LIST_H
 #include <widget_core.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <sys/types.h>
 

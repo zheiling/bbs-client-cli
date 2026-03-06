@@ -5,7 +5,7 @@
 #include "input.h"
 #include "progress_bar.h"
 #include "widget_core.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

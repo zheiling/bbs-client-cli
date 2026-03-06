@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <string.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <widget.h>
 #include <widget_core.h>
 #include "../connection.h"
@@ -23,13 +23,13 @@ void asa_modal_dialogue_callback(callback_args_t *args) {
   dialogue_default_callback(&d_args);
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
-    case 0:
+    case 1:
       get_ip_port(app->params, in_ip->value, in_port->value);
       connect_to_server(app);
       d->needs_destroy = true;
       app->query_args->state = S_WAIT_SERVER;
       break;
-    case 1:
+    case 2:
       destroy_app(app, 0);
     }
   }

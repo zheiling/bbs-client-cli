@@ -4,7 +4,7 @@
 #include "../main.h"
 #include "../common.h"
 #include "dialogue.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <widget_core.h>
 #include <bstrlib.h>
 

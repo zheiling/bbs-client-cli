@@ -3,7 +3,7 @@
 
 #include "../common.h"
 #include "group.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <widget_core.h>
 #include <utils.h>

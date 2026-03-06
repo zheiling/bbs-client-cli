@@ -2,7 +2,7 @@
 #define WIDGET_CORE_H
 
 #include "../main.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 
 enum g_type { g_content, g_action };

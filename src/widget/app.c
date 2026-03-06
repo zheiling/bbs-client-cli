@@ -1,5 +1,6 @@
 #include "app.h"
-#include <ncurses.h>
+#include <locale.h>
+#include <ncursesw/ncurses.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -65,6 +66,7 @@ void init_nc() {
   noecho();
   curs_set(false);
   set_escdelay(50);
+  setlocale(LC_ALL, "");
 
   if (!has_colors()) {
     printf("Your terminal does not support color\n");

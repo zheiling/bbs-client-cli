@@ -1,5 +1,5 @@
 #include "group.h"
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

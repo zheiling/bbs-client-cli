@@ -11,7 +11,7 @@ if(
   add_compile_definitions(_GNU_SOURCE) 
 endif()
 
-set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Curses REQUIRED)
 

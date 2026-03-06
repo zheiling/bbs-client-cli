@@ -1,5 +1,5 @@
 #include <arpa/inet.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdlib.h>

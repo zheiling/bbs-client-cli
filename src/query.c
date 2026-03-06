@@ -1,6 +1,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -1,6 +1,6 @@
 #include "group.h"
 #include <widget.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

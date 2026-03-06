@@ -17,11 +17,10 @@
 - [ ] UTF-8 support
 
 ## Future ideas
-- [ ] Advanced ui element positioning system
 - [ ] Get rid of old notification mechanism
 
 ## Fixes:
-- [ ] Check and fix registration and login
+- [x] Check and fix registration and login
 - [ ] Hotkeys for buttons
 - [ ] Group elements as lists
 - [ ] "Server message" to notification

@@ -1,7 +1,7 @@
 #include "fs_file_list.h"
 #include <dirent.h>
 #include <errno.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <uchar.h>
 #include <unistd.h>
 
 void reset_file_list(ui_fs_file_list_t *fl_ui);
@@ -181,7 +182,13 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
       wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
     }
     p_x = 1;
-    mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
+    /* TODO: */
+    wchar_t wname[512];
+    mbstowcs(wname, el->name, 512);
+    // wchar_t text[] = L"ВUTF-8 работает!  → ★ ℝ 日本語\n";
+    mvwaddwstr(win, p_y, p_x++, L"Ё");
+    mvwaddwstr(win, p_y, p_x++, L"Ж");
+    // mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
     mvwprintw(win, p_y, p_x + 1, "%*s", sz_x_f - p_x, "");
     if (el == fl_ui->current) {
       wattroff(win, COLOR_PAIR(3) | A_BOLD);

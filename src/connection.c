@@ -1,7 +1,7 @@
 #include "main.h"
 #include <widget.h>
 #include <arpa/inet.h>
-#include <ncurses.h>
+#include <ncursesw/ncurses.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
