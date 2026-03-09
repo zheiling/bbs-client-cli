@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils.h>
 
 extern uint32_t m_id;
 int32_t rsize_to_value(int32_t size, enum rsize rsize);
@@ -14,7 +15,8 @@ void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   w->sz.y = 0;
   w->ps.x = 0;
   w->ps.y = 0;
-  if (w_parent != NULL && w_parent->w_parent != NULL) { /* not root element of the window */
+  if (w_parent != NULL &&
+      w_parent->w_parent != NULL) { /* not root element of the window */
     w->m.x = w_parent->m.x;
     w->m.y = w_parent->m.y;
   } else {
@@ -56,11 +58,11 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
   strncpy(l_buf, text + i - c_line_len, c_line_len);                           \
   l_buf[c_line_len] = '\0';                                                    \
   if ((attrs & PMT_ALIGN_CENTER) == PMT_ALIGN_CENTER) {                        \
-    mvwprintw(win, line_v_pos, (win_width - c_line_len) / 2, "%s", l_buf);     \
+    curs_printw(win, line_v_pos, (win_width - c_line_len) / 2, l_buf);   \
   } else if (attrs & PMT_POS_CENTER) {                                         \
-    mvwprintw(win, line_v_pos, (win_width - m_line_len) / 2, "%s", l_buf);     \
+    curs_printw(win, line_v_pos, (win_width - m_line_len) / 2, l_buf);   \
   } else {                                                                     \
-    mvwprintw(win, line_v_pos, x, "%s", l_buf);                                \
+    curs_printw(win, line_v_pos, x, l_buf);                              \
   }
 
 uint32_t print_multiline_text(WINDOW *win, const char *_text,

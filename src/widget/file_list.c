@@ -169,8 +169,8 @@ void draw_file_list(ui_file_list_t *fui) {
       active_el = el;
     }
     p_x = 1;
-    mvwprintw(parent_win, p_y, p_x, "%s%n", el->name, &p_x);
-    mvwprintw(parent_win, p_y, p_x + 1, "%*s", sz_x - p_x, "");
+    p_x += curs_printw(parent_win, p_y, p_x, el->name);
+    mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - p_x, "");
     if (cur_el_idx == fui->current_idx) {
       wattroff(parent_win, A_BOLD | A_REVERSE);
     }

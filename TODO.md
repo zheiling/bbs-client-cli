@@ -6,6 +6,7 @@
 - [x] Create dynamic map of elements IDs and their pointers
 - [x] Adapt modals to new value-forwarding method
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
+- [ ] UTF-8: correct sizing in modals
 
 ## Features:
 - [x] Search files

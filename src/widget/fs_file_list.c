@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <uchar.h>
 #include <unistd.h>
+#include <utils.h>
 
 void reset_file_list(ui_fs_file_list_t *fl_ui);
 
@@ -101,8 +102,7 @@ void select_item(ui_fs_file_list_t *fui, int32_t *resp_data) {
     } else {
       dp_current = strlen(fui->d_path);
       selection = fui->current->name + 1;
-      fui->d_path =
-          realloc(fui->d_path, dp_current + strlen(selection) + 2);
+      fui->d_path = realloc(fui->d_path, dp_current + strlen(selection) + 2);
       sprintf(fui->d_path, "%s/%s", fui->d_path, selection);
       fl_clear(&(fui->start), &(fui->current));
       fui->start = get_files_from_fs(fui->d_path);
@@ -134,7 +134,7 @@ void fs_file_list_cb(callback_args_t *args) {
     }
     break;
   case '\n':
-    select_item(fui, (int32_t *) args->resp_data.val.val.num);
+    select_item(fui, (int32_t *)args->resp_data.val.val.num);
     break;
   }
 }
@@ -172,7 +172,6 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
   }
 
   wattrset(win, A_REVERSE); /* Match with modal background */
-
   do {
     if (p_y < 1) {
       p_y++;
@@ -182,14 +181,8 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
       wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
     }
     p_x = 1;
-    /* TODO: */
-    wchar_t wname[512];
-    mbstowcs(wname, el->name, 512);
-    // wchar_t text[] = L"ВUTF-8 работает!  → ★ ℝ 日本語\n";
-    mvwaddwstr(win, p_y, p_x++, L"Ё");
-    mvwaddwstr(win, p_y, p_x++, L"Ж");
-    // mvwprintw(win, p_y, p_x, "%s%n", el->name, &p_x);
-    mvwprintw(win, p_y, p_x + 1, "%*s", sz_x_f - p_x, "");
+    p_x += curs_printw(win, p_y, p_x, el->name);
+    mvwprintw(win, p_y, p_x, "%*s", sz_x_f - p_x, "");
     if (el == fl_ui->current) {
       wattroff(win, COLOR_PAIR(3) | A_BOLD);
     }
