@@ -53,7 +53,7 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
   }
 }
 
-#define PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos,     \
+/* #define PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, \
                    attrs)                                                      \
   strncpy(l_buf, text + i - c_line_len, c_line_len);                           \
   l_buf[c_line_len] = '\0';                                                    \
@@ -64,15 +64,32 @@ int32_t get_max_line_len(const char *text, uint32_t *line_count) {
   } else {                                                                     \
     curs_printw(win, line_v_pos, x, l_buf);                              \
   }
+ */
+
+void PRINT_TEXT(WINDOW *win, char *l_buf, char *text, int64_t i,
+                int64_t c_line_len, int64_t win_width, int64_t line_v_pos,
+                int64_t attrs, int64_t x, int64_t max_line_len) {
+  int64_t utf8len = 0;
+  strncpy(l_buf, text + i - c_line_len, c_line_len);
+  l_buf[c_line_len] = '\0';
+  utf8len = count_utf8_code_points(l_buf);
+  if ((attrs & PMT_ALIGN_CENTER) == PMT_ALIGN_CENTER) {
+    curs_printw(win, line_v_pos, (win_width - utf8len) / 2, l_buf);
+  } else if (attrs & PMT_POS_CENTER) {
+    curs_printw(win, line_v_pos, (win_width - max_line_len) / 2, l_buf);
+  } else {
+    curs_printw(win, line_v_pos, x, l_buf);
+  }
+}
 
 uint32_t print_multiline_text(WINDOW *win, const char *_text,
                               const uint32_t win_width, const uint32_t y,
                               const uint32_t x, const uint16_t attrs) {
 
   uint16_t line_v_pos = y;
-  int32_t c_line_len = 0;
-  uint32_t m_line_len = 0;
-  uint32_t i = 0;
+  int64_t c_line_len = 0;
+  int64_t m_line_len = 0;
+  int64_t i = 0;
   char l_buf[DIALOGUE_TEXT];
   char *text = malloc(strlen(_text) + 1);
   strcpy(text, _text);
@@ -101,13 +118,15 @@ uint32_t print_multiline_text(WINDOW *win, const char *_text,
 
   for (; text[i]; i++, c_line_len++) {
     if (text[i] == '\n') {
-      PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs)
+      PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs,
+                 x, m_line_len);
       c_line_len = -1;
       line_v_pos++;
     }
   }
 
-  PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs)
+  PRINT_TEXT(win, l_buf, text, i, c_line_len, win_width, line_v_pos, attrs, x,
+             m_line_len);
 
   free(text);
 
