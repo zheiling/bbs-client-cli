@@ -6,7 +6,7 @@
 
 typedef struct {
   widget_t w;
-  char hotkey;
+  int32_t hotkey;
   uint32_t is_disabled : 1;
 } button_t;
 

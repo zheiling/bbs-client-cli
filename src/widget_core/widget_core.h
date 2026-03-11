@@ -18,6 +18,7 @@ enum w_type {
   w_box,
   w_group,
   w_input,
+  w_checkbox,
   w_progress,
   w_fs_file_list,
 };

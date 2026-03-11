@@ -1,11 +1,12 @@
 #include "group.h"
-#include <widget.h>
+#include "widget_core.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <widget.h>
 
 void upload_props_dialogue_modal_cb(callback_args_t *args) {
   callback_args_t d_args;
@@ -18,9 +19,10 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
   char query[256];
   int32_t query_len = 0;
   input_t *desc_input = (input_t *)d->g_content->elements[0].element;
+  /* TODO: permissions */
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
-    case 0:
+    case 1:
       query_len =
           sprintf(query, "file upload \"%s\" %zu 1\n",
                   app->query_args->file->name, app->query_args->file->size);
@@ -31,7 +33,7 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
       app->query_args->state = S_UPLOAD_REQUESTED;
       write(app->query_args->sd, query, query_len);
       break;
-    case 1:
+    case 2:
       if (app->query_args->file->name != NULL)
         free(app->query_args->file->name);
       if (app->query_args->file->path != NULL)
@@ -48,12 +50,15 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
   if (app == NULL)
     return NULL;
   group_el_init_t content[] = {
-      {.type = w_input, .label = "File description", .length = 30},
+      {.type = w_checkbox, .label = "Visible for all", .is_default = true},
+      {.type = w_checkbox,
+       .label = "Visible for registered",
+       .is_default = false},
       {.type = w_end}};
 
   group_el_init_t actions[] = {
-      {.type = w_button, .label = "Upload", .is_default = true},
-      {.type = w_button, .label = "Cancel", .is_default = false},
+      {.type = w_button, .label = "Upload", .is_default = false, .val.num = 1},
+      {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end},
   };
 
@@ -63,8 +68,10 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
   dialogue_t *d = &(app->modal);
 
   d->w.callback = upload_props_dialogue_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), horizontal, g_content);
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map), horizontal, g_action);
+  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map),
+                            horizontal, g_content);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+                           horizontal, g_action);
 
   app->query_args->active_dialogue = d;
 

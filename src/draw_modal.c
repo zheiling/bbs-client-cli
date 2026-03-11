@@ -36,19 +36,7 @@ void app_draw_modal(app_t *app) {
     case S_UPLOAD_PARAMS:
       init_upload_props_dialogue_modal(app);
       break;
-    case WAIT_SERVER_INIT:
-    case WAIT_SERVER:
-    case WAIT_REGISTER:
-    case WAIT_REGISTER_CONFIRMATION:
-    case WAIT_CLIENT:
-    case S_FILE_LIST:
-    case S_FILE_SELECT:
-    case S_UPLOAD_REQUESTED:
-    case S_ASK_USER_BEFORE_LOGIN:
-    case S_ERR:
-    case S_WAIT_SERVER:
-    case S_N_D:
-    case S_NEXT_ACTION:
+    default:
       if (app->query_args->notification != NULL) {
         init_notification_modal(app);
       } else {

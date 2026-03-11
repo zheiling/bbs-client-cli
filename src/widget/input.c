@@ -7,13 +7,49 @@
 #include "input.h"
 #include <widget_core.h>
 
+bool input_default_key_action(callback_args_t *args) {
+  int32_t key = *((int32_t *)args->data);
+  group_el_t *g_el = args->active_el;
+  input_t *input = g_el->element;
+  int64_t start_pos = 0;
+
+  switch (key) {
+  case KEY_BACKSPACE:
+  case KEY_DL:
+    if (input->value_len) {
+      if (input->cur_pos > 0) {
+        start_pos = input->value_len-- - input->cur_pos;
+        memmove(input->value + start_pos - 1, input->value + start_pos,
+                input->value_len - start_pos + 2);
+      } else {
+        input->value[--input->value_len] = '\0';
+      }
+    }
+    break;
+  default:
+    if (input->cur_pos > 0) {
+      start_pos = input->value_len++ - input->cur_pos;
+      memmove(input->value + start_pos + 1, input->value + start_pos,
+              input->value_len - start_pos);
+      input->value[start_pos] = key;
+    } else {
+      input->value[input->value_len++] = key;
+      input->value[input->value_len] = '\0';
+    }
+    break;
+  }
+  args->resp_data.code = cbrc_none;
+  return true;
+}
+
 input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
                     uint32_t length, uint32_t is_hidden_value) {
   input_t *input = malloc(sizeof(input_t));
   init_widget(&(input->w), w_parent, win, label);
   input->is_disabled = 0;
-  input->w.sz.y = 3;          // with borders
-  input->w.sz.x = length + 3; // with borders and extra space for the last element
+  input->w.sz.y = 3; // with borders
+  input->w.sz.x =
+      length + 3; // with borders and extra space for the last element
   uint32_t t_len = strlen(input->w.title) + 4; // with borders and space
   if (input->w.sz.x < t_len)
     input->w.sz.x = t_len;
@@ -70,15 +106,15 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   }
 
   if (input->is_hidden) {
-    mvwprintw(win, pos_y + 1, pos_x, "%.*s%*s", (int)input->value_len,
-              stars, (int)(input->w.sz.x - input->value_len - 2), "");
+    mvwprintw(win, pos_y + 1, pos_x, "%.*s%*s", (int)input->value_len, stars,
+              (int)(input->w.sz.x - input->value_len - 2), "");
   } else {
     mvwprintw(win, pos_y + 1, pos_x, "%s%*s", input->value,
               (int)(input->w.sz.x - input->value_len - 2), "");
   }
 
   input->w.cur.y = pos_y + 1;
-  input->w.cur.x = pos_x;
+  input->w.cur.x = pos_x + input->value_len - input->cur_pos;
 
   wattroff(win, A_BOLD | A_REVERSE);
   return 0;

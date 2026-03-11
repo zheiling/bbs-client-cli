@@ -15,6 +15,7 @@ typedef struct {
   bool is_hidden;
 } input_t;
 
+bool input_default_key_action(callback_args_t *args);
 input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
                     uint32_t size, uint32_t is_hidden_value);
 int32_t draw_input(input_t *input, uint32_t active_id);

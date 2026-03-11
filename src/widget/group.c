@@ -1,5 +1,6 @@
 #include "group.h"
 #include "button.h"
+#include "checkbox.h"
 #include "d_array.h"
 #include "fs_file_list.h"
 #include "input.h"
@@ -12,51 +13,31 @@
 #include <sys/types.h>
 #include <utils.h>
 
+bool group_default_key_action(callback_args_t *args) {
+  group_el_t *element = args->active_el;
+  switch (element->type) {
+  case w_input:
+    return input_default_key_action(args);
+  case w_checkbox:
+    return checkbox_default_key_action(args);
+  default:
+    return false;
+  }
+}
+
 void group_default_callback(callback_args_t *args) {
-  group_t *g = (group_t *)args->element;
   int32_t key = *((int32_t *)args->data);
-  int64_t response = args->resp_data.val.val.num;
-  input_t *input;
   widget_t *widget;
   group_el_t *element_ptr = args->active_el;
-  u_int32_t start_pos = 0;
   callback_args_t new_args;
   switch (key) {
   case '\n': /* Enter */
     args->resp_data.code = cbrp_val;
     mempcpy(&(args->resp_data.val), &(element_ptr->val), sizeof(struct val_t));
-    break;
-  case KEY_BACKSPACE:
-  case KEY_DL:
-    if (element_ptr->type == w_input) {
-      input = (input_t *)element_ptr->element;
-      if (input->value_len) {
-        if (input->cur_pos > 0) {
-          start_pos = input->value_len-- - input->cur_pos;
-          memmove(input->value + start_pos - 1, input->value + start_pos,
-                  input->value_len - start_pos + 2);
-        } else {
-          input->value[--input->value_len] = '\0';
-        }
-      }
-    }
-    args->resp_data.code = cbrc_none;
+
     break;
   default:
-    if (element_ptr->type == w_input) {
-      input = (input_t *)element_ptr->element;
-      if (input->max_len > input->value_len) {
-        if (input->cur_pos > 0) {
-          start_pos = input->value_len++ - input->cur_pos;
-          memmove(input->value + start_pos + 1, input->value + start_pos,
-                  input->value_len - start_pos);
-          input->value[start_pos] = key;
-        } else {
-          input->value[input->value_len++] = key;
-          input->value[input->value_len] = '\0';
-        }
-      }
-    } else {
+    if (!group_default_key_action(args)) {
       /* callback case */
       widget = (widget_t *)element_ptr->element;
       if (widget->callback != NULL) {
@@ -145,6 +126,10 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
       elements[i].element = init_fs_file_list(win, &(group->w));
       w = &(((ui_progress_bar_t *)elements[i].element)->w);
       break;
+    case w_checkbox:
+      elements[i].element = init_checkbox(win, &(group->w), children[i].label);
+      w = &(((checkbox_t *)elements[i].element)->w);
+      break;
     }
     if (current.type != w_group) {
       if (i == 0) {
@@ -202,6 +187,9 @@ void draw_group(WINDOW *win, group_t *group, int32_t active_id) {
     case w_fs_file_list:
       draw_fs_file_list((ui_fs_file_list_t *)el->element);
       break;
+    case w_checkbox:
+      draw_checkbox((checkbox_t *)el->element, active_id);
+      break;
     }
   }
 }
@@ -228,6 +216,9 @@ void destroy_group(group_t *group) {
       break;
     case w_fs_file_list:
       destroy_fs_file_list(el->element);
+      break;
+    case w_checkbox:
+      destroy_checkbox(el->element);
       break;
     }
   }

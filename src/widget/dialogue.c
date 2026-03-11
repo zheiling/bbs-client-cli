@@ -4,6 +4,8 @@
 #include <sys/types.h>
 
 #include "app.h"
+#include "button.h"
+#include "checkbox.h"
 #include "dialogue.h"
 #include "file_list.h"
 #include "group.h"
@@ -193,14 +195,14 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
 
 #define DETECT_GROUP_SIZE(group, line_max_len, y, x)                           \
   if (group) {                                                                 \
-    group->w.ps.y = y;                                                          \
-    if (line_max_len < group->w.sz.x) {                                           \
-      line_max_len = group->w.sz.x;                                               \
-      group->w.ps.x = 0;                                                        \
+    group->w.ps.y = y;                                                         \
+    if (line_max_len < group->w.sz.x) {                                        \
+      line_max_len = group->w.sz.x;                                            \
+      group->w.ps.x = 0;                                                       \
     } else {                                                                   \
-      group->w.ps.x = (line_max_len - group->w.sz.x) / 2;                          \
+      group->w.ps.x = (line_max_len - group->w.sz.x) / 2;                      \
     }                                                                          \
-    y += group->w.sz.y;                                                           \
+    y += group->w.sz.y;                                                        \
   }
 
 int32_t draw_dialogue(dialogue_t *d) {
@@ -275,11 +277,11 @@ int32_t draw_dialogue(dialogue_t *d) {
   }
 
   /* move cursor */
-  if (d->active_el != NULL && d->active_el->type == w_input) {
-    input_t *input = d->active_el->element;
-    d->w.cur.y = input->w.cur.y;
-    d->w.cur.x = input->w.cur.x + input->value_len;
-    d->w.cur.x -= input->cur_pos;
+  if (d->active_el != NULL &&
+      (d->active_el->type == w_input || d->active_el->type == w_checkbox)) {
+    widget_t *w = d->active_el->element;
+    d->w.cur.y = w->cur.y;
+    d->w.cur.x = w->cur.x;
     if (d->w.cur.y || d->w.cur.x) {
       wmove(d->win, d->w.cur.y, d->w.cur.x);
       curs_set(true);

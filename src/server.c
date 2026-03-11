@@ -62,13 +62,13 @@ int process_server_command(char *line, int l_len, app_t *app) {
   }
 
   /* LOGIN AGAIN */
-  if (!strncmp(line, "login_again>", ws_pos)) {
+  if (!strncmp(line, "login_again>\n", ws_pos)) {
+    alert("Incorrect credentials! Try again");
     free(params->uname);
     free(params->pass);
     params->uname = NULL;
     params->pass = NULL;
-    // get_missing_params(params);
-    write(q_args->sd, params->uname, strlen(params->uname));
+    q_args->state = S_ASK_LOGIN_USER;
     return 0;
   }
 

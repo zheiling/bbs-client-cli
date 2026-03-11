@@ -45,10 +45,8 @@ void query_loop(app_t *app) {
   size_t qlen;
   int sr;
   static file_args_t file_args;
-  callback_args_t d_args = {.app = app,
-                            .element = NULL,
-                            .data = NULL,
-                            .resp_data.code = cbrc_none};
+  callback_args_t d_args = {
+      .app = app, .element = NULL, .data = NULL, .resp_data.code = cbrc_none};
 
   init_file_args(&file_args);
   query_args->sd = sd;
@@ -183,12 +181,7 @@ int process_query(app_t *app) {
   case WAIT_REGISTER:
     wait_register(query_args);
     break;
-  case S_ASK_SEVER_IP:
-  case S_ASK_LOGIN_TYPE:
-  case S_N_D:
-  case S_ASK_LOGIN_USER:
-  case S_PRINT_SERVER_MESSAGE:
-  case S_UPLOAD_FILE_SELECT:
+  default:
     break;
   }
   return 0;
