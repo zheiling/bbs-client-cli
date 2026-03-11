@@ -89,6 +89,25 @@ void draw_borders(app_t *app) {
   box(app->right_win, 0, 0);
 }
 
+struct action_key {
+  char *const key;
+  char *const title;
+};
+
+int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
+                                 int64_t x, int32_t size) {
+  int32_t key_len = 0;
+  int32_t title_len = 0;
+
+  wattrset(win, A_BOLD);
+  mvwprintw(win, y, x, " %s%n", key, &key_len);
+  size -= key_len + strlen(title) + 1;
+  wattrset(win, COLOR_PAIR(4) | A_REVERSE);
+  mvwprintw(win, y, x + key_len, "%s %*s%n", title, size, "", &title_len);
+  wattrset(win, COLOR_PAIR(0) | A_REVERSE);
+  return key_len + title_len;
+}
+
 void print_bars(app_t *app) {
   char top_text[64] = "Hello!";
 
@@ -111,8 +130,28 @@ void print_bars(app_t *app) {
   mvwprintw(app->win, 1, 2, "%s", top_text);
 
   /* add content to the bottom bar */
-  mvwprintw(app->win, app->coordinates.cur_y - 2, 2,
-            "F1 - Help | U - upload | S - search | F9 - Quit");
+
+  struct action_key action_keys[] = {
+      {.key = "F1", .title = "Help"},
+      {.key = "U", .title = "Upload"},
+      {.key = "S", .title = "Search"},
+      {.key = "F9", .title = "Quit"},
+  };
+
+  int t_margin = 0; /* tab margin */
+  int c_size = app->coordinates.max_x / 4; /* column size */
+  int incr_last = app->coordinates.max_x % 4; /* increment size fo the last element (fill empty space) */
+
+  for (int i = 0; i < 3; i++) {
+    struct action_key *k = &action_keys[i];
+    t_margin +=
+        print_bottom_menu_option(app->win, k->key, k->title,
+                                 app->coordinates.cur_y - 2, t_margin, c_size);
+  }
+
+  t_margin += print_bottom_menu_option(
+      app->win, action_keys[3].key, action_keys[3].title,
+      app->coordinates.cur_y - 2, t_margin, c_size + incr_last);
 
   wattroff(app->win, A_REVERSE);
 }

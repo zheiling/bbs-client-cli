@@ -115,19 +115,10 @@ void dialogue_default_callback(callback_args_t *args) {
     }
     break;
   case KEY_UP:
-    if (d->active_el->type == w_fs_file_list) {
-      new_args.element = d->g_content;
-      group_default_callback(&new_args);
-    } else {
-      /* CH_GROUP(d, g_action, g_content); */
-    }
-    break;
   case KEY_DOWN:
     if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
       group_default_callback(&new_args);
-    } else {
-      /* CH_GROUP(d, g_content, g_action); */
     }
     break;
   default:

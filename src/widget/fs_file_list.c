@@ -1,4 +1,3 @@
-#include "fs_file_list.h"
 #include <dirent.h>
 #include <errno.h>
 #include <ncursesw/ncurses.h>
@@ -12,6 +11,9 @@
 #include <uchar.h>
 #include <unistd.h>
 #include <utils.h>
+
+#include "fs_file_list.h"
+#include "widget_core.h"
 
 void reset_file_list(ui_fs_file_list_t *fl_ui);
 
