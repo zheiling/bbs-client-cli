@@ -90,6 +90,7 @@ void dialogue_default_callback(callback_args_t *args) {
     if (widget->callback != NULL) { /* Existing callback case */
       new_args.element = widget;
       widget->callback(&new_args);
+      memcpy(&(args->resp_data), &(new_args.resp_data), sizeof(cb_resp_data));
       break;
     } /* Default cases */
     if (d->active_el->g_type == g_action) {

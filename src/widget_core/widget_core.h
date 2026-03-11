@@ -54,13 +54,15 @@ enum cbrp_code {
 };
 
 typedef struct {
+ enum cbrp_code code;
+ struct val_t val;
+} cb_resp_data;
+
+typedef struct {
   void *app;
   void *element;
   void *data;
-  struct {
-    enum cbrp_code code;
-    struct val_t val;
-  } resp_data;
+  cb_resp_data resp_data;
   void *active_el;
 } callback_args_t;
 

@@ -87,7 +87,7 @@ fs_fl_item_t *get_files_from_fs(char *path) {
   return d_start;
 }
 
-void select_item(ui_fs_file_list_t *fui, int32_t *resp_data) {
+void select_item(ui_fs_file_list_t *fui, cb_resp_data *resp_data) {
   char *bash_case = NULL;
   char *selection = NULL;
   size_t dp_current;
@@ -109,9 +109,12 @@ void select_item(ui_fs_file_list_t *fui, int32_t *resp_data) {
     }
     fui->current = fui->start;
     fui->current_idx = 0;
+    resp_data->code = cbrc_none;
     draw_fs_file_list(fui);
   } else if (fui->current->d_type == DT_REG) {
-    *resp_data = 1;
+    resp_data->code = cbrp_val;
+    resp_data->val.type = val_num;
+    resp_data->val.val.num = 1;
   }
 }
 
@@ -134,7 +137,7 @@ void fs_file_list_cb(callback_args_t *args) {
     }
     break;
   case '\n':
-    select_item(fui, (int32_t *)args->resp_data.val.val.num);
+    select_item(fui, &(args->resp_data));
     break;
   }
 }

@@ -1,12 +1,10 @@
 # TODO:
 
 ## Current:
-- [x] UI: vertical layout (needs for email in registration)
-- [x] Nested groups
-- [x] Create dynamic map of elements IDs and their pointers
-- [x] Adapt modals to new value-forwarding method
+- [ ] PageUp/PageDown key functionality in lists
+- [ ] File upload multiline description
+- [ ] Permission checkboxes for file upload/edit
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
-- [ ] UTF-8: correct sizing in modals
 
 ## Features:
 - [x] Search files
@@ -15,7 +13,7 @@
 - [ ] Privilege settings for files
 - [ ] Files removal
 - [ ] Encryption
-- [ ] UTF-8 support
+- [x] UTF-8 support
 
 ## Future ideas
 - [ ] Get rid of old notification mechanism
