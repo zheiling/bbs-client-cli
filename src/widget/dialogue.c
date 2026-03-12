@@ -115,10 +115,23 @@ void dialogue_default_callback(callback_args_t *args) {
     }
     break;
   case KEY_UP:
+    if (d->active_el->type == w_fs_file_list) {
+      new_args.element = d->g_content;
+      group_default_callback(&new_args);
+    } else if (d->active_el->g_type == g_content &&
+               d->g_content->direction == vertical) {
+      decr_active_id(d);
+      args->resp_data.code = cbrc_none;
+    }
+    break;
   case KEY_DOWN:
     if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
       group_default_callback(&new_args);
+    } else if (d->active_el->g_type == g_content &&
+               d->g_content->direction == vertical) {
+      incr_active_id(d);
+      args->resp_data.code = cbrc_none;
     }
     break;
   default:
@@ -159,8 +172,8 @@ int group_init_active_id(group_t *g, dialogue_t *d) {
 
   for (int i = 0; i < g->count; i++) {
     wt = g->elements[i].type;
-    if (wt == w_button || wt == w_input ||
-        wt == w_fs_file_list) { /* Add here new types */
+    if (wt == w_button || wt == w_input || wt == w_fs_file_list ||
+        wt == w_checkbox) { /* Add here new types */
       d->active_el = g->elements + i;
       return 1;
     } else if (wt == w_group) {

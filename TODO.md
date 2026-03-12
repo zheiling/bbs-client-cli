@@ -1,10 +1,10 @@
 # TODO:
 
 ## Current:
-- [ ] Login and registration error
 - [ ] PageUp/PageDown key functionality in lists
 - [ ] File upload multiline description (window)
 - [ ] Permission checkboxes for file upload/edit
+- [ ] Check file upload
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 
 ## Features:

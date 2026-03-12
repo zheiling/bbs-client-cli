@@ -72,6 +72,7 @@ group_t *init_group(WINDOW **win, widget_t *w_parent, group_el_init_t *children,
     ;
   group->w.w_parent = w_parent;
   group->w.callback = group_default_callback;
+  group->direction = direction;
   if (group->count == 0) {
     return group;
   }
