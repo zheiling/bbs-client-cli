@@ -34,8 +34,8 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
                   app->query_args->file->name, app->query_args->file->size, privileges);
       /* app->query_args->file->description =
           malloc(desc_input->value_len + 9); reserve space for \n:END:\n */
-      app->query_args->file->description = malloc(sizeof ("[Empty description]"));
-      strcpy(app->query_args->file->description, "[Empty description]");
+      app->query_args->file->description = malloc(sizeof ("[Empty description]\n:END:\n"));
+      strcpy(app->query_args->file->description, "[Empty description]\n:END:\n");
       d->needs_destroy = true;
       app->query_args->state = S_UPLOAD_REQUESTED;
       write(app->query_args->sd, query, query_len);
