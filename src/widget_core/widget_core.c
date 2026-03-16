@@ -1,6 +1,10 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+/* WidgetCore is a base for all widgets.
+  It is used by widgets themselves and some core components,
+  so it is separated from the widget directory */
+
 #include "widget_core.h"
 #include "../main.h"
 #include <ncursesw/ncurses.h>
