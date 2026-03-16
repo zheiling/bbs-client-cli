@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #ifndef CHECKBOX_H
 #define CHECKBOX_H
 

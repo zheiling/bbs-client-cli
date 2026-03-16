@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include <arpa/inet.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>
@@ -9,12 +12,12 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
+#include <modals.h>
 
 #include "connection.h"
 #include "file_list.h"
 #include "main.h"
 #include "query.h"
-#include <modals.h>
 
 uint32_t m_id = 0;
 

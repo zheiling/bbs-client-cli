@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include "dialogue.h"
 #include "main.h"
 #include <modals.h>

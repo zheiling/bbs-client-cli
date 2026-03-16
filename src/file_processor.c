@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>

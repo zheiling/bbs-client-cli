@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <widget.h>
+#include <utils.h>
 
 void upload_props_dialogue_modal_cb(callback_args_t *args) {
   callback_args_t d_args;
@@ -23,10 +24,12 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
     checkbox_t *reg_cbx  = (checkbox_t *)d->g_content->elements[0].element;
     checkbox_t *anon_cbx = (checkbox_t *)d->g_content->elements[1].element;
     checkbox_t *comp_cbx = (checkbox_t *)d->g_content->elements[2].element;
+    
     int32_t privileges = 0;
     if (anon_cbx->value == true) privileges |= 1;
     if (reg_cbx->value == true)  privileges |= 2;
     if (comp_cbx->value == true) privileges |= 4;
+
     switch (d_args.resp_data.val.val.num) {
     case 1:
       query_len =
@@ -41,12 +44,9 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
       write(app->query_args->sd, query, query_len);
       break;
     case 2:
-      if (app->query_args->file->name != NULL)
-        free(app->query_args->file->name);
-      if (app->query_args->file->path != NULL)
-        free(app->query_args->file->path);
-      free(app->query_args->file);
-      app->query_args->file = NULL;
+      FREE_MLC(app->query_args->file->name);
+      FREE_MLC(app->query_args->file->path)
+      FREE_MLC(app->query_args->file);
       app->query_args->state = S_WAIT_SERVER;
       break;
     }

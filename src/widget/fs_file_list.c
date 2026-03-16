@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include <dirent.h>
 #include <errno.h>
 #include <ncursesw/ncurses.h>

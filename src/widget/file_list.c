@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include "file_list.h"
 #include "../file_processor.h"
 #include "../fs.h"

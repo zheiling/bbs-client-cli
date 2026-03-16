@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include "main.h"
 #include <widget.h>
 #include <arpa/inet.h>

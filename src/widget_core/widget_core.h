@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #ifndef WIDGET_CORE_H
 #define WIDGET_CORE_H
 

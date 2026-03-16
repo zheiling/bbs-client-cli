@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #ifndef PROGRESS_BAR_H
 #define PROGRESS_BAR_H
 #include <widget_core.h>

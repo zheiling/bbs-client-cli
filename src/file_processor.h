@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #ifndef FILE_PROCESSOR_H
 #define FILE_PROCESSOR_H
 #include "main.h"

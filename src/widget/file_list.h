@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #ifndef FILE_LIST_H
 #define FILE_LIST_H
 #include <bstrlib.h>
