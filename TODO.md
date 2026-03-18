@@ -1,6 +1,7 @@
 # TODO:
 
 ## Current:
+- [ ] Sorting in file list
 - [ ] PageUp/PageDown key functionality in lists
 - [ ] File upload multiline description (window)
 - [x] Permission checkboxes for file upload/edit

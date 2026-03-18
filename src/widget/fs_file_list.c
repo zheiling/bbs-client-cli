@@ -74,12 +74,28 @@ fs_fl_item_t *get_files_from_fs(char *path) {
   }
   while ((dent = readdir(dir)) != NULL) {
     if ((f_args.d_type = dent->d_type) == DT_DIR) {
-      if (!strcmp(dent->d_name, "."))
+      if (!strcmp(dent->d_name, "..")) {
+        fs_fl_item_t *t_st = NULL, *t_cur = NULL;
+        sprintf(name, "/%s", dent->d_name);
+        f_args.name = name;
+        fl_add(&t_st, &t_cur, &f_args);
+        /* Always put .. at the beginning */
+        t_st->next = d_start;
+        d_start = t_st;
+        if (d_current == NULL)
+          d_current = t_cur;
+        continue;
+      }
+      /* Hide directories with dot-beginnings */
+      if (!strncmp(dent->d_name, ".", 1))
         continue;
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
       fl_add(&d_start, &d_current, &f_args);
     } else {
+      /* Hide files with dot-beginnings */
+      if (!strncmp(dent->d_name, ".", 1))
+        continue;
       f_args.name = dent->d_name;
       sprintf(name, "%s", dent->d_name);
       fl_add(&f_start, &f_current, &f_args);
