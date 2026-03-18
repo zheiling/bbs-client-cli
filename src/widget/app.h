@@ -36,8 +36,8 @@ typedef struct {
   void *active_widget;
 } app_t;
 
-app_t *init_app();
-void init_nc();
+app_t *init_app(void);
+void init_nc(void);
 void destroy_app(app_t *app, int32_t exit_code);
 void draw_borders(app_t *app);
 void print_bars(app_t *app);

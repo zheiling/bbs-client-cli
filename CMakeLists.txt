@@ -8,7 +8,7 @@ if(
   (CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR
   (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 )
-  add_compile_definitions(_GNU_SOURCE) 
+  add_compile_definitions(_GNU_SOURCE)
 endif()
 
 set(CURSES_NEED_WIDE TRUE)

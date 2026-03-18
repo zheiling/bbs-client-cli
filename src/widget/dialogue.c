@@ -1,19 +1,15 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
-
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 
-#include "app.h"
-#include "button.h"
-#include "checkbox.h"
-#include "dialogue.h"
-#include "file_list.h"
-#include "group.h"
-#include "input.h"
+#include <widget.h>
 #include <widget_core.h>
+
+#include "file_list.h"
 
 void incr_active_id(dialogue_t *d) {
   group_el_t *active_el = NULL;
@@ -168,6 +164,14 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   /* trim the last new line symbol */
   if (t_size && dialogue->text[t_size - 1] == '\n')
     dialogue->text[t_size - 1] = '\0';
+}
+
+/* variadic */
+void vinit_dialogue(dialogue_t *dialogue, const char title[],
+                    coordinates_t *p_coordinates, const char fmt[], va_list *v_args) {
+  char f_text[DIALOGUE_TEXT];
+  vsprintf(f_text, fmt, *v_args);
+  init_dialogue(dialogue, title, f_text, p_coordinates);
 }
 
 int group_init_active_id(group_t *g, dialogue_t *d) {

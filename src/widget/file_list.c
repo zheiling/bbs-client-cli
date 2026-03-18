@@ -202,7 +202,7 @@ void draw_file_list(ui_file_list_t *fui) {
 
   char p_info[64];
 
-  /* Draw file info */
+  /* Draw file info [right side] */
   {
     uint32_t p_y = 1;
     p_x = 1;
@@ -216,8 +216,10 @@ void draw_file_list(ui_file_list_t *fui) {
 
       mvwprintw(i_win, p_y++, p_x, "Size: %s", size_text);
       mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
-      mvwprintw(i_win, p_y++, p_x, "Description: ");
-      print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+      if (active_el->description != NULL) {
+        mvwprintw(i_win, p_y++, p_x, "Description: ");
+        print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+      }
     }
   }
 

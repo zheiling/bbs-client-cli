@@ -4,7 +4,6 @@
 - [ ] PageUp/PageDown key functionality in lists
 - [ ] File upload multiline description (window)
 - [x] Permission checkboxes for file upload/edit
-- [ ] Check file upload
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 
 ## Features:
@@ -15,6 +14,9 @@
 - [ ] Files removal
 - [ ] Encryption
 - [x] UTF-8 support
+- [ ] Check MD5 sum after download/upload
+- [ ] Get rid of process_server_command (use callbacks)
+- [ ] UI: separate file browser with more functions
 
 ## Future ideas
 - [ ] Get rid of old notification mechanism

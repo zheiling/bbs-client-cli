@@ -29,6 +29,7 @@ void ask_register(params_t *params, char *email);
     return 0;                                                                  \
   }
 
+  /* TODO: refactor to process callbacks */
 int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
@@ -87,7 +88,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
               "You've been successfully registered.\n"
               "Welcome, %s!",
               app->params->uname);
-      notification("Registration", query, dc_normal);
+      notification("Registration", dc_normal, query);
       print_bars(app);
       return 0;
     } else {
@@ -111,6 +112,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
     return 0;
   }
 
+  /* TODO: Hide details */
   if (q_args->state == S_WAIT_SERVER) {
     if (q_args->server_message.text == NULL) {
       q_args->server_message.text = malloc(l_len + 1);

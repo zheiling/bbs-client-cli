@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "query.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ncursesw/ncurses.h>
@@ -19,17 +20,19 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "connection.h"
-#include "draw_modal.h"
-#include "file_processor.h"
-#include "main.h"
-#include "server.h"
-#include "types.h"
 #include <modals.h>
 #include <widget.h>
 #include <widget_core.h>
 
-static void wait_side(app_t *app);
+#include "alert.h"
+#include "connection.h"
+#include "dialogue.h"
+#include "file_processor.h"
+#include "main.h"
+#include "server.h"
+#include "types.h"
+
+static int wait_side(app_t *app, wait_server_cb *cb);
 void user_request_description(query_args_t *q_args);
 int process_query(app_t *app);
 int32_t process_user_input(app_t *app, callback_args_t *d_args);
@@ -131,6 +134,18 @@ void wait_register(query_args_t *q_args) {
   write(q_args->sd, r_buf, strlen(r_buf) - 1);
 }
 
+int upload_confirm_cb(app_t *app, char *query) {
+  if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
+    notification("File upload", dc_normal, "File %s is uploaded to the server!",
+                 app->query_args->file->name);
+    clear_file_in_query(app->query_args);
+    app->query_args->state = WAIT_CLIENT;
+    app->modal.needs_destroy = true;
+    return 0;
+  }
+  return 1; /* TODO: Error case */
+}
+
 int process_query(app_t *app) {
   query_args_t *query_args = app->query_args;
   file_args_t *file_args = app->file_args;
@@ -144,7 +159,7 @@ int process_query(app_t *app) {
   case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
   case S_WAIT_REGISTER_CONFIRMATION:
-    wait_side(app);
+    wait_side(app, NULL);
     break;
   case S_ERR:
     break;
@@ -153,7 +168,7 @@ int process_query(app_t *app) {
     break;
   case S_FILE_SELECT:
     if (query_args->from_server) {
-      wait_side(app);
+      wait_side(app, NULL);
     } else {
       file_select(file_args, query_args);
     }
@@ -171,13 +186,15 @@ int process_query(app_t *app) {
   case S_UPLOAD_PARAMS:
   case S_UPLOAD_FILE:
     if ((res = file_upload(query_args)) == 1) {
-      /* upload finishes */
-      user_request_description(query_args);
-      clear_file_in_query(query_args);
-      query_args->state = S_WAIT_SERVER;
+      /* wait server for finish upload */
+      query_args->state = S_UPLOAD_SERVER_FINISHES;
     } else if (res == -1) {
       /* TODO: Error */
     }
+    break;
+  case S_UPLOAD_SERVER_FINISHES:
+    wait_side(app, upload_confirm_cb);
+    /* user_request_description(query_args); */
     break;
   case S_ASK_USER_BEFORE_LOGIN:
     break;
@@ -228,17 +245,23 @@ int query_extract_from_buf(char *buf, int *buf_used, char **output_line) {
   return pos + 1;
 }
 
-static void wait_side(app_t *app) {
+static int wait_side(app_t *app, wait_server_cb *callback) {
   query_args_t *q_args = app->query_args;
   int qlen;
   int buf_used = q_args->buf_used;
   char *query = NULL;
+  int res = 0;
 
   while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
-    process_server_command(query, qlen, app);
+    if (callback == NULL) {
+      process_server_command(query, qlen, app);
+    } else {
+      res = callback(app, query);
+    }
     free(query);
     query = NULL;
   }
+  return res;
 }
 
 void init_query_args(query_args_t *q_args, params_t *params) {

@@ -1,13 +1,13 @@
-#include <widget.h>
+#include "alert.h"
+#include <stdarg.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <widget.h>
 
 /* Short notifications. Prefer using this method to simply notify the client */
 
 static app_t *app;
-void notification(const char *title, const char *message,
-                  enum d_color_scheme color);
 
 void alert_cb(callback_args_t *args) {
   //
@@ -15,10 +15,10 @@ void alert_cb(callback_args_t *args) {
 
 void init_alert(app_t *_app) { app = _app; }
 
-void alert(const char *message) { notification("Alert", message, dc_alert); }
+void alert(const char *message) { notification("Alert", dc_alert, message); }
 
-void notification(const char *title, const char *message,
-                  enum d_color_scheme color) {
+void notification(const char *title, enum d_color_scheme color,
+                  const char *f_message, ...) {
   if (app == NULL)
     return;
 
@@ -26,12 +26,15 @@ void notification(const char *title, const char *message,
       {.type = w_button, .label = "OK", .is_default = true}, {.type = w_end}};
 
   dialogue_t *d = malloc(sizeof(dialogue_t));
+  va_list args;
+  va_start(args, f_message);
 
-  init_dialogue(d, title, message, &(app->coordinates));
+  vinit_dialogue(d, title, &(app->coordinates), f_message, &args);
 
   d->w.callback = alert_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions,&(d->id_map), horizontal, g_action);
+  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+                           horizontal, g_action);
 
   dialogue_init_active_id(d);
   d->color_scheme = color;
