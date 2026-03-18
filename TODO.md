@@ -1,5 +1,8 @@
 # TODO:
 
+## URGENT
+- [ ] Fix file upload with spaces
+
 ## Current:
 - [ ] Sorting in file list
 - [ ] PageUp/PageDown key functionality in lists
