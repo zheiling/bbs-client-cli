@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void dwn_pr_modal_cb(callback_args_t *args) {}
+void dwn_pr_modal_cb(callback_args_t *args) {
+  /* TODO: cancel action */
+}
 
 dialogue_t *init_dwn_pr_modal(app_t *app, bool is_upload) {
   if (app == NULL)

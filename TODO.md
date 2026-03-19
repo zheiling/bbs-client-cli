@@ -6,6 +6,10 @@
 - [ ] File upload multiline description (window)
 - [x] Permission checkboxes for file upload/edit
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
+- [ ] Cancel upload/download
+
+## Bugs:
+- [ ] Sometimes segfaults while navigating through modal menu (try use controlling byte)
 
 ## Features:
 - [x] Search files

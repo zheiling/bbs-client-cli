@@ -48,7 +48,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
       }
       draw_file_list(fui);
       free(query);
-      q_args->state = S_FILE_SELECT;
+      q_args->state = WAIT_CLIENT;
       break;
     }
     strcat(qbuf, query);
@@ -62,63 +62,6 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
     qbuf_used = 0;
     qbuf[0] = 0;
   }
-}
-
-/* file_select: old function, can be removed in the future */
-void file_select(file_args_t *f_args, query_args_t *q_args) {
-  char *buf = q_args->buf;
-  fl_item_t *l_start = f_args->l_start;
-  // fl_item_t *l_current = f_args->l_current;
-  fl_item_t *l_selected; /* from the list */
-  fl_item_t *f_selected =
-      &(f_args->f_selected); /* new copy of file struct (list be cleared) */
-  uint32_t filenum;
-  uint32_t qlen;
-  char send_buf[256];
-  struct stat st = {0};
-
-  if (!(sscanf(buf, "%u", &filenum))) {
-    write(q_args->sd, buf, strlen(buf));
-    q_args->state = S_FILE_LIST;
-    fl_clear(&f_args->l_start, &f_args->l_current);
-    return;
-  }
-
-  if (filenum == 0) {
-    q_args->state = WAIT_CLIENT;
-    return;
-  }
-  l_selected = fl_select(l_start, filenum);
-
-  if (l_selected == NULL) {
-    printf("Selected number is not correct!\nPlease try again!\n");
-    return;
-  }
-
-  memcpy(f_selected, l_selected, sizeof(*f_selected));
-
-  if (stat(DOWNLOADS_DIR, &st) == -1) {
-    mkdir(DOWNLOADS_DIR, 0700);
-  }
-  char *file_path = malloc(sizeof(DOWNLOADS_DIR) + strlen(l_selected->name) +
-                           2); // + '/' + '\0'
-  f_selected->name = NULL;
-  sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
-  f_selected->name = strdup(l_selected->name);
-  fl_clear(&f_args->l_start, &f_args->l_current);
-  f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-  if (f_args->file_d == -1) {
-    qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
-    write(q_args->sd, send_buf, qlen);
-    perror(f_selected->name);
-    q_args->state = WAIT_CLIENT;
-    free(file_path);
-    return;
-  }
-  qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
-  write(q_args->sd, send_buf, qlen);
-  q_args->state = S_FILE_DOWNLOAD;
-  free(file_path);
 }
 
 int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
@@ -155,7 +98,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
     free(file_path);
     return -2;
   }
-  qlen = sprintf(send_buf, "file download %s\n", f_selected->name);
+  qlen = sprintf(send_buf, "file download [%s]\n", f_selected->name);
   write(q_args->sd, send_buf, qlen);
   q_args->state = S_FILE_DOWNLOAD;
   free(file_path);

@@ -169,13 +169,6 @@ int process_query(app_t *app) {
   case S_FILE_LIST:
     file_list(file_args, query_args);
     break;
-  case S_FILE_SELECT:
-    if (query_args->from_server) {
-      wait_side(app, NULL);
-    } else {
-      file_select(file_args, query_args);
-    }
-    break;
   case S_FILE_DOWNLOAD:
     file_download(file_args, query_args);
     break;
