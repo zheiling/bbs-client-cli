@@ -302,20 +302,23 @@ void init_file_args(file_args_t *f_args) {
 
 /* work with file list */
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
-  char fname[128];
   char fowner[32];
   char *descr_begin = NULL;
   int h_len;
+  char *name_begin = strchr(line, '[') + 1;
+  char *name_end = strrchr(line, ']');
+  int name_len = name_end - name_begin;
   fl_item_t *fitem = malloc(sizeof(fl_item_t));
-  sscanf(line, "%s %zu %s%n", fname, &(fitem->size), fowner, &h_len);
+  sscanf(name_end, "] %zu %s%n", &(fitem->size), fowner, &h_len);
   /* file name */
-  fitem->name = malloc((sizeof(char)) * (strlen(fname) + 1));
-  strcpy(fitem->name, fname);
+  fitem->name = malloc((sizeof(char)) * (name_len + 1));
+  strncpy(fitem->name, name_begin, name_len);
+  fitem->name[name_len] = 0;
   /* file owner */
   fitem->owner = malloc((sizeof(char)) * (strlen(fowner) + 1));
   strcpy(fitem->owner, fowner);
   /* file description */
-  descr_begin = line + h_len + 1;
+  descr_begin = name_end + h_len + 1;
   if (strcmp(descr_begin, "\n")) {
     int d_len = strlen(line) - h_len;
     fitem->description = malloc((sizeof(char)) * (d_len));

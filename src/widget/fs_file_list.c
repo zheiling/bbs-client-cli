@@ -22,6 +22,7 @@ void reset_file_list(ui_fs_file_list_t *fl_ui);
 
 struct fl_args {
   char *name;
+  char *path;
   u_char d_type;
 };
 
@@ -32,6 +33,10 @@ static void fl_add(fs_fl_item_t **f_start, fs_fl_item_t **f_current,
   strcpy(c_item->name, fargs->name);
   c_item->next = NULL;
   c_item->d_type = fargs->d_type;
+  if (fargs->path != NULL) {
+    c_item->path = malloc(strlen(fargs->path) + 1);
+    strcpy(c_item->path, fargs->path);
+  }
   if (*f_start == NULL) {
     c_item->prev = NULL;
     *f_start = c_item;
@@ -58,21 +63,24 @@ static void fl_clear(fs_fl_item_t **start, fs_fl_item_t **arg_current) {
   *arg_current = NULL;
 }
 
-fs_fl_item_t *get_files_from_fs(char *path) {
+fs_fl_item_t *get_files_from_fs(char *path_prefix) {
   DIR *dir;
   struct dirent *dent;
   char name[257];
+  char l_path[INBUFSIZE];
   struct fl_args f_args;
+  ssize_t r;
 
   fs_fl_item_t *d_start = NULL, *d_current = NULL; /* directories */
   fs_fl_item_t *f_start = NULL, *f_current = NULL; /* files */
 
-  dir = opendir(path);
+  dir = opendir(path_prefix);
   if (!dir) {
     return NULL;
     errno = 1;
   }
   while ((dent = readdir(dir)) != NULL) {
+    f_args.path = NULL;
     if ((f_args.d_type = dent->d_type) == DT_DIR) {
       if (!strcmp(dent->d_name, "..")) {
         fs_fl_item_t *t_st = NULL, *t_cur = NULL;
@@ -91,6 +99,13 @@ fs_fl_item_t *get_files_from_fs(char *path) {
         continue;
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
+      fl_add(&d_start, &d_current, &f_args);
+    } else if (f_args.d_type == DT_LNK) {
+      sprintf(name, "%s/%s", path_prefix, dent->d_name);
+      r = readlink(name, l_path, INBUFSIZE);
+      sprintf(name, "->/%s", dent->d_name);
+      f_args.name = name;
+      f_args.path = l_path;
       fl_add(&d_start, &d_current, &f_args);
     } else {
       /* Hide files with dot-beginnings */
@@ -136,6 +151,15 @@ void select_item(ui_fs_file_list_t *fui, cb_resp_data *resp_data) {
     resp_data->code = cbrp_val;
     resp_data->val.type = val_num;
     resp_data->val.val.num = 1;
+  } else if (fui->current->d_type == DT_LNK) {
+    fui->d_path = realloc(fui->d_path, strlen(fui->current->path) + 1);
+    strcpy(fui->d_path, fui->current->path);
+    fl_clear(&(fui->start), &(fui->current));
+    fui->start = get_files_from_fs(fui->d_path);
+    fui->current = fui->start;
+    fui->current_idx = 0;
+    resp_data->code = cbrc_none;
+    draw_fs_file_list(fui);
   }
 }
 

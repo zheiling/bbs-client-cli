@@ -38,7 +38,6 @@ void file_list_cb(callback_args_t *args) {
       }
     } else if (key == '\n' || key == '\33') {
       fui->active_search = false;
-      fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
       if (key == '\33') {
         fui->search_key->data[0] = '\0';
@@ -65,7 +64,6 @@ void file_list_cb(callback_args_t *args) {
       fui->current_idx++;
       draw_file_list(fui);
     } else if (fui->current_page < fui->pages) {
-      fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
       sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
               fui->current_page + 1, &q_len);
@@ -78,7 +76,6 @@ void file_list_cb(callback_args_t *args) {
       fui->current_idx--;
       draw_file_list(fui);
     } else if (fui->current_page > 1) {
-      fl_clear(fui->start, fui->current);
       app->query_args->state = S_FILE_LIST;
       sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
               fui->current_page - 1, &q_len);
@@ -92,7 +89,6 @@ void file_list_cb(callback_args_t *args) {
     fui->search_key->data[0] = '\0';
     fui->search_key->slen = 0;
     sprintf(q_prefix, "file list");
-    fl_clear(fui->start, fui->current);
     app->query_args->state = S_FILE_LIST;
     sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
     write(app->query_args->sd, query, q_len);
@@ -123,6 +119,7 @@ ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
 }
 
 void reset_file_list(ui_file_list_t *fl_ui) {
+  fl_clear(fl_ui->start, fl_ui->current);
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
   fl_ui->pages = 0;

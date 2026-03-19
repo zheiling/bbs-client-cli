@@ -78,7 +78,7 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
     return OK;
   case 'U':
   case 'u':
-    if (!app->modal.is_initiated) {
+    if (!app->modal.is_initiated && !fui->active_search) {
       app->query_args->state = S_UPLOAD_FILE_SELECT;
       break;
     }

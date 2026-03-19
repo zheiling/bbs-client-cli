@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "app.h"
 #include "dialogue.h"
 #include "main.h"
-#include <modals.h>
-#include <widget.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <modals.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -16,6 +16,7 @@
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+#include <widget.h>
 
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);
@@ -29,7 +30,17 @@ void ask_register(params_t *params, char *email);
     return 0;                                                                  \
   }
 
-  /* TODO: refactor to process callbacks */
+void server_send_string(query_args_t *q, const char *fmt, ...) {
+  char buf[INBUFSIZE];
+  size_t b_len = 0;
+  va_list args;
+  va_start(args, fmt);
+  b_len = vsprintf(buf, fmt, args);
+  write(q->sd, buf, b_len);
+  va_end(args);
+}
+
+/* TODO: refactor to process callbacks */
 int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;

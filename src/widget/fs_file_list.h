@@ -10,6 +10,7 @@
 
 typedef struct fs_fl_item {
   char *name;
+  char *path;
   struct fs_fl_item *next;
   struct fs_fl_item *prev;
   u_char d_type;
