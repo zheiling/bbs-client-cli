@@ -37,6 +37,7 @@ enum state {
   S_WAIT_SERVER,
   S_PRINT_SERVER_MESSAGE,
   S_FILE_LIST,
+  S_WAIT_PASS,
   /* S_FILE_SELECT, */
   S_FILE_DOWNLOAD,
   S_UPLOAD_PARAMS,
@@ -88,7 +89,6 @@ typedef struct query_args {
   char *buf;
   bool from_server;
   params_t *params;
-  char *next_server_command;
   struct {
     char *text;
     uint64_t capacity;

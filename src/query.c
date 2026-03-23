@@ -74,13 +74,7 @@ void query_loop(app_t *app) {
           maxfd = query_args->file->fd;
       }
     }
-    if (query_args->state == S_NEXT_ACTION &&
-        query_args->next_server_command != NULL) {
-      query_args->buf_used = strlen(query_args->next_server_command);
-      memcpy(query_args->buf, query_args->next_server_command,
-             query_args->buf_used);
-      free(query_args->next_server_command);
-      query_args->next_server_command = NULL;
+    if (query_args->state == S_NEXT_ACTION) {
       query_args->from_server = TRUE;
       if (ERR == process_query(app)) {
         EXIT_APP("*** error while processing query ***", app, 1)
@@ -133,7 +127,7 @@ void wait_register(query_args_t *q_args) {
                      email);
 }
 
-int upload_confirm_cb(app_t *app, char *query) {
+int upload_confirm_cb(app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
     ui_file_list_t *fui = (ui_file_list_t *)app->query_args->file_list_ui;
     notification("File upload", dc_normal, "File %s is uploaded to the server!",
@@ -157,11 +151,15 @@ int process_query(app_t *app) {
   case WAIT_SERVER:
   case WAIT_SERVER_INIT:
   case WAIT_CLIENT:
-  case S_NEXT_ACTION:
-  case S_WAIT_SERVER:
   case WAIT_REGISTER_CONFIRMATION:
-  case S_WAIT_REGISTER_CONFIRMATION:
+  case S_WAIT_PASS:
     wait_side(app, NULL);
+    break;
+  case S_NEXT_ACTION:
+    wait_side(app, NULL);
+    break;
+  case S_WAIT_REGISTER_CONFIRMATION:
+    wait_side(app, server_wait_reg_confirm_cb);
     break;
   case S_ERR:
     break;
@@ -196,6 +194,9 @@ int process_query(app_t *app) {
   case WAIT_REGISTER:
     wait_register(query_args);
     break;
+  case S_WAIT_SERVER:
+    wait_side(app, server_print_message_cb);
+    break;
   default:
     break;
   }
@@ -220,7 +221,7 @@ int query_extract_from_buf(char *buf, int *buf_used, char **output_line) {
     line = malloc(b_used + 1);
     strncpy(line, buf, b_used);
 
-    // line[b_used] = 0;
+    line[b_used] = 0;
 
     *output_line = line;
     return b_used;
@@ -240,21 +241,32 @@ int query_extract_from_buf(char *buf, int *buf_used, char **output_line) {
   return pos + 1;
 }
 
+void query_return_to_buf(char *buf, int *buf_used, char *input_line) {
+  ssize_t l_len = strlen(input_line);
+  memmove(buf + l_len, buf, l_len);
+  memcpy(buf, input_line, l_len);
+  *buf_used = l_len;
+  buf[*buf_used] = 0;
+}
+
 static int wait_side(app_t *app, wait_server_cb *callback) {
   query_args_t *q_args = app->query_args;
   int qlen;
-  int buf_used = q_args->buf_used;
   char *query = NULL;
   int res = 0;
 
-  while ((qlen = query_extract_from_buf(q_args->buf, &buf_used, &query))) {
+  while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
+                                        &query))) {
     if (callback == NULL) {
       process_server_command(query, qlen, app);
     } else {
-      res = callback(app, query);
+      res = callback(app, query, qlen);
     }
     free(query);
     query = NULL;
+    if (res == 1) {
+      break;
+    }
   }
   return res;
 }
@@ -270,7 +282,6 @@ void init_query_args(query_args_t *q_args, params_t *params) {
   q_args->server_message.text = NULL;
   q_args->server_message.capacity = 0;
   q_args->server_message.size = 0;
-  q_args->next_server_command = NULL;
   q_args->progress_bar = NULL;
   q_args->active_dialogue = NULL;
   q_args->notification = NULL;
