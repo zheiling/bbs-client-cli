@@ -17,7 +17,7 @@ void init_alert(app_t *_app) { app = _app; }
 
 void alert(const char *message) { notification("Alert", dc_alert, message); }
 
-void notification(const char *title, enum d_color_scheme color,
+void notification(const char *title, enum dc_color_scheme color,
                   const char *f_message, ...) {
   if (app == NULL)
     return;

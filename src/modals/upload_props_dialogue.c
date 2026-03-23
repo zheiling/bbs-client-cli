@@ -3,12 +3,13 @@
 #include "widget_core.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <widget.h>
 #include <utils.h>
+#include <widget.h>
+
+#include "../server.h"
 
 void upload_props_dialogue_modal_cb(callback_args_t *args) {
   callback_args_t d_args;
@@ -18,30 +19,33 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
   d_args.app = NULL;
   d_args.element = app->active_widget;
   dialogue_default_callback(&d_args);
-  char query[256];
   int32_t query_len = 0;
   if (d_args.resp_data.code == cbrp_val) {
-    checkbox_t *reg_cbx  = (checkbox_t *)d->g_content->elements[0].element;
+    checkbox_t *reg_cbx = (checkbox_t *)d->g_content->elements[0].element;
     checkbox_t *anon_cbx = (checkbox_t *)d->g_content->elements[1].element;
     checkbox_t *comp_cbx = (checkbox_t *)d->g_content->elements[2].element;
-    
+
     int32_t privileges = 0;
-    if (anon_cbx->value == true) privileges |= 1;
-    if (reg_cbx->value == true)  privileges |= 2;
-    if (comp_cbx->value == true) privileges |= 4;
+    if (anon_cbx->value == true)
+      privileges |= 1;
+    if (reg_cbx->value == true)
+      privileges |= 2;
+    if (comp_cbx->value == true)
+      privileges |= 4;
 
     switch (d_args.resp_data.val.val.num) {
     case 1:
-      query_len =
-          sprintf(query, "file upload \"%s\" %zu %d\n",
-                  app->query_args->file->name, app->query_args->file->size, privileges);
+      server_send_string(app->query_args, "file upload \"%s\" %zu %d\n",
+                         app->query_args->file->name,
+                         app->query_args->file->size, privileges);
       /* app->query_args->file->description =
           malloc(desc_input->value_len + 9); reserve space for \n:END:\n */
-      app->query_args->file->description = malloc(sizeof ("[Empty description]\n:END:\n"));
-      strcpy(app->query_args->file->description, "[Empty description]\n:END:\n");
+      app->query_args->file->description =
+          malloc(sizeof("[Empty description]\n:END:\n"));
+      strcpy(app->query_args->file->description,
+             "[Empty description]\n:END:\n");
       d->needs_destroy = true;
       app->query_args->state = S_UPLOAD_REQUESTED;
-      write(app->query_args->sd, query, query_len);
       break;
     case 2:
       FREE_MLC(app->query_args->file->name);

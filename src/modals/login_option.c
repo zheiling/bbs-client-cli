@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <widget.h>
+#include "../server.h"
 
 typedef struct {
   button_t *element;
@@ -26,7 +27,7 @@ void login_modal_option_cb(callback_args_t *args) {
       d->needs_destroy = true;
       app->params->uname = malloc(sizeof "anonymous");
       strcpy(app->params->uname, "anonymous");
-      write(app->params->sd, app->params->uname, sizeof "anonymous" - 1);
+      server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
       print_bars(app);
       break;

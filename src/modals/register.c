@@ -1,6 +1,5 @@
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -9,6 +8,7 @@
 
 #include "alert.h"
 #include "group.h"
+#include "../server.h"
 
 typedef struct {
   button_t *element;
@@ -16,8 +16,6 @@ typedef struct {
 } group_bt_t;
 
 void init_register_modal_cb(callback_args_t *args) {
-  char query[256];
-  int32_t qlen = 0;
   callback_args_t d_args;
   app_t *app = args->app;
   dialogue_t *d = (dialogue_t *)app->active_widget;
@@ -65,10 +63,9 @@ void init_register_modal_cb(callback_args_t *args) {
     app->params->uname[in_name->value_len] = 0;
     strncpy(app->params->pass, in_pass->value, in_pass->value_len);
     app->params->pass[in_pass->value_len] = 0;
-    sprintf(query, "register %s %s %*s\n%n", app->params->uname,
-            app->params->pass, (int)in_email->value_len, in_email->value,
-            &qlen);
-    write(app->params->sd, query, qlen);
+    server_send_string(app->query_args, "register %s %s %*s\n", app->params->uname,
+            app->params->pass, (int)in_email->value_len, in_email->value
+            );
     app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
   }
 }

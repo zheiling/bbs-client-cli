@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "alert.h"
+#include "dialogue.h"
+#include "server.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -68,8 +71,6 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
   fl_item_t *l_selected; /* from the list */
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
-  uint32_t qlen;
-  char send_buf[256];
   struct stat st = {0};
 
   l_selected = fl_select(f_args->l_start, idx);
@@ -91,15 +92,13 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
   fl_clear(&f_args->l_start, &f_args->l_current);
   f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
   if (f_args->file_d == -1) {
-    qlen = sprintf(send_buf, "error: %s\n", f_selected->name);
-    write(q_args->sd, send_buf, qlen);
+    server_send_string(q_args, "error: %s\n", f_selected->name);
     perror(f_selected->name);
     q_args->state = WAIT_CLIENT;
     free(file_path);
     return -2;
   }
-  qlen = sprintf(send_buf, "file download [%s]\n", f_selected->name);
-  write(q_args->sd, send_buf, qlen);
+  server_send_string(q_args, "file download [%s]\n", f_selected->name);
   q_args->state = S_FILE_DOWNLOAD;
   free(file_path);
   return OK;
@@ -150,9 +149,8 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       q_args->notification = malloc(strlen(answer) + 1);
       strcpy(q_args->notification, answer);
       free(f_selected->name);
-      sprintf(answer, "file list %u %u\n%n", fui->max_lines, fui->current_page,
-              &a_len);
-      write(q_args->sd, answer, a_len);
+      server_send_string(q_args, "file list %u %u\n%n", fui->max_lines,
+                         fui->current_page, &a_len);
       q_args->state = S_FILE_LIST;
     }
   }
@@ -183,7 +181,7 @@ int32_t file_upload_start(query_args_t *q_args) {
   query_extract_from_buf(q_args->buf, &(q_args->buf_used), &query);
   if (strcmp(query, "accept")) {
     clear_file_in_query(q_args);
-    write(STDERR_FILENO, query, strlen(query));
+    notification("Server response", dc_alert, query);
     return -1;
   }
   return 0;

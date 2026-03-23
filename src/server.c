@@ -48,7 +48,6 @@ int process_server_command(char *line, int l_len, app_t *app) {
   uint64_t new_capacity;
   ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
   char query[INBUFSIZE];
-  int32_t q_len = 0;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -60,7 +59,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
       PRINT_SRV_MESSAGE(q_args, l_len, line);
     }
     if (q_args->params->uname != NULL && q_args->params->pass != NULL) {
-      write(params->sd, q_args->params->uname, strlen(q_args->params->uname));
+      server_send_string(q_args, q_args->params->uname);
     } else {
       q_args->state = S_ASK_LOGIN_TYPE;
     }
@@ -72,7 +71,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
     if (q_args->params->pass == NULL) {
       return 1;
     }
-    write(q_args->sd, params->pass, strlen(params->pass));
+    server_send_string(q_args, params->pass);
     return 0;
   }
 
@@ -90,9 +89,8 @@ int process_server_command(char *line, int l_len, app_t *app) {
   /* REGISTER CONFIRMATION */
   if (q_args->state == S_WAIT_REGISTER_CONFIRMATION) {
     if (!strcmp(line, "ok\n")) {
-      sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
-              &q_len);
-      write(q_args->sd, query, q_len);
+      server_send_string(q_args, "file list %u %u\n", fui->max_lines,
+                         fui->current_page);
       q_args->state = S_FILE_LIST;
       destroy_dialogue(&(app->modal), app);
       sprintf(query,
@@ -116,9 +114,8 @@ int process_server_command(char *line, int l_len, app_t *app) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    sprintf(query, "file list %u %u\n%n", fui->max_lines, fui->current_page,
-            &q_len);
-    write(q_args->sd, query, q_len);
+    server_send_string(q_args, "file list %u %u\n", fui->max_lines,
+                       fui->current_page);
     q_args->state = S_FILE_LIST;
     return 0;
   }

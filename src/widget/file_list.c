@@ -4,6 +4,7 @@
 #include "file_list.h"
 #include "../file_processor.h"
 #include "../fs.h"
+#include "../server.h"
 #include "app.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>
@@ -21,9 +22,7 @@ void file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
   ui_file_list_t *fui = app->query_args->file_list_ui;
   int32_t key = *((int32_t *)args->data);
-  char query[256];
   char q_prefix[128];
-  int32_t q_len = 0;
   if (fui->search_key->slen > 0) {
     sprintf(q_prefix, "file search name %s", fui->search_key->data);
   } else {
@@ -44,12 +43,8 @@ void file_list_cb(callback_args_t *args) {
         fui->search_key->slen = 0;
         sprintf(q_prefix, "file list");
       }
-      if (fui->search_key->slen > 0) {
-        sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
-      } else {
-        sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
-      }
-      write(app->query_args->sd, query, q_len);
+      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+                         fui->max_lines, 1);
       reset_file_list(fui);
     } else {
       bconchar(fui->search_key, key);
@@ -65,9 +60,8 @@ void file_list_cb(callback_args_t *args) {
       draw_file_list(fui);
     } else if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
-              fui->current_page + 1, &q_len);
-      write(app->query_args->sd, query, q_len);
+      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+                         fui->max_lines, fui->current_page + 1);
       reset_file_list(fui);
     }
     break;
@@ -77,9 +71,8 @@ void file_list_cb(callback_args_t *args) {
       draw_file_list(fui);
     } else if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
-      sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines,
-              fui->current_page - 1, &q_len);
-      write(app->query_args->sd, query, q_len);
+      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+                         fui->max_lines, fui->current_page - 1);
       reset_file_list(fui);
       fui->activate_last = true;
     }
@@ -90,8 +83,7 @@ void file_list_cb(callback_args_t *args) {
     fui->search_key->slen = 0;
     sprintf(q_prefix, "file list");
     app->query_args->state = S_FILE_LIST;
-    sprintf(query, "%s %u %u\n%n", q_prefix, fui->max_lines, 1, &q_len);
-    write(app->query_args->sd, query, q_len);
+    server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines, 1);
     reset_file_list(fui);
   case '\n':
     ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
@@ -181,13 +173,15 @@ void draw_file_list(ui_file_list_t *fui) {
   p_x = 1;
   int32_t p_len;
 
-  if (!fui->active_search && fui->search_key->slen > 0 && *(fui->start) == NULL) {
+  if (!fui->active_search && fui->search_key->slen > 0 &&
+      *(fui->start) == NULL) {
     bstring text = bfromStatic("[No data to show]");
     for (; p_y < (sz_y_f / 2); p_y++) {
       mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
     }
     p_len = (sz_x - text->slen) / 2;
-    mvwprintw(parent_win, p_y++, p_x, "%*s%s%*s", p_len, "", text->data,  p_len, "");
+    mvwprintw(parent_win, p_y++, p_x, "%*s%s%*s", p_len, "", text->data, p_len,
+              "");
     for (; p_y < sz_y_f; p_y++) {
       mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
     }

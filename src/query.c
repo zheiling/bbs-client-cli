@@ -126,12 +126,11 @@ void query_loop(app_t *app) {
 
 void wait_register(query_args_t *q_args) {
   params_t *params = q_args->params;
-  char r_buf[INBUFSIZE];
   q_args->state = WAIT_REGISTER_CONFIRMATION;
   char email[EMAIL_LEN];
   ask_register(q_args->params, email);
-  sprintf(r_buf, "register %s %s %s\n", params->uname, params->pass, email);
-  write(q_args->sd, r_buf, strlen(r_buf) - 1);
+  server_send_string(q_args, "register %s %s %s\n", params->uname, params->pass,
+                     email);
 }
 
 int upload_confirm_cb(app_t *app, char *query) {
@@ -278,7 +277,5 @@ void init_query_args(query_args_t *q_args, params_t *params) {
 }
 
 void user_request_description(query_args_t *q_args) {
-  strcat(q_args->file->description, "\n\n:END:\n");
-  write(q_args->sd, q_args->file->description,
-        strlen(q_args->file->description) - 1);
+  server_send_string(q_args, "%s\n\n:END:\n", q_args->file->description);
 }

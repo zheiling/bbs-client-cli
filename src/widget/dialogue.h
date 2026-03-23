@@ -12,7 +12,7 @@
 #include <widget_core.h>
 #define MAX_IDS 64
 
-enum d_color_scheme { dc_normal, dc_alert };
+enum dc_color_scheme { dc_normal, dc_alert };
 
 typedef struct {
   widget_t w;
@@ -25,7 +25,7 @@ typedef struct {
   bool needs_update;
   bool needs_destroy;
   coordinates_t *p_coordinates;
-  enum d_color_scheme color_scheme;
+  enum dc_color_scheme color_scheme;
   d_array_ptr_t id_map;
 } dialogue_t;
 

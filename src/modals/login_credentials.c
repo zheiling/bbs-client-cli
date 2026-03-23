@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <widget.h>
+#include "../server.h"
 
 typedef struct {
   button_t *element;
@@ -31,7 +32,7 @@ void init_login_credentials_modal_cb(callback_args_t *args) {
       app->params->uname[in_name->value_len] = 0;
       strncpy(app->params->pass, in_pass->value, in_pass->value_len);
       app->params->pass[in_pass->value_len] = 0;
-      write(app->params->sd, app->params->uname, in_name->value_len);
+      server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
       d->needs_destroy = true;
       print_bars(app);
