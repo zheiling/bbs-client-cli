@@ -92,7 +92,6 @@ int server_print_message_cb(app_t *app, char *line, int l_len) {
   return 0;
 }
 
-/* TODO: refactor to process callbacks */
 int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
@@ -145,6 +144,9 @@ int process_server_command(char *line, int l_len, app_t *app) {
     q_args->state = S_FILE_LIST;
     return 0;
   }
+
+  q_args->state = S_PREP_SERVER_MESSAGE;
+  server_print_message_cb(app, line, l_len);
 
   return -1;
 }

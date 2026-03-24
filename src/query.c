@@ -32,7 +32,7 @@
 #include "server.h"
 #include "types.h"
 
-static int wait_side(app_t *app, wait_server_cb *cb);
+static int process_command(app_t *app, wait_server_cb *cb);
 void user_request_description(query_args_t *q_args);
 int process_query(app_t *app);
 int32_t process_user_input(app_t *app, callback_args_t *d_args);
@@ -79,6 +79,7 @@ void query_loop(app_t *app) {
       if (ERR == process_query(app)) {
         EXIT_APP("*** error while processing query ***", app, 1)
       }
+      query_args->state = S_WAIT_SERVER;
       continue;
     } else {
       sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
@@ -153,13 +154,14 @@ int process_query(app_t *app) {
   case WAIT_CLIENT:
   case WAIT_REGISTER_CONFIRMATION:
   case S_WAIT_PASS:
-    wait_side(app, NULL);
+  case S_WAIT_SERVER:
+    process_command(app, NULL);
     break;
   case S_NEXT_ACTION:
-    wait_side(app, NULL);
+    process_command(app, NULL);
     break;
   case S_WAIT_REGISTER_CONFIRMATION:
-    wait_side(app, server_wait_reg_confirm_cb);
+    process_command(app, server_wait_reg_confirm_cb);
     break;
   case S_ERR:
     break;
@@ -186,7 +188,7 @@ int process_query(app_t *app) {
     }
     break;
   case S_UPLOAD_SERVER_FINISHES:
-    wait_side(app, upload_confirm_cb);
+    process_command(app, upload_confirm_cb);
     /* user_request_description(query_args); */
     break;
   case S_ASK_USER_BEFORE_LOGIN:
@@ -194,8 +196,8 @@ int process_query(app_t *app) {
   case WAIT_REGISTER:
     wait_register(query_args);
     break;
-  case S_WAIT_SERVER:
-    wait_side(app, server_print_message_cb);
+  case S_PREP_SERVER_MESSAGE:
+    process_command(app, server_print_message_cb);
     break;
   default:
     break;
@@ -249,7 +251,7 @@ void query_return_to_buf(char *buf, int *buf_used, char *input_line) {
   buf[*buf_used] = 0;
 }
 
-static int wait_side(app_t *app, wait_server_cb *callback) {
+static int process_command(app_t *app, wait_server_cb *callback) {
   query_args_t *q_args = app->query_args;
   int qlen;
   char *query = NULL;

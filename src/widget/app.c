@@ -2,6 +2,7 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "app.h"
+#include "file_list.h"
 #include <locale.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>
@@ -44,6 +45,9 @@ app_t *init_app() {
 
   /* default win */
   _app->active_win_type = aw_left;
+
+  /* default callback */
+  _app->active_callback = file_list_cb;
 
   /* print decorative bars */
   print_bars(_app);
