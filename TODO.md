@@ -1,8 +1,9 @@
 # TODO:
 
 ## Current:
+- [ ] Upload menu disappears after alert (when opening link to non-existing directory for example).
 - [ ] Sorting in file list
-- [ ] PageUp/PageDown key functionality in lists
+- [x] PageUp/PageDown key functionality in lists
 - [ ] File upload multiline description (window)
 - [x] Permission checkboxes for file upload/edit
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)

@@ -20,15 +20,20 @@ typedef struct {
     widget_t w;
     fs_fl_item_t *current;
     fs_fl_item_t *start;
+    fs_fl_item_t *page_start;
     int32_t current_idx;
+    int32_t rows_num;
+    int32_t cur_page;
+    int32_t pages_num;
+    size_t files_num;
     WINDOW *const* info_win;
     char *d_path;
 } ui_fs_file_list_t;
 
-void draw_fs_file_list(ui_fs_file_list_t *fl_ui);
-void redraw_fs_file_list(ui_fs_file_list_t *fl_ui);
-void destroy_fs_file_list(ui_fs_file_list_t *fl_ui);
+void               draw_fs_file_list(ui_fs_file_list_t *fl_ui);
+void               redraw_fs_file_list(ui_fs_file_list_t *fl_ui);
+void               destroy_fs_file_list(ui_fs_file_list_t *fl_ui);
+void               fs_file_list_cb(callback_args_t *args);
+void               reset_fs_file_list(ui_fs_file_list_t *fl_ui);
 ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent);
-void fs_file_list_cb(callback_args_t *args);
-void reset_fs_file_list(ui_fs_file_list_t *fl_ui);
 #endif

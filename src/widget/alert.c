@@ -1,6 +1,6 @@
 #include "alert.h"
-#include <stdarg.h>
 #include <ncursesw/ncurses.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <widget.h>
@@ -21,6 +21,8 @@ void notification(const char *title, enum dc_color_scheme color,
                   const char *f_message, ...) {
   if (app == NULL)
     return;
+
+  void *callback = app->active_callback;
 
   group_el_init_t actions[] = {
       {.type = w_button, .label = "OK", .is_default = true}, {.type = w_end}};
@@ -51,6 +53,7 @@ void notification(const char *title, enum dc_color_scheme color,
   destroy_group(d->g_action);
   delwin(d->win);
   free(d);
+  app->active_callback = callback;
   app_refresh(app);
   if (app->modal.win != NULL) {
     app->modal.needs_update = true;

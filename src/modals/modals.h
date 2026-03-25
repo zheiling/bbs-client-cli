@@ -1,6 +1,5 @@
 #ifndef MODALS_H
 #define MODALS_H
-#include "alert.h"
 #include "ask_server_addr.h"
 #include "download_pr.h"
 #include "login_credentials.h"

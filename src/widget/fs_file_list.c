@@ -2,7 +2,6 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include <dirent.h>
-#include <errno.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -14,6 +13,8 @@
 #include <uchar.h>
 #include <unistd.h>
 #include <utils.h>
+
+#include "alert.h"
 
 #include "fs_file_list.h"
 #include "widget_core.h"
@@ -63,22 +64,24 @@ static void fl_clear(fs_fl_item_t **start, fs_fl_item_t **arg_current) {
   *arg_current = NULL;
 }
 
-fs_fl_item_t *get_files_from_fs(char *path_prefix) {
+static int get_files_from_fs(ui_fs_file_list_t *fui, char *path) {
   DIR *dir;
   struct dirent *dent;
   char name[257];
   char l_path[INBUFSIZE];
   struct fl_args f_args;
-  ssize_t r;
+  ssize_t r = 0;
+  fui->files_num = 0;
 
   fs_fl_item_t *d_start = NULL, *d_current = NULL; /* directories */
   fs_fl_item_t *f_start = NULL, *f_current = NULL; /* files */
 
-  dir = opendir(path_prefix);
-  if (!dir) {
-    return NULL;
-    errno = 1;
-  }
+  dir = opendir(path);
+  if (!dir) return 1;
+  free(fui->d_path);
+  fui->d_path = malloc(strlen(path)+1);
+  strcpy(fui->d_path, path);
+  fl_clear(&(fui->start), &(fui->current));
   while ((dent = readdir(dir)) != NULL) {
     f_args.path = NULL;
     if ((f_args.d_type = dent->d_type) == DT_DIR) {
@@ -87,6 +90,7 @@ fs_fl_item_t *get_files_from_fs(char *path_prefix) {
         sprintf(name, "/%s", dent->d_name);
         f_args.name = name;
         fl_add(&t_st, &t_cur, &f_args);
+        fui->files_num++;
         /* Always put .. at the beginning */
         t_st->next = d_start;
         d_start = t_st;
@@ -100,13 +104,15 @@ fs_fl_item_t *get_files_from_fs(char *path_prefix) {
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
       fl_add(&d_start, &d_current, &f_args);
+      fui->files_num++;
     } else if (f_args.d_type == DT_LNK) {
-      sprintf(name, "%s/%s", path_prefix, dent->d_name);
+      sprintf(name, "%s/%s", fui->d_path, dent->d_name);
       r = readlink(name, l_path, INBUFSIZE);
       sprintf(name, "->/%s", dent->d_name);
       f_args.name = name;
       f_args.path = l_path;
       fl_add(&d_start, &d_current, &f_args);
+      fui->files_num++;
     } else {
       /* Hide files with dot-beginnings */
       if (!strncmp(dent->d_name, ".", 1))
@@ -114,34 +120,45 @@ fs_fl_item_t *get_files_from_fs(char *path_prefix) {
       f_args.name = dent->d_name;
       sprintf(name, "%s", dent->d_name);
       fl_add(&f_start, &f_current, &f_args);
+      fui->files_num++;
     }
   }
   if (d_current != NULL)
     d_current->next = f_start;
   if (f_start != NULL)
     f_start->prev = d_current;
-  return d_start;
+
+  fui->start = d_start;
+  fui->page_start = d_start;
+  fui->current = d_start;
+  fui->cur_page = 1;
+  return 0;
 }
 
-void select_item(ui_fs_file_list_t *fui, cb_resp_data *resp_data) {
+void open_selected_item(ui_fs_file_list_t *fui, cb_resp_data *resp_data) {
   char *bash_case = NULL;
   char *selection = NULL;
   size_t dp_current;
+  char n_path[INBUFSIZE];
   if (fui->current->d_type == DT_DIR) {
     if (!strcmp("/..", fui->current->name)) {
-      bash_case = strrchr(fui->d_path, '/');
+      strcpy(n_path, fui->d_path);
+      bash_case = strrchr(n_path, '/');
       if (bash_case != NULL) {
         *bash_case = '\0';
-        fl_clear(&(fui->start), &(fui->current));
-        fui->start = get_files_from_fs(fui->d_path);
+        if (get_files_from_fs(fui, n_path)) {
+          alert("Can't open the folder!");
+          return;
+        }
       }
     } else {
       dp_current = strlen(fui->d_path);
       selection = fui->current->name + 1;
-      fui->d_path = realloc(fui->d_path, dp_current + strlen(selection) + 2);
-      sprintf(fui->d_path, "%s/%s", fui->d_path, selection);
-      fl_clear(&(fui->start), &(fui->current));
-      fui->start = get_files_from_fs(fui->d_path);
+      sprintf(n_path, "%s/%s", fui->d_path, selection);
+      if (get_files_from_fs(fui, n_path)) {
+        alert("Can't open the folder!");
+        return;
+      }
     }
     fui->current = fui->start;
     fui->current_idx = 0;
@@ -152,15 +169,48 @@ void select_item(ui_fs_file_list_t *fui, cb_resp_data *resp_data) {
     resp_data->val.type = val_num;
     resp_data->val.val.num = 1;
   } else if (fui->current->d_type == DT_LNK) {
-    fui->d_path = realloc(fui->d_path, strlen(fui->current->path) + 1);
-    strcpy(fui->d_path, fui->current->path);
-    fl_clear(&(fui->start), &(fui->current));
-    fui->start = get_files_from_fs(fui->d_path);
+    strcpy(n_path, fui->current->path);
+    if (get_files_from_fs(fui, n_path)) {
+      alert("Can't open the link!");
+      return;
+    }
     fui->current = fui->start;
     fui->current_idx = 0;
     resp_data->code = cbrc_none;
     draw_fs_file_list(fui);
   }
+}
+
+/* next page */
+void page_next(ui_fs_file_list_t *fui) {
+  int count = fui->rows_num;
+  fs_fl_item_t *n_page_item = fui->page_start;
+  if (fui->cur_page < fui->pages_num) {
+    for (; count; count--) {
+      n_page_item = n_page_item->next;
+    }
+    fui->cur_page++;
+    fui->page_start = n_page_item;
+    fui->current_idx = 0;
+    fui->current = n_page_item;
+  }
+  draw_fs_file_list(fui);
+}
+
+/* previous page */
+void page_previous(ui_fs_file_list_t *fui) {
+  int count = fui->rows_num;
+  fs_fl_item_t *n_page_item = fui->page_start;
+  if (fui->cur_page > 1) {
+    for (; count; count--) {
+      n_page_item = n_page_item->prev;
+    }
+    fui->cur_page--;
+    fui->page_start = n_page_item;
+    fui->current_idx = 0;
+    fui->current = n_page_item;
+  }
+  draw_fs_file_list(fui);
 }
 
 void fs_file_list_cb(callback_args_t *args) {
@@ -169,20 +219,34 @@ void fs_file_list_cb(callback_args_t *args) {
   switch (key) {
   case KEY_DOWN:
     if (fui->current->next != NULL) {
-      fui->current = fui->current->next;
-      fui->current_idx++;
-      draw_fs_file_list(fui);
+      if (fui->current_idx < fui->rows_num - 1) {
+        fui->current = fui->current->next;
+        fui->current_idx++;
+        draw_fs_file_list(fui);
+      } else {
+        page_next(fui);
+      }
     }
     break;
   case KEY_UP:
     if (fui->current->prev != NULL) {
-      fui->current = fui->current->prev;
-      fui->current_idx--;
-      draw_fs_file_list(fui);
+      if (fui->current_idx > 0) {
+        fui->current = fui->current->prev;
+        fui->current_idx--;
+        draw_fs_file_list(fui);
+      } else {
+        page_previous(fui);
+      }
     }
     break;
+  case KEY_NPAGE:
+    page_next(fui);
+    break;
+  case KEY_PPAGE:
+    page_previous(fui);
+    break;
   case '\n':
-    select_item(fui, &(args->resp_data));
+    open_selected_item(fui, &(args->resp_data));
     break;
   }
 }
@@ -193,30 +257,36 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   init_widget(&(fl_ui->w), w_parent, win, "");
   fl_ui->current_idx = 0;
   fl_ui->info_win = NULL;
-  fl_ui->d_path = get_current_dir_name();
-  fl_ui->start = get_files_from_fs(fl_ui->d_path);
+  fl_ui->d_path = NULL;
+  char *path = get_current_dir_name();
+  get_files_from_fs(fl_ui, path);
   fl_ui->current = fl_ui->start;
   fl_ui->w.callback = fs_file_list_cb;
   fl_ui->w.sz.x = getmaxx(win_par) / 10 * 8;
   fl_ui->w.sz.y = getmaxy(win_par) / 10 * 8;
+  fl_ui->rows_num = 0; /* detects on the first draw */
+  fl_ui->cur_page = 1;
   return fl_ui;
 }
 
 void reset_fs_file_list(ui_fs_file_list_t *fl_ui) { fl_ui->current_idx = 0; }
 
-void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
+void draw_fs_file_list(ui_fs_file_list_t *fui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
-  WINDOW *win = *(fl_ui->w.parent_win);
+  WINDOW *win = *(fui->w.parent_win);
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 2; // actual size (without box)
   int32_t sz_x_f = sz_x - 2; // actual size (without box)
+  fui->rows_num = sz_y_f;
+  fui->pages_num = fui->files_num / fui->rows_num +
+                   (fui->files_num % fui->rows_num > 0 ? 1 : 0);
   p_y = 1;
   p_x = 1;
-  fs_fl_item_t *el = fl_ui->start;
+  fs_fl_item_t *el = fui->page_start;
 
-  if (fl_ui->current_idx + 1 >= sz_y_f) {
-    p_y -= fl_ui->current_idx - sz_y_f + 2;
+  if (fui->current_idx + 1 >= sz_y_f) {
+    p_y -= fui->current_idx - sz_y_f + 2;
   }
 
   wattrset(win, A_REVERSE); /* Match with modal background */
@@ -225,13 +295,13 @@ void draw_fs_file_list(ui_fs_file_list_t *fl_ui) {
       p_y++;
       continue;
     }
-    if (el == fl_ui->current) {
+    if (el == fui->current) {
       wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
     }
     p_x = 1;
     p_x += curs_printw(win, p_y, p_x, el->name);
     mvwprintw(win, p_y, p_x, "%*s", sz_x_f - p_x, "");
-    if (el == fl_ui->current) {
+    if (el == fui->current) {
       wattroff(win, COLOR_PAIR(3) | A_BOLD);
     }
     p_y++;

@@ -77,13 +77,32 @@ void file_list_cb(callback_args_t *args) {
       fui->activate_last = true;
     }
     break;
+  case KEY_NPAGE:
+    if (fui->current_page < fui->pages) {
+      app->query_args->state = S_FILE_LIST;
+      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+                         fui->max_lines, fui->current_page + 1);
+      reset_file_list(fui);
+    }
+    break;
+  case KEY_PPAGE:
+    if (fui->current_page > 1) {
+      app->query_args->state = S_FILE_LIST;
+      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+                         fui->max_lines, fui->current_page - 1);
+      reset_file_list(fui);
+      fui->activate_last = true;
+    }
+    break;
+    break;
   case '\33':
     fui->active_search = false;
     fui->search_key->data[0] = '\0';
     fui->search_key->slen = 0;
     sprintf(q_prefix, "file list");
     app->query_args->state = S_FILE_LIST;
-    server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines, 1);
+    server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines,
+                       1);
     reset_file_list(fui);
   case '\n':
     ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);

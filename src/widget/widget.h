@@ -17,4 +17,5 @@
 #include "input.h"
 #include "progress_bar.h"
 #include "checkbox.h"
+#include "alert.h"
 #endif
