@@ -45,7 +45,7 @@ void notification(const char *title, enum dc_color_scheme color,
   wrefresh(d->win);
   int c = 0;
 
-  while ((c = wgetch(d->win))) {
+  while ((c = wgetch(app->win))) {
     if (c == '\n')
       break;
   }
