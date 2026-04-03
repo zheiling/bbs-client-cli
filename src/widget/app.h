@@ -34,6 +34,7 @@ typedef struct {
   void (*active_callback)(callback_args_t *args);
   WINDOW *active_win;
   void *active_widget;
+  main_window_t main_ui;
 } app_t;
 
 app_t *init_app(void);

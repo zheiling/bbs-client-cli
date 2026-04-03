@@ -82,6 +82,17 @@ typedef struct file_args {
   fl_item_t *l_current;
 } file_args_t;
 
+enum main_window_type {
+  mw_fl_server, /* file list on the server */
+  mw_fl_local, /* local file list */
+  mw_f_desc, /* file description */
+};
+
+typedef struct main_window {
+  enum main_window_type type;
+  void *ui; /* structure that describes window UI */
+} main_window_t;
+
 typedef struct query_args {
   int32_t sd;
   int32_t buf_used;
@@ -95,10 +106,10 @@ typedef struct query_args {
     uint64_t capacity;
     uint64_t size;
   } server_message;
-  void *file_list_ui; /* TODO: find solution to insert actual type without void pointers */
+  main_window_t *main_ui;
   void *progress_bar;
   void *active_dialogue;
-  char *notification;
+  void *notification;
 } query_args_t;
 
 #endif

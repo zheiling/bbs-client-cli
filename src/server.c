@@ -35,7 +35,7 @@ void server_send_string(query_args_t *q, const char *fmt, ...) {
 int server_wait_reg_confirm_cb(app_t *app, char *line, int l_len) {
   query_args_t *q_args = app->query_args;
   char query[INBUFSIZE];
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
 
   if (!strcmp(line, "ok\n")) {
     server_send_string(q_args, "file list %u %u\n", fui->max_lines,
@@ -96,7 +96,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
   params_t *params = q_args->params;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)

@@ -33,7 +33,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   char *query = NULL;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
@@ -119,7 +119,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
   ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
   dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->file_list_ui;
+  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
   int32_t a_len = 0;
 
   if (size_rest == 0)

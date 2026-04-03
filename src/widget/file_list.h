@@ -28,4 +28,5 @@ void redraw_file_list(ui_file_list_t *fl_ui);
 ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win);
 void file_list_cb(callback_args_t *args);
 void reset_file_list(ui_file_list_t *fl_ui);
+void delete_file_list(ui_file_list_t **fui);
 #endif

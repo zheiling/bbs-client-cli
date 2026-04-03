@@ -55,6 +55,9 @@ app_t *init_app() {
   /* here goes box borders */
   draw_borders(_app);
 
+  /* NULL to main_ui */
+  _app->main_ui.ui = NULL;
+
   keypad(_app->win, TRUE);
 
   /* refresh the windows */

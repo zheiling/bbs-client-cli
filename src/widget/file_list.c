@@ -20,7 +20,7 @@ void reset_file_list(ui_file_list_t *fl_ui);
 
 void file_list_cb(callback_args_t *args) {
   app_t *app = args->app;
-  ui_file_list_t *fui = app->query_args->file_list_ui;
+  ui_file_list_t *fui = app->query_args->main_ui->ui;
   int32_t key = *((int32_t *)args->data);
   char q_prefix[128];
   if (fui->search_key->slen > 0) {
@@ -127,6 +127,12 @@ ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
   fui->start = NULL;
   fui->current = NULL;
   return fui;
+}
+
+void delete_file_list(ui_file_list_t **fui) {
+   fl_clear((*fui)->start, (*fui)->current);
+   free(*fui);
+   *fui = NULL;
 }
 
 void reset_file_list(ui_file_list_t *fl_ui) {

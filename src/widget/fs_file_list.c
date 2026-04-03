@@ -77,11 +77,14 @@ static int get_files_from_fs(ui_fs_file_list_t *fui, char *path) {
   fs_fl_item_t *f_start = NULL, *f_current = NULL; /* files */
 
   dir = opendir(path);
-  if (!dir) return 1;
-  free(fui->d_path);
-  fui->d_path = malloc(strlen(path)+1);
+  if (!dir)
+    return 1;
+  if (fui->d_path != NULL) {
+    free(fui->d_path);
+    fl_clear(&(fui->start), &(fui->current));
+  }
+  fui->d_path = malloc(strlen(path) + 1);
   strcpy(fui->d_path, path);
-  fl_clear(&(fui->start), &(fui->current));
   while ((dent = readdir(dir)) != NULL) {
     f_args.path = NULL;
     if ((f_args.d_type = dent->d_type) == DT_DIR) {
@@ -264,6 +267,23 @@ ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent) {
   fl_ui->w.callback = fs_file_list_cb;
   fl_ui->w.sz.x = getmaxx(win_par) / 10 * 8;
   fl_ui->w.sz.y = getmaxy(win_par) / 10 * 8;
+  fl_ui->rows_num = 0; /* detects on the first draw */
+  fl_ui->cur_page = 1;
+  return fl_ui;
+}
+
+ui_fs_file_list_t *init_fs_file_list_win(WINDOW **win, WINDOW *const *info_win) {
+  ui_fs_file_list_t *fl_ui = malloc(sizeof(ui_fs_file_list_t));
+  init_widget(&(fl_ui->w), NULL, win, "");
+  fl_ui->current_idx = 0;
+  fl_ui->info_win = NULL;
+  fl_ui->d_path = NULL;
+  char *path = get_current_dir_name();
+  get_files_from_fs(fl_ui, path);
+  fl_ui->current = fl_ui->start;
+  fl_ui->w.callback = fs_file_list_cb;
+  fl_ui->w.sz.x = getmaxx(*win) / 10 * 8;
+  fl_ui->w.sz.y = getmaxy(*win) / 10 * 8;
   fl_ui->rows_num = 0; /* detects on the first draw */
   fl_ui->cur_page = 1;
   return fl_ui;

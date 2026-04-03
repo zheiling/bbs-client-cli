@@ -1,6 +1,7 @@
 # TODO:
 
 ## Current:
+- [ ] Variable naming convention
 - [ ] Sorting in file list
 - [ ] File upload multiline description (window)
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
@@ -10,7 +11,7 @@
 - [x] Upload menu disappears after alert (when opening link to non-existing directory for example).
 
 ## Bugs:
-- [ ] Sometimes segfaults while navigating through modal menu (try use controlling byte)
+- [ ] Sometimes segfaults while navigating through modal menu
 
 ## Features:
 - [x] Search files

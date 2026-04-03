@@ -130,7 +130,7 @@ void wait_register(query_args_t *q_args) {
 
 int upload_confirm_cb(app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
-    ui_file_list_t *fui = (ui_file_list_t *)app->query_args->file_list_ui;
+    ui_file_list_t *fui = (ui_file_list_t *)app->query_args->main_ui->ui;
     notification("File upload", dc_normal, "File %s is uploaded to the server!",
                  app->query_args->file->name);
     clear_file_in_query(app->query_args);

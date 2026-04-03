@@ -36,4 +36,5 @@ void               destroy_fs_file_list(ui_fs_file_list_t *fl_ui);
 void               fs_file_list_cb(callback_args_t *args);
 void               reset_fs_file_list(ui_fs_file_list_t *fl_ui);
 ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent);
+ui_fs_file_list_t *init_fs_file_list_win(WINDOW **win, WINDOW *const *info_win);
 #endif
