@@ -23,27 +23,27 @@
 
 uint32_t m_id = 0;
 
-int32_t process_user_input(app_t *app, callback_args_t *d_args);
-void main_window_set(app_t *app, enum main_window_type type);
-void main_window_draw(app_t *app);
-void main_window_delete(app_t *app);
+int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args);
+void main_window_set(w_app_t *app, enum main_window_type type);
+void main_window_draw(w_app_t *app);
+void main_window_delete(w_app_t *app);
 
 int main(int argc, char **argv) {
-  app_t *app;
+  w_app_t *app;
   params_t params;
   query_args_t *q_args = malloc(sizeof(query_args_t));
 
-  app = calloc(1, sizeof(app_t));
+  app = calloc(1, sizeof(w_app_t));
 
-  init_nc();
+  w_app_init_nc();
 
-  app = init_app();
+  app = w_app_init();
   init_params(&params);
   app->params = &params;
   analyze_args(argc, argv, &params);
 
   /* init alert */
-  init_alert(app);
+  w_alert_init(app);
 
   wrefresh(app->left_win);
   wrefresh(app->right_win);
@@ -70,18 +70,18 @@ int main(int argc, char **argv) {
 
   query_loop(app);
   clear_params(&params);
-  destroy_app(app, 0);
+  w_app_destroy(app, 0);
 
   return OK;
 }
 
-int32_t process_user_input(app_t *app, callback_args_t *d_args) {
+int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
   int32_t c;
-  ui_file_list_t *fui = (ui_file_list_t *)app->query_args->main_ui->ui;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
-    destroy_app(app, 0);
+    w_app_destroy(app, 0);
     return OK;
   case 'U':
   case 'u':
@@ -96,7 +96,7 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   case 'S':
     if (!app->modal.is_initiated && !fui->active_search) {
       fui->active_search = true;
-      draw_file_list(fui);
+      w_fl_draw(fui);
       return OK;
     }
   default:
@@ -107,20 +107,20 @@ int32_t process_user_input(app_t *app, callback_args_t *d_args) {
   return OK;
 }
 
-void main_window_set(app_t *app, enum main_window_type type) {
+void main_window_set(w_app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
     main_window_delete(app);
   }
   app->main_ui.type = type;
   switch (type) {
   case mw_fl_server:
-    app->main_ui.ui = init_file_list(&(app->left_win), &(app->right_win));
-    app->active_callback = file_list_cb;
+    app->main_ui.ui = w_fl_init(&(app->left_win), &(app->right_win));
+    app->active_callback = w_fl_cb;
     break;
   case mw_fl_local:
     app->main_ui.ui =
-        init_fs_file_list_win(&(app->left_win), &(app->right_win));
-    app->active_callback = fs_file_list_cb;
+        w_lfl_init_win(&(app->left_win), &(app->right_win));
+    app->active_callback = w_lfl_cb;
     break;
   case mw_f_desc:
     break;
@@ -129,23 +129,23 @@ void main_window_set(app_t *app, enum main_window_type type) {
   }
 }
 
-void main_window_draw(app_t *app) {
+void main_window_draw(w_app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
-    draw_file_list((ui_file_list_t *)app->main_ui.ui);
+    w_fl_draw((w_ui_file_list_t *)app->main_ui.ui);
     break;
   case mw_fl_local:
-    draw_fs_file_list((ui_fs_file_list_t *)app->main_ui.ui);
+    w_lfl_draw((w_lfl_ui_t *)app->main_ui.ui);
     break;
   case mw_f_desc:
     break;
   }
 }
 
-void main_window_delete(app_t *app) {
+void main_window_delete(w_app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
-    delete_file_list((ui_file_list_t **)&(app->main_ui.ui));
+    w_fl_destroy((w_ui_file_list_t **)&(app->main_ui.ui));
     break;
   case mw_fl_local:
   /* TODO: delete fs_file_list */

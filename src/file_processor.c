@@ -24,6 +24,7 @@
 #include "file_processor.h"
 #include "main.h"
 #include "query.h"
+
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
 fl_item_t *fl_select(fl_item_t *start, int num);
 void fl_clear(fl_item_t **start, fl_item_t **current);
@@ -33,8 +34,8 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   char *query = NULL;
   static char qbuf[INBUFSIZE * 2];
   static uint32_t qbuf_used = 0;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
-  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
+  w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
   fui->current = &(f_args->l_current);
 
@@ -49,7 +50,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
       if (d != NULL && d->is_initiated) {
         d->needs_update = true;
       }
-      draw_file_list(fui);
+      w_fl_draw(fui);
       free(query);
       q_args->state = WAIT_CLIENT;
       break;
@@ -117,9 +118,9 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
 
   static size_t size_rest = 0;
   uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
-  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
-  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
+  w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
+  w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
   int32_t a_len = 0;
 
   if (size_rest == 0)
@@ -181,7 +182,7 @@ int32_t file_upload_start(query_args_t *q_args) {
   query_extract_from_buf(q_args->buf, &(q_args->buf_used), &query);
   if (strcmp(query, "accept")) {
     clear_file_in_query(q_args);
-    notification("Server response", dc_alert, query);
+    w_notification("Server response", dc_alert, query);
     return -1;
   }
   return 0;
@@ -197,8 +198,8 @@ int32_t file_upload(query_args_t *q_args) {
   }
   uint32_t progress =
       (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
-  ui_progress_bar_t *pb = (ui_progress_bar_t *)q_args->progress_bar;
-  dialogue_t *d = (dialogue_t *)q_args->active_dialogue;
+  w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
+  w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   if (q_args->buf_used > 0) {
     int wlen = write(q_args->sd, q_args->buf, q_args->buf_used);
     if (q_args->buf_used != wlen) {

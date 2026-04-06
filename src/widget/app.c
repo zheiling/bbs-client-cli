@@ -15,13 +15,13 @@
 
 void ac_file(WINDOW *win, int is_action_w);
 
-app_t *init_app() {
+w_app_t *w_app_init() {
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
 
   /* allocate app struct memory */
-  app_t *_app = calloc(1, sizeof(app_t));
+  w_app_t *_app = calloc(1, sizeof(w_app_t));
 
   /* associate values for screen size */
   _app->coordinates.max_x = _app->coordinates.cur_x = x_max;
@@ -47,13 +47,13 @@ app_t *init_app() {
   _app->active_win_type = aw_left;
 
   /* default callback */
-  _app->active_callback = file_list_cb;
+  _app->active_callback = w_fl_cb;
 
   /* print decorative bars */
-  print_bars(_app);
+  w_app_print_bars(_app);
 
   /* here goes box borders */
-  draw_borders(_app);
+  w_app_draw_borders(_app);
 
   /* NULL to main_ui */
   _app->main_ui.ui = NULL;
@@ -69,7 +69,7 @@ app_t *init_app() {
   return _app;
 }
 
-void init_nc() {
+void w_app_init_nc() {
   initscr();
   cbreak();
   keypad(stdscr, TRUE);
@@ -89,7 +89,7 @@ void init_nc() {
   }
 }
 
-void draw_borders(app_t *app) {
+void w_app_draw_borders(w_app_t *app) {
   if (app->modal.win != NULL && !app->modal.needs_update) {
     return;
   }
@@ -118,7 +118,7 @@ int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
   return key_len + title_len;
 }
 
-void print_bars(app_t *app) {
+void w_app_print_bars(w_app_t *app) {
   char top_text[64] = "Hello!";
 
   wattrset(app->win, A_REVERSE);
@@ -166,8 +166,8 @@ void print_bars(app_t *app) {
   wattroff(app->win, A_REVERSE);
 }
 
-void app_refresh(app_t *app) {
-  draw_borders(app);
+void w_app_refresh(w_app_t *app) {
+  w_app_draw_borders(app);
 
   wnoutrefresh(app->win);
   wnoutrefresh(app->right_win);
@@ -180,7 +180,7 @@ void app_refresh(app_t *app) {
   doupdate();
 }
 
-void destroy_app(app_t *app, int32_t exit_code) {
+void w_app_destroy(w_app_t *app, int32_t exit_code) {
   delwin(app->win);
   endwin();
   app->win = NULL;

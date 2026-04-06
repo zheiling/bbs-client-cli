@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef FS_FILE_LIST_H
-#define FS_FILE_LIST_H
+#ifndef W_LFL_H /* LOCAL FILE LIST */
+#define W_LFL_H
+
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -14,13 +15,13 @@ typedef struct fs_fl_item {
   struct fs_fl_item *next;
   struct fs_fl_item *prev;
   u_char d_type;
-} fs_fl_item_t;
+} w_lfl_item_t;
 
 typedef struct {
-    widget_t w;
-    fs_fl_item_t *current;
-    fs_fl_item_t *start;
-    fs_fl_item_t *page_start;
+    w_t w;
+    w_lfl_item_t *current;
+    w_lfl_item_t *start;
+    w_lfl_item_t *page_start;
     int32_t current_idx;
     int32_t rows_num;
     int32_t cur_page;
@@ -28,13 +29,13 @@ typedef struct {
     size_t files_num;
     WINDOW *const* info_win;
     char *d_path;
-} ui_fs_file_list_t;
+} w_lfl_ui_t;
 
-void               draw_fs_file_list(ui_fs_file_list_t *fl_ui);
-void               redraw_fs_file_list(ui_fs_file_list_t *fl_ui);
-void               destroy_fs_file_list(ui_fs_file_list_t *fl_ui);
-void               fs_file_list_cb(callback_args_t *args);
-void               reset_fs_file_list(ui_fs_file_list_t *fl_ui);
-ui_fs_file_list_t *init_fs_file_list(WINDOW **win, widget_t *w_parent);
-ui_fs_file_list_t *init_fs_file_list_win(WINDOW **win, WINDOW *const *info_win);
+void               w_lfl_draw(w_lfl_ui_t *fl_ui);
+void               w_lfl_destroy(w_lfl_ui_t *fl_ui);
+void               w_lfl_cb(w_cb_args_t *args);
+void               w_lfl_reset(w_lfl_ui_t *fl_ui);
+w_lfl_ui_t        *w_lfl_init(WINDOW **win, w_t *w_parent);
+w_lfl_ui_t        *w_lfl_init_win(WINDOW **win, WINDOW *const *info_win);
+
 #endif

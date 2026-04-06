@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-size_t count_utf8_code_points(const char *s) {
+size_t u_utf8_code_points_count(const char *s) {
   size_t count = 0;
   while (*s) {
     count += (*s++ & 0xC0) != 0x80;
@@ -13,11 +13,11 @@ size_t count_utf8_code_points(const char *s) {
   return count;
 }
 
-int64_t convert_utf8_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
+int64_t u_utf8_conver_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
                              size_t *restrict len) {
   // Step 1: Convert UTF-8 (MBCS) to wchar_t (wide)
   size_t wide_len =
-      count_utf8_code_points(utf8_str); // Get required length (-1 on error)
+      u_utf8_code_points_count(utf8_str); // Get required length (-1 on error)
   if (wide_len == (size_t)-1) {
     *len = 0;
     perror("mbstowcs failed");
@@ -30,10 +30,10 @@ int64_t convert_utf8_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
   return 0;
 }
 
-int64_t curs_printw(WINDOW *win, int64_t y, int64_t x, char *const utf8_str) {
+int64_t u_utf8_curs_printw(WINDOW *win, int64_t y, int64_t x, char *const utf8_str) {
   wchar_t *wname = NULL;
   size_t nsize = 0;
-  convert_utf8_to_wide(utf8_str, &wname, &nsize);
+  u_utf8_conver_to_wide(utf8_str, &wname, &nsize);
   mvwaddwstr(win, y, x, wname);
   free(wname);
   return nsize;

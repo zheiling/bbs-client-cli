@@ -14,9 +14,8 @@
 #include <utils.h>
 
 extern uint32_t m_id;
-int32_t rsize_to_value(int32_t size, enum rsize rsize);
 
-void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
+void w_init(w_t *w, w_t *w_parent, WINDOW **win, char *title) {
   w->id = m_id++;
   w->sz.x = 0;
   w->sz.y = 0;
@@ -36,7 +35,7 @@ void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title) {
   strcpy(w->title, title);
 }
 
-int32_t get_max_line_len(const char *text, uint32_t *line_count) {
+int32_t w_get_max_line_len(const char *text, uint32_t *line_count) {
   uint32_t nl_pos = 0; /* new line position */
   uint32_t c_len = 0;  /* current line length */
   uint32_t m_len = 0;  /* max length */
@@ -79,17 +78,17 @@ void PRINT_TEXT(WINDOW *win, char *l_buf, char *text, int64_t i,
   int64_t utf8len = 0;
   strncpy(l_buf, text + i - c_line_len, c_line_len);
   l_buf[c_line_len] = '\0';
-  utf8len = count_utf8_code_points(l_buf);
+  utf8len = u_utf8_code_points_count(l_buf);
   if ((attrs & PMT_ALIGN_CENTER) == PMT_ALIGN_CENTER) {
-    curs_printw(win, line_v_pos, (win_width - utf8len) / 2, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, (win_width - utf8len) / 2, l_buf);
   } else if (attrs & PMT_POS_CENTER) {
-    curs_printw(win, line_v_pos, (win_width - max_line_len) / 2, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, (win_width - max_line_len) / 2, l_buf);
   } else {
-    curs_printw(win, line_v_pos, x, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, x, l_buf);
   }
 }
 
-uint32_t print_multiline_text(WINDOW *win, const char *_text,
+uint32_t w_print_multiline_text(WINDOW *win, const char *_text,
                               const uint32_t win_width, const uint32_t y,
                               const uint32_t x, const uint16_t attrs) {
 
@@ -120,7 +119,7 @@ uint32_t print_multiline_text(WINDOW *win, const char *_text,
   }
 
   if (attrs & PMT_POS_CENTER) {
-    m_line_len = get_max_line_len(text, NULL);
+    m_line_len = w_get_max_line_len(text, NULL);
   }
 
   for (; text[i]; i++, c_line_len++) {
@@ -138,24 +137,4 @@ uint32_t print_multiline_text(WINDOW *win, const char *_text,
   free(text);
 
   return 1;
-}
-
-int32_t rsize_to_value(int32_t size, enum rsize rsize) {
-  switch (rsize) {
-  case s_1:
-    return size;
-  case s_1_2:
-    return size / 2;
-  case s_1_3:
-    return size / 3;
-  case s_2_3:
-    return size / 3 * 2;
-  case s_1_4:
-    return size / 4;
-  case s_3_4:
-    return size / 4 * 3;
-  case s_auto:
-  default:
-    return size;
-  }
 }

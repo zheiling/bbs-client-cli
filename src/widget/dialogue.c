@@ -11,8 +11,8 @@
 
 #include "file_list.h"
 
-void incr_active_id(dialogue_t *d) {
-  group_el_t *active_el = NULL;
+void incr_active_id(w_dialogue_t *d) {
+  w_g_el_t *active_el = NULL;
   while (true) {
     for (int i = d->active_el->id + 1;
          active_el == NULL && d->id_map.length > i; i++) {
@@ -29,8 +29,8 @@ void incr_active_id(dialogue_t *d) {
   }
 }
 
-void decr_active_id(dialogue_t *d) {
-  group_el_t *active_el = NULL;
+void decr_active_id(w_dialogue_t *d) {
+  w_g_el_t *active_el = NULL;
   while (true) {
     for (int i = d->active_el->id - 1; active_el == NULL && i > 0; i--) {
       active_el = d->id_map.arr[i];
@@ -59,16 +59,16 @@ void decr_active_id(dialogue_t *d) {
     }                                                                          \
   }
 
-void dialogue_default_callback(callback_args_t *args) {
-  dialogue_t *d = (void *)args->element;
+void w_dialogue_callback_default(w_cb_args_t *args) {
+  w_dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
-  callback_args_t new_args;
-  memcpy(&new_args, args, sizeof(callback_args_t));
+  w_cb_args_t new_args;
+  memcpy(&new_args, args, sizeof(w_cb_args_t));
   new_args.active_el = d->active_el;
   int32_t diff;
   d->needs_update = true;
-  input_t *input;
-  widget_t *widget;
+  w_input_t *input;
+  w_t *widget;
   switch (key) {
   case '\t':
     incr_active_id(d);
@@ -87,16 +87,16 @@ void dialogue_default_callback(callback_args_t *args) {
     args->resp_data.code = cbrc_none;
     break;
   case '\n':
-    widget = (widget_t *)d->active_el->element;
+    widget = (w_t *)d->active_el->element;
     if (widget->callback != NULL) { /* Existing callback case */
       new_args.element = widget;
       widget->callback(&new_args);
-      memcpy(&(args->resp_data), &(new_args.resp_data), sizeof(cb_resp_data));
+      memcpy(&(args->resp_data), &(new_args.resp_data), sizeof(w_cbrp_data));
       break;
     } /* Default cases */
     if (d->active_el->g_type == g_action) {
       new_args.element = d->g_action;
-      group_default_callback(&new_args);
+      w_group_cb_default(&new_args);
       mempcpy(&(args->resp_data), &(new_args.resp_data),
               sizeof(new_args.resp_data));
     } else if (d->g_action != NULL) {
@@ -116,7 +116,7 @@ void dialogue_default_callback(callback_args_t *args) {
   case KEY_UP:
     if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
-      group_default_callback(&new_args);
+      w_group_cb_default(&new_args);
     } else if (d->active_el->g_type == g_content &&
                d->g_content->direction == vertical) {
       decr_active_id(d);
@@ -126,7 +126,7 @@ void dialogue_default_callback(callback_args_t *args) {
   case KEY_DOWN:
     if (d->active_el->type == w_fs_file_list) {
       new_args.element = d->g_content;
-      group_default_callback(&new_args);
+      w_group_cb_default(&new_args);
     } else if (d->active_el->g_type == g_content &&
                d->g_content->direction == vertical) {
       incr_active_id(d);
@@ -140,11 +140,11 @@ void dialogue_default_callback(callback_args_t *args) {
     } else {
       new_args.element = d->g_action;
     }
-    group_default_callback(&new_args);
+    w_group_cb_default(&new_args);
   }
 }
 
-void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
+void w_dialogue_init(w_dialogue_t *dialogue, const char title[], const char text[],
                    coordinates_t *p_coordinates) {
   uint32_t t_size = 0;
   dialogue->win = 0;
@@ -152,7 +152,7 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   dialogue->w.sz.x = 0;
   dialogue->w.sz.y = 0;
   dialogue->p_coordinates = p_coordinates;
-  dialogue->w.callback = dialogue_default_callback;
+  dialogue->w.callback = w_dialogue_callback_default;
   dialogue->is_initiated = true;
   dialogue->needs_update = true;
   dialogue->needs_destroy = false;
@@ -160,21 +160,21 @@ void init_dialogue(dialogue_t *dialogue, const char title[], const char text[],
   strcpy(dialogue->w.title, title);
   t_size = strlen(text);
   strcpy(dialogue->text, text);
-  init_d_arr_ptr(&(dialogue->id_map), MAX_IDS);
+  u_d_arr_ptr_init(&(dialogue->id_map), MAX_IDS);
   /* trim the last new line symbol */
   if (t_size && dialogue->text[t_size - 1] == '\n')
     dialogue->text[t_size - 1] = '\0';
 }
 
 /* variadic */
-void vinit_dialogue(dialogue_t *dialogue, const char title[],
+void w_dialogue_vinit(w_dialogue_t *dialogue, const char title[],
                     coordinates_t *p_coordinates, const char fmt[], va_list *v_args) {
   char f_text[DIALOGUE_TEXT];
   vsprintf(f_text, fmt, *v_args);
-  init_dialogue(dialogue, title, f_text, p_coordinates);
+  w_dialogue_init(dialogue, title, f_text, p_coordinates);
 }
 
-int group_init_active_id(group_t *g, dialogue_t *d) {
+int group_init_active_id(w_group_t *g, w_dialogue_t *d) {
   enum w_type wt;
 
   for (int i = 0; i < g->count; i++) {
@@ -184,14 +184,14 @@ int group_init_active_id(group_t *g, dialogue_t *d) {
       d->active_el = g->elements + i;
       return 1;
     } else if (wt == w_group) {
-      group_t *child_g = g->elements[i].element;
+      w_group_t *child_g = g->elements[i].element;
       return group_init_active_id(child_g, d);
     }
   }
   return 0;
 }
 
-void dialogue_init_active_id(dialogue_t *dialogue) {
+void w_dialogue_init_active_id(w_dialogue_t *dialogue) {
   if (dialogue->g_content != NULL) {
     if (group_init_active_id(dialogue->g_content, dialogue)) {
       return;
@@ -216,14 +216,14 @@ void dialogue_init_active_id(dialogue_t *dialogue) {
     y += group->w.sz.y;                                                        \
   }
 
-int32_t draw_dialogue(dialogue_t *d) {
+int32_t w_dialogue_draw(w_dialogue_t *d) {
   if (!d->is_initiated)
     return -1;
   else if (!d->needs_update) {
     return 0;
   }
 
-  group_el_t *ae_ptr = NULL; /* active element */
+  w_g_el_t *ae_ptr = NULL; /* active element */
   /* count dimensions */
   uint32_t x = 1; /* when uses box */
   uint32_t y = 1; /* when uses box */
@@ -231,7 +231,7 @@ int32_t draw_dialogue(dialogue_t *d) {
   /* analyze text content */
   uint32_t line_count = 0;
   uint32_t line_max_len = 0;
-  line_max_len = get_max_line_len(d->text, &line_count);
+  line_max_len = w_get_max_line_len(d->text, &line_count);
   y += line_count;
   y += 2; /* margin for text */
 
@@ -277,20 +277,20 @@ int32_t draw_dialogue(dialogue_t *d) {
   /* text */
   wattroff(d->win, A_BOLD);
   /* mvwhline(d->win, d->w.sz.y - 3, 1, 0, d->w.sz.x - 2); */
-  print_multiline_text(d->win, d->text, d->w.sz.x, 2, 1, PMT_ALIGN_CENTER);
+  w_print_multiline_text(d->win, d->text, d->w.sz.x, 2, 1, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {
-    draw_group(d->win, d->g_content, d->active_el->id);
+    w_group_draw(d->win, d->g_content, d->active_el->id);
   }
   if (d->g_action != NULL) {
-    draw_group(d->win, d->g_action, d->active_el->id);
+    w_group_draw(d->win, d->g_action, d->active_el->id);
   }
 
   /* move cursor */
   if (d->active_el != NULL &&
       (d->active_el->type == w_input || d->active_el->type == w_checkbox)) {
-    widget_t *w = d->active_el->element;
+    w_t *w = d->active_el->element;
     d->w.cur.y = w->cur.y;
     d->w.cur.x = w->cur.x;
     if (d->w.cur.y || d->w.cur.x) {
@@ -307,13 +307,13 @@ int32_t draw_dialogue(dialogue_t *d) {
   return 0;
 }
 
-void destroy_dialogue(dialogue_t *d, void *_app) {
-  app_t *app = (app_t *)_app;
+void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
+  w_app_t *app = (w_app_t *)_app;
   if (d->g_content) {
-    destroy_group(d->g_content);
+    w_group_destroy(d->g_content);
   }
   if (d->g_action) {
-    destroy_group(d->g_action);
+    w_group_destroy(d->g_action);
   }
   delwin(d->win);
   d->win = NULL;
@@ -321,8 +321,8 @@ void destroy_dialogue(dialogue_t *d, void *_app) {
   d->needs_destroy = false;
   app->active_win_type = aw_left;
   app->active_win = app->left_win;
-  app->active_callback = file_list_cb;
+  app->active_callback = w_fl_cb;
   app->query_args->active_dialogue = NULL;
-  free_d_arr(&(d->id_map));
-  app_refresh(app);
+  u_d_arr_ptr_free(&(d->id_map));
+  w_app_refresh(app);
 }

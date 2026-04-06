@@ -1,8 +1,8 @@
-#ifndef ASK_SERVER_ADDR_H
-#define ASK_SERVER_ADDR_H
+#ifndef M_ASK_SERVER_ADDR_H
+#define M_ASK_SERVER_ADDR_H
 
 #include <widget.h>
 
-dialogue_t *init_asa_modal(app_t *app);
+w_dialogue_t *m_asa_init(w_app_t *app);
 
 #endif

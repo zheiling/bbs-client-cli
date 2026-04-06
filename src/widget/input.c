@@ -10,10 +10,10 @@
 #include "input.h"
 #include <widget_core.h>
 
-bool input_default_key_action(callback_args_t *args) {
+bool w_input_default_key_action(w_cb_args_t *args) {
   int32_t key = *((int32_t *)args->data);
-  group_el_t *g_el = args->active_el;
-  input_t *input = g_el->element;
+  w_g_el_t *g_el = args->active_el;
+  w_input_t *input = g_el->element;
   int64_t start_pos = 0;
 
   switch (key) {
@@ -45,10 +45,10 @@ bool input_default_key_action(callback_args_t *args) {
   return true;
 }
 
-input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
+w_input_t *w_input_init(WINDOW **win, w_t *w_parent, char *label,
                     uint32_t length, uint32_t is_hidden_value) {
-  input_t *input = malloc(sizeof(input_t));
-  init_widget(&(input->w), w_parent, win, label);
+  w_input_t *input = malloc(sizeof(w_input_t));
+  w_init(&(input->w), w_parent, win, label);
   input->is_disabled = 0;
   input->w.sz.y = 3; // with borders
   input->w.sz.x =
@@ -65,14 +65,14 @@ input_t *init_input(WINDOW **win, widget_t *w_parent, char *label,
   return input;
 }
 
-int32_t draw_input(input_t *input, uint32_t active_id) {
+int32_t w_input_draw(w_input_t *input, uint32_t active_id) {
   const char stars[] = "*******************";
   WINDOW *win = *(input->w.parent_win);
   uint32_t pos_y = input->w.ps.y + input->w.m.y;
   uint32_t pos_x = input->w.ps.x + input->w.m.x;
 
   /* counts margins of the ancestors of the same window */
-  widget_t *w_par = input->w.w_parent;
+  w_t *w_par = input->w.w_parent;
   while (w_par->parent_win == input->w.parent_win) {
     pos_y += w_par->ps.y;
     pos_x += w_par->ps.x;
@@ -123,4 +123,4 @@ int32_t draw_input(input_t *input, uint32_t active_id) {
   return 0;
 }
 
-void destroy_input(input_t *btn) { free(btn); }
+void w_input_destroy(w_input_t *btn) { free(btn); }

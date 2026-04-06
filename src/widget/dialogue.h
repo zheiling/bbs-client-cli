@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef DIALOGUE_H
-#define DIALOGUE_H
+#ifndef W_DIALOGUE_H
+#define W_DIALOGUE_H
 
 #include "../common.h"
 #include "group.h"
@@ -12,31 +12,31 @@
 #include <widget_core.h>
 #define MAX_IDS 64
 
-enum dc_color_scheme { dc_normal, dc_alert };
+enum w_dialogue_color_scheme { dc_normal, dc_alert };
 
 typedef struct {
-  widget_t w;
+  w_t w;
   WINDOW *win;
-  group_t *g_content;
-  group_t *g_action;
-  group_el_t *active_el;
+  w_group_t *g_content;
+  w_group_t *g_action;
+  w_g_el_t *active_el;
   char text[DIALOGUE_TEXT];
   bool is_initiated;
   bool needs_update;
   bool needs_destroy;
   coordinates_t *p_coordinates;
-  enum dc_color_scheme color_scheme;
+  enum w_dialogue_color_scheme color_scheme;
   d_array_ptr_t id_map;
-} dialogue_t;
+} w_dialogue_t;
 
-void init_dialogue(dialogue_t *d, const char title[], const char text[],
+void    w_dialogue_init(w_dialogue_t *d, const char title[], const char text[],
                    coordinates_t *p_coordinates);
-void vinit_dialogue(dialogue_t *dialogue, const char title[],
+void    w_dialogue_vinit(w_dialogue_t *dialogue, const char title[],
                     coordinates_t *p_coordinates, const char fmt[],
                     va_list *v_args);
-int32_t draw_dialogue(dialogue_t *d);
-void destroy_dialogue(dialogue_t *d, void *app);
-void dialogue_default_callback(callback_args_t *args);
-void dialogue_init_active_id(dialogue_t *dialogue);
+int32_t w_dialogue_draw(w_dialogue_t *d);
+void    w_dialogue_destroy(w_dialogue_t *d, void *app);
+void    w_dialogue_callback_default(w_cb_args_t *args);
+void    w_dialogue_init_active_id(w_dialogue_t *dialogue);
 
 #endif

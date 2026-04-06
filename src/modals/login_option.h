@@ -1,8 +1,8 @@
-#ifndef LOGIN_OPTION_MODAL_H
-#define LOGIN_OPTION_MODAL_H
+#ifndef M_LOGIN_OPTION_H
+#define M_LOGIN_OPTION_H
 
 #include <widget.h>
 
-dialogue_t *init_login_option_modal(app_t *app);
+w_dialogue_t *m_login_option_init(w_app_t *app);
 
 #endif

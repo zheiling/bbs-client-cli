@@ -1,8 +1,8 @@
-#ifndef SERVER_MESSAGE_H
-#define SERVER_MESSAGE_H
+#ifndef M_SERVER_MESSAGE_H
+#define M_SERVER_MESSAGE_H
 
 #include <widget.h>
 
-void *init_server_message_modal(app_t *app);
+void *m_server_message_init(w_app_t *app);
 
 #endif

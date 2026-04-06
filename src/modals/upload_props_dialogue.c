@@ -11,19 +11,19 @@
 
 #include "../server.h"
 
-void upload_props_dialogue_modal_cb(callback_args_t *args) {
-  callback_args_t d_args;
-  app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)app->active_widget;
-  memcpy(&d_args, args, sizeof(callback_args_t));
+void upload_props_dialogue_modal_cb(w_cb_args_t *args) {
+  w_cb_args_t d_args;
+  w_app_t *app = args->app;
+  w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
+  memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
   d_args.element = app->active_widget;
-  dialogue_default_callback(&d_args);
+  w_dialogue_callback_default(&d_args);
   int32_t query_len = 0;
   if (d_args.resp_data.code == cbrp_val) {
-    checkbox_t *reg_cbx = (checkbox_t *)d->g_content->elements[0].element;
-    checkbox_t *anon_cbx = (checkbox_t *)d->g_content->elements[1].element;
-    checkbox_t *comp_cbx = (checkbox_t *)d->g_content->elements[2].element;
+    w_checkbox_t *reg_cbx = (w_checkbox_t *)d->g_content->elements[0].element;
+    w_checkbox_t *anon_cbx = (w_checkbox_t *)d->g_content->elements[1].element;
+    w_checkbox_t *comp_cbx = (w_checkbox_t *)d->g_content->elements[2].element;
 
     int32_t privileges = 0;
     if (anon_cbx->value == true)
@@ -57,10 +57,10 @@ void upload_props_dialogue_modal_cb(callback_args_t *args) {
   }
 }
 
-dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
+w_dialogue_t *m_upload_props_dialogue_init(w_app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t content[] = {{.type = w_checkbox,
+  w_group_el_init_t content[] = {{.type = w_checkbox,
                                 .label = "Visible for registered",
                                 .is_default = true},
                                {.type = w_checkbox,
@@ -71,26 +71,26 @@ dialogue_t *init_upload_props_dialogue_modal(app_t *app) {
                                 .is_default = false},
                                {.type = w_end}};
 
-  group_el_init_t actions[] = {
+  w_group_el_init_t actions[] = {
       {.type = w_button, .label = "Upload", .is_default = false, .val.num = 1},
       {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 2},
       {.type = w_end},
   };
 
   app->modal.w.parent_win = &app->win;
-  init_dialogue(&(app->modal), "Description for the file",
+  w_dialogue_init(&(app->modal), "Description for the file",
                 "Enter essential data", &(app->coordinates));
-  dialogue_t *d = &(app->modal);
+  w_dialogue_t *d = &(app->modal);
 
   d->w.callback = upload_props_dialogue_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map), vertical,
+  d->g_content = w_group_init(&(d->win), &(d->w), content, &(d->id_map), vertical,
                             g_content);
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+  d->g_action = w_group_init(&(d->win), &(d->w), actions, &(d->id_map),
                            horizontal, g_action);
 
   app->query_args->active_dialogue = d;
 
-  dialogue_init_active_id(d);
+  w_dialogue_init_active_id(d);
 
   return NULL;
 }

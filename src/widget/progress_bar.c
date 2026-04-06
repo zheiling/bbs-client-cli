@@ -7,10 +7,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-ui_progress_bar_t *init_ui_progress_bar(WINDOW **win, widget_t *w_parent) {
+w_pgb_ui_t *w_pgb_ui_init(WINDOW **win, w_t *w_parent) {
   WINDOW *win_par = *(w_parent->w_parent->parent_win);
-  ui_progress_bar_t *pb = malloc(sizeof(ui_progress_bar_t));
-  init_widget(&pb->w, w_parent, win, "");
+  w_pgb_ui_t *pb = malloc(sizeof(w_pgb_ui_t));
+  w_init(&pb->w, w_parent, win, "");
   pb->procent = 0;
   pb->text[0] = '\0';
   pb->w.sz.y = 4;
@@ -18,7 +18,7 @@ ui_progress_bar_t *init_ui_progress_bar(WINDOW **win, widget_t *w_parent) {
   return pb;
 }
 
-void draw_ui_progress_bar(ui_progress_bar_t *pb) {
+void w_pgb_ui_draw(w_pgb_ui_t *pb) {
   WINDOW *win = *(pb->w.w_parent->parent_win);
   uint32_t margin_y = pb->w.ps.y + pb->w.w_parent->ps.y;
   uint32_t margin_x = pb->w.ps.x + pb->w.w_parent->ps.x + 1;
@@ -55,7 +55,7 @@ void draw_ui_progress_bar(ui_progress_bar_t *pb) {
   mvwvline(win, margin_y + 3, margin_x + pb->w.sz.x - 2, ACS_LRCORNER, 1);
 }
 
-void destroy_ui_progress_bar(void *_pb) {
-  ui_progress_bar_t *pb = (ui_progress_bar_t *)_pb;
+void w_pgb_ui_destroy(void *_pb) {
+  w_pgb_ui_t *pb = (w_pgb_ui_t *)_pb;
   free(pb);
 }

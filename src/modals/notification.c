@@ -7,44 +7,44 @@
 #include <widget.h>
 
 typedef struct {
-  button_t *element;
+  w_button_t *element;
   enum w_type type;
 } group_bt_t;
 
-void init_notification_modal_cb(callback_args_t *args) {
-  callback_args_t d_args;
-  app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)app->active_widget;
-  memcpy(&d_args, args, sizeof(callback_args_t));
+void init_notification_modal_cb(w_cb_args_t *args) {
+  w_cb_args_t d_args;
+  w_app_t *app = args->app;
+  w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
+  memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
   d_args.element = app->active_widget;
-  dialogue_default_callback(&d_args);
+  w_dialogue_callback_default(&d_args);
 
   app->query_args->state = WAIT_CLIENT;
   d->needs_destroy = true;
 }
 
-dialogue_t *init_notification_modal(app_t *app) {
+w_dialogue_t *m_notification_init(w_app_t *app) {
   if (app == NULL)
     return NULL;
 
-  group_el_init_t actions[] = {
+  w_group_el_init_t actions[] = {
       {.type = w_button, .label = "OK", .is_default = true, .val.num = 1},
       {.type = w_end}};
 
-  init_dialogue(&(app->modal), "Notification", app->query_args->notification,
+  w_dialogue_init(&(app->modal), "Notification", app->query_args->notification,
                 &(app->coordinates));
   free(app->query_args->notification);
   app->query_args->notification = NULL;
-  dialogue_t *d = &(app->modal);
+  w_dialogue_t *d = &(app->modal);
   app->query_args->active_dialogue = d;
 
   d->w.callback = init_notification_modal_cb;
   d->g_content = NULL;
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+  d->g_action = w_group_init(&(d->win), &(d->w), actions, &(d->id_map),
                            horizontal, g_action);
 
-  dialogue_init_active_id(d);
+  w_dialogue_init_active_id(d);
 
   return NULL;
 }

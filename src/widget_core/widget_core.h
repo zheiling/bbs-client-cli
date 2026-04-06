@@ -8,9 +8,9 @@
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 
-enum g_type { g_content, g_action };
+enum w_g_type { g_content, g_action };
 
-enum g_direction {
+enum w_g_dir {
   horizontal,
   vertical,
 };
@@ -26,14 +26,14 @@ enum w_type {
   w_fs_file_list,
 };
 
-enum val_type {
+enum w_val_type {
   val_num,
   val_ptr,
   val_nul,
 };
 
-struct val_t {
-  enum val_type type;
+struct w_val_t {
+  enum w_val_type type;
   union {
     void *ptr;
     int64_t num;
@@ -45,42 +45,34 @@ typedef struct {
   int64_t idx; /* element index in the group */
   void *element;
   enum w_type type;
-  enum g_type g_type;
+  enum w_g_type g_type;
   bool is_default;
-  struct val_t val;
-} group_el_t;
+  struct w_val_t val;
+} w_g_el_t;
 
-enum cbrp_code {
+/* widget callback response code */
+enum w_cbrp_code {
   cbrc_none, /* default */
   cbrp_val,
   cbrp_g_el, /* element of type group_el_t */
   cbrp_err
 };
 
+/* widget callback response data */
 typedef struct {
- enum cbrp_code code;
- struct val_t val;
-} cb_resp_data;
+ enum w_cbrp_code code;
+ struct w_val_t val;
+} w_cbrp_data;
 
 typedef struct {
   void *app;
   void *element;
   void *data;
-  cb_resp_data resp_data;
+  w_cbrp_data resp_data;
   void *active_el;
-} callback_args_t;
+} w_cb_args_t;
 
-enum rsize {
-  s_auto,
-  s_1,
-  s_1_2,
-  s_1_3,
-  s_2_3,
-  s_1_4,
-  s_3_4,
-};
-
-typedef struct widget_t {
+typedef struct w_t {
   int64_t id;
   char title[DIALOGUE_TITLE];
   struct {
@@ -100,20 +92,20 @@ typedef struct widget_t {
     int64_t x;
   } ps; /* position (relative to the window) */
   WINDOW *const *parent_win;
-  struct widget_t *w_parent;
-  void (*callback)(callback_args_t *args);
-} widget_t;
+  struct w_t *w_parent;
+  void (*callback)(w_cb_args_t *args);
+} w_t;
 
-typedef void (*callback_t)(callback_args_t *args);
+typedef void (*w_cb_t)(w_cb_args_t *args);
 
-enum pmt_attrs {
+enum w_pmt_attrs {
   PMT_POS_CENTER = 01,
   PMT_ALIGN_CENTER = 03,
 };
 
-void init_widget(widget_t *w, widget_t *w_parent, WINDOW **win, char *title);
-int32_t get_max_line_len(const char *text, uint32_t *line_count);
-uint32_t print_multiline_text(WINDOW *win, const char *text,
+void     w_init(w_t *w, w_t *w_parent, WINDOW **win, char *title);
+int32_t  w_get_max_line_len(const char *text, uint32_t *line_count);
+uint32_t w_print_multiline_text(WINDOW *win, const char *text,
                               const uint32_t win_width, const uint32_t y,
                               const uint32_t x, const uint16_t attrs);
 

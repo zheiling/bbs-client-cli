@@ -5,16 +5,16 @@
 #include <string.h>
 #include <widget.h>
 
-void upload_dialogue_modal_cb(callback_args_t *args) {
-  callback_args_t d_args;
-  app_t *app = args->app;
-  dialogue_t *d = (dialogue_t *)app->active_widget;
-  memcpy(&d_args, args, sizeof(callback_args_t));
+void upload_dialogue_modal_cb(w_cb_args_t *args) {
+  w_cb_args_t d_args;
+  w_app_t *app = args->app;
+  w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
+  memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
   d_args.element = app->active_widget;
-  dialogue_default_callback(&d_args);
-  ui_fs_file_list_t *fui =
-      (ui_fs_file_list_t *)d->g_content->elements[0].element;
+  w_dialogue_callback_default(&d_args);
+  w_lfl_ui_t *fui =
+      (w_lfl_ui_t *)d->g_content->elements[0].element;
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
     case 0:
@@ -33,31 +33,31 @@ void upload_dialogue_modal_cb(callback_args_t *args) {
   }
 }
 
-dialogue_t *init_upload_dialogue_modal(app_t *app) {
+w_dialogue_t *m_upload_dialogue_init(w_app_t *app) {
   if (app == NULL)
     return NULL;
-  group_el_init_t content[] = {
+  w_group_el_init_t content[] = {
       // {.type = w_input, .label = "File description", .length = 30},
       {.type = w_fs_file_list, .label = "File", .length = 30},
       {.type = w_end}};
 
-  group_el_init_t actions[] = {
+  w_group_el_init_t actions[] = {
       {.type = w_button, .label = "Cancel", .is_default = false, .val.num = 0}, {.type = w_end}};
 
   app->modal.w.parent_win = &app->win;
-  init_dialogue(&(app->modal), "Upload new file", "Enter essential data",
+  w_dialogue_init(&(app->modal), "Upload new file", "Enter essential data",
                 &(app->coordinates));
-  dialogue_t *d = &(app->modal);
+  w_dialogue_t *d = &(app->modal);
 
   d->w.callback = upload_dialogue_modal_cb;
-  d->g_content = init_group(&(d->win), &(d->w), content, &(d->id_map),
+  d->g_content = w_group_init(&(d->win), &(d->w), content, &(d->id_map),
                             horizontal, g_content);
-  d->g_action = init_group(&(d->win), &(d->w), actions, &(d->id_map),
+  d->g_action = w_group_init(&(d->win), &(d->w), actions, &(d->id_map),
                            horizontal, g_action);
 
   app->query_args->active_dialogue = d;
 
-  dialogue_init_active_id(d);
+  w_dialogue_init_active_id(d);
 
   return NULL;
 }

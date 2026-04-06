@@ -32,31 +32,31 @@ void server_send_string(query_args_t *q, const char *fmt, ...) {
   va_end(args);
 }
 
-int server_wait_reg_confirm_cb(app_t *app, char *line, int l_len) {
+int server_wait_reg_confirm_cb(w_app_t *app, char *line, int l_len) {
   query_args_t *q_args = app->query_args;
   char query[INBUFSIZE];
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
 
   if (!strcmp(line, "ok\n")) {
     server_send_string(q_args, "file list %u %u\n", fui->max_lines,
                        fui->current_page);
     q_args->state = S_FILE_LIST;
-    destroy_dialogue(&(app->modal), app);
+    w_dialogue_destroy(&(app->modal), app);
     sprintf(query,
             "You've been successfully registered.\n"
             "Welcome, %s!",
             app->params->uname);
-    notification("Registration", dc_normal, query);
-    print_bars(app);
+    w_notification("Registration", dc_normal, query);
+    w_app_print_bars(app);
     return 0;
   } else {
     q_args->state = S_ASK_REGISTER;
-    alert(line);
+    w_alert(line);
     return 1;
   }
 }
 
-int server_print_message_cb(app_t *app, char *line, int l_len) {
+int server_print_message_cb(w_app_t *app, char *line, int l_len) {
   int64_t new_capacity;
   query_args_t *q_args = app->query_args;
   if (q_args->server_message.text == NULL) {
@@ -82,7 +82,7 @@ int server_print_message_cb(app_t *app, char *line, int l_len) {
     query_return_to_buf(app->query_args->buf, &(app->query_args->buf_used),
                         end_char + 1);
     *end_char = '\0'; /* Don't show this symbol */
-    notification("Server response", dc_normal, q_args->server_message.text);
+    w_notification("Server response", dc_normal, q_args->server_message.text);
     /* q_args->state = S_PRINT_SERVER_MESSAGE; */
     q_args->server_message.size = 0;
     q_args->server_message.text[0] = 0;
@@ -92,11 +92,11 @@ int server_print_message_cb(app_t *app, char *line, int l_len) {
   return 0;
 }
 
-int process_server_command(char *line, int l_len, app_t *app) {
+int process_server_command(char *line, int l_len, w_app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
   params_t *params = q_args->params;
-  ui_file_list_t *fui = (ui_file_list_t *)q_args->main_ui->ui;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
 
   char *cptr = strchr(line, ' ');
   if (cptr != NULL && cptr > line)
@@ -123,7 +123,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
 
   /* LOGIN AGAIN */
   if (!strncmp(line, "login_again>\n", ws_pos)) {
-    alert("Incorrect credentials! Try again");
+    w_alert("Incorrect credentials! Try again");
     free(params->uname);
     free(params->pass);
     params->uname = NULL;

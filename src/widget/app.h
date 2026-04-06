@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef N_APP_H
-#define N_APP_H
+#ifndef W_APP_H
+#define W_APP_H
 
 #include "../main.h"
 #include "../common.h"
@@ -13,36 +13,36 @@
 
 typedef enum {
   modal_color_pair = 3,
-} color;
+} w_app_color;
 
 typedef enum {
   aw_left,
   aw_right,
   aw_modal
-} active_win_t;
+} w_active_win_t;
 
 typedef struct {
   WINDOW *win;
   WINDOW *left_win;
   WINDOW *right_win;
-  dialogue_t modal;
+  w_dialogue_t modal;
   params_t *params;
   coordinates_t coordinates;
   query_args_t *query_args;
   file_args_t *file_args;
-  active_win_t active_win_type;
-  void (*active_callback)(callback_args_t *args);
+  w_active_win_t active_win_type;
+  void (*active_callback)(w_cb_args_t *args);
   WINDOW *active_win;
   void *active_widget;
   main_window_t main_ui;
-} app_t;
+} w_app_t;
 
-app_t *init_app(void);
-void init_nc(void);
-void destroy_app(app_t *app, int32_t exit_code);
-void draw_borders(app_t *app);
-void print_bars(app_t *app);
-void app_refresh(app_t *app);
-void app_draw_modal(app_t *app);
+w_app_t *w_app_init(void);
+void  w_app_init_nc(void);
+void  w_app_destroy(w_app_t *app, int32_t exit_code);
+void  w_app_draw_borders(w_app_t *app);
+void  w_app_print_bars(w_app_t *app);
+void  w_app_refresh(w_app_t *app);
+void  w_app_draw_modal(w_app_t *app);
 
 #endif // N_APP_H

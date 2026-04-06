@@ -1,8 +1,8 @@
-#ifndef UPLOAD_DIALOGUE_H
-#define UPLOAD_DIALOGUE_H
+#ifndef M_UPLOAD_DIALOGUE_H
+#define M_UPLOAD_DIALOGUE_H
 
 #include <widget.h>
 
-dialogue_t *init_upload_dialogue_modal(app_t *app);
+w_dialogue_t *m_upload_dialogue_init(w_app_t *app);
 
 #endif

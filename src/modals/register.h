@@ -1,8 +1,8 @@
-#ifndef REGISTER_MODAL_H
-#define REGISTER_MODAL_H
+#ifndef M_REGISTER_H
+#define M_REGISTER_H
 
 #include <widget.h>
 
-dialogue_t *init_register_modal(app_t *app);
+w_dialogue_t *m_register_init(w_app_t *app);
 
 #endif

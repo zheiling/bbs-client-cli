@@ -1,20 +1,21 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef CHECKBOX_H
-#define CHECKBOX_H
+#ifndef W_CHECKBOX_H
+#define W_CHECKBOX_H
 
 #include <widget_core.h>
 #include <stdint.h>
 
 typedef struct {
-  widget_t w;
+  w_t w;
   bool is_disabled;
   bool value;
-} checkbox_t;
+} w_checkbox_t;
 
-bool checkbox_default_key_action(callback_args_t *args);
-checkbox_t *init_checkbox(WINDOW **win, widget_t *w_parent, char *label);
-int32_t draw_checkbox(checkbox_t *cbx, uint32_t active_id);
-void destroy_checkbox(checkbox_t *cbx);
+bool          w_checkbox_default_key_action(w_cb_args_t *args);
+w_checkbox_t *w_checkbox_init(WINDOW **win, w_t *w_parent, char *label);
+int32_t       w_checkbox_draw(w_checkbox_t *cbx, uint32_t active_id);
+void          w_checkbox_destroy(w_checkbox_t *cbx);
+
 #endif

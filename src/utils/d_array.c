@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void init_d_arr_ptr(d_array_ptr_t *arr, int64_t init_capacity) {
+void u_d_arr_ptr_init(d_array_ptr_t *arr, int64_t init_capacity) {
   arr->capacity = init_capacity;
   arr->length = 0;
   arr->arr = malloc(sizeof(void *) * init_capacity);
@@ -13,7 +13,7 @@ void init_d_arr_ptr(d_array_ptr_t *arr, int64_t init_capacity) {
   memset(arr->arr, 0, init_capacity);
 }
 
-void add_d_arr_ptr(d_array_ptr_t *arr, void *ptr, int64_t idx) {
+void u_d_arr_ptr_add(d_array_ptr_t *arr, void *ptr, int64_t idx) {
   int64_t new_capacity = idx * 2;
   if (idx > arr->capacity - 1) {
     arr->arr = realloc(arr->arr, new_capacity);
@@ -26,7 +26,7 @@ void add_d_arr_ptr(d_array_ptr_t *arr, void *ptr, int64_t idx) {
   arr->length = idx+1;
 }
 
-void free_d_arr(d_array_ptr_t *arr) {
+void u_d_arr_ptr_free(d_array_ptr_t *arr) {
   arr->capacity = 0;
   arr->length = 0;
   free(arr->arr);

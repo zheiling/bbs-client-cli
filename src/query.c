@@ -32,26 +32,26 @@
 #include "server.h"
 #include "types.h"
 
-static int process_command(app_t *app, wait_server_cb *cb);
+static int process_command(w_app_t *app, wait_server_cb *cb);
 void user_request_description(query_args_t *q_args);
-int process_query(app_t *app);
-int32_t process_user_input(app_t *app, callback_args_t *d_args);
+int process_query(w_app_t *app);
+int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args);
 
 #define EXIT_APP(message, app, exit_code)                                      \
   {                                                                            \
-    alert(message);                                                            \
+    w_alert(message);                                                            \
     close_session(app->params->sd);                                            \
-    destroy_app(app, exit_code);                                               \
+    w_app_destroy(app, exit_code);                                               \
   }
 
-void query_loop(app_t *app) {
+void query_loop(w_app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
   int32_t sd = app->params->sd;
   size_t qlen;
   int sr;
   static file_args_t file_args;
-  callback_args_t d_args = {
+  w_cb_args_t d_args = {
       .app = app, .element = NULL, .data = NULL, .resp_data.code = cbrc_none};
 
   init_file_args(&file_args);
@@ -60,8 +60,8 @@ void query_loop(app_t *app) {
 
   for (;;) {
     /* update screen */
-    app_draw_modal(app);
-    app_refresh(app);
+    w_app_draw_modal(app);
+    w_app_refresh(app);
 
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
@@ -128,22 +128,22 @@ void wait_register(query_args_t *q_args) {
                      email);
 }
 
-int upload_confirm_cb(app_t *app, char *query, int q_len) {
+int upload_confirm_cb(w_app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
-    ui_file_list_t *fui = (ui_file_list_t *)app->query_args->main_ui->ui;
-    notification("File upload", dc_normal, "File %s is uploaded to the server!",
+    w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
+    w_notification("File upload", dc_normal, "File %s is uploaded to the server!",
                  app->query_args->file->name);
     clear_file_in_query(app->query_args);
     app->query_args->state = S_FILE_LIST;
     app->modal.needs_destroy = true;
-    reset_file_list(fui);
+    w_fl_rest(fui);
     server_send_string(app->query_args, "file list %u %u\n", fui->max_lines, 1);
     return 0;
   }
   return 1; /* TODO: Error case */
 }
 
-int process_query(app_t *app) {
+int process_query(w_app_t *app) {
   query_args_t *query_args = app->query_args;
   file_args_t *file_args = app->file_args;
   query_args->buf[query_args->buf_used] = 0;
@@ -251,7 +251,7 @@ void query_return_to_buf(char *buf, int *buf_used, char *input_line) {
   buf[*buf_used] = 0;
 }
 
-static int process_command(app_t *app, wait_server_cb *callback) {
+static int process_command(w_app_t *app, wait_server_cb *callback) {
   query_args_t *q_args = app->query_args;
   int qlen;
   char *query = NULL;

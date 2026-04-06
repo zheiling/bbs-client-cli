@@ -3,13 +3,17 @@
 
 #ifndef PROGRESS_BAR_H
 #define PROGRESS_BAR_H
+
 #include <widget_core.h>
+
 typedef struct {
-  widget_t w;
+  w_t w;
   uint32_t procent;
   char text[24];
-} ui_progress_bar_t;
-void destroy_ui_progress_bar(void *_pb);
-void draw_ui_progress_bar(ui_progress_bar_t *pb);
-ui_progress_bar_t *init_ui_progress_bar(WINDOW **win, widget_t *w_parent);
+} w_pgb_ui_t;
+
+w_pgb_ui_t *w_pgb_ui_init(WINDOW **win, w_t *w_parent);
+void        w_pgb_ui_draw(w_pgb_ui_t *pb);
+void        w_pgb_ui_destroy(void *_pb);
+
 #endif

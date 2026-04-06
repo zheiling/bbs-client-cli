@@ -1,19 +1,20 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef BUTTON_H
-#define BUTTON_H
+#ifndef W_BUTTON_H
+#define W_BUTTON_H
 
 #include <widget_core.h>
 #include <stdint.h>
 
 typedef struct {
-  widget_t w;
+  w_t w;
   int32_t hotkey;
   uint32_t is_disabled : 1;
-} button_t;
+} w_button_t;
 
-button_t *init_button(WINDOW **win, widget_t *w_parent, char *label);
-int32_t draw_button(button_t *btn, uint32_t active_id);
-void destroy_button(button_t *btn);
+w_button_t *init_button(WINDOW **win, w_t *w_parent, char *label);
+int32_t     draw_button(w_button_t *btn, uint32_t active_id);
+void        destroy_button(w_button_t *btn);
+
 #endif

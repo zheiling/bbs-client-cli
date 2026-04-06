@@ -16,11 +16,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void reset_file_list(ui_file_list_t *fl_ui);
+void w_fl_rest(w_ui_file_list_t *fl_ui);
 
-void file_list_cb(callback_args_t *args) {
-  app_t *app = args->app;
-  ui_file_list_t *fui = app->query_args->main_ui->ui;
+void w_fl_cb(w_cb_args_t *args) {
+  w_app_t *app = args->app;
+  w_ui_file_list_t *fui = app->query_args->main_ui->ui;
   int32_t key = *((int32_t *)args->data);
   char q_prefix[128];
   if (fui->search_key->slen > 0) {
@@ -33,7 +33,7 @@ void file_list_cb(callback_args_t *args) {
     if (key == KEY_BACKSPACE || key == KEY_DL) {
       if (blength(fui->search_key)) {
         btrunc(fui->search_key, blength(fui->search_key) - 1);
-        draw_file_list(fui);
+        w_fl_draw(fui);
       }
     } else if (key == '\n' || key == '\33') {
       fui->active_search = false;
@@ -45,10 +45,10 @@ void file_list_cb(callback_args_t *args) {
       }
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, 1);
-      reset_file_list(fui);
+      w_fl_rest(fui);
     } else {
       bconchar(fui->search_key, key);
-      draw_file_list(fui);
+      w_fl_draw(fui);
     }
     return;
   }
@@ -57,23 +57,23 @@ void file_list_cb(callback_args_t *args) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
       fui->current_idx++;
-      draw_file_list(fui);
+      w_fl_draw(fui);
     } else if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
-      reset_file_list(fui);
+      w_fl_rest(fui);
     }
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
       fui->current_idx--;
-      draw_file_list(fui);
+      w_fl_draw(fui);
     } else if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
-      reset_file_list(fui);
+      w_fl_rest(fui);
       fui->activate_last = true;
     }
     break;
@@ -82,7 +82,7 @@ void file_list_cb(callback_args_t *args) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
-      reset_file_list(fui);
+      w_fl_rest(fui);
     }
     break;
   case KEY_PPAGE:
@@ -90,7 +90,7 @@ void file_list_cb(callback_args_t *args) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
-      reset_file_list(fui);
+      w_fl_rest(fui);
       fui->activate_last = true;
     }
     break;
@@ -103,16 +103,16 @@ void file_list_cb(callback_args_t *args) {
     app->query_args->state = S_FILE_LIST;
     server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines,
                        1);
-    reset_file_list(fui);
+    w_fl_rest(fui);
   case '\n':
     ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
     break;
   }
 }
 
-ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
-  ui_file_list_t *fui = malloc(sizeof(ui_file_list_t));
-  init_widget(&(fui->w), NULL, win, "");
+w_ui_file_list_t *w_fl_init(WINDOW **win, WINDOW *const *info_win) {
+  w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
+  w_init(&(fui->w), NULL, win, "");
   WINDOW *parent_win = *(fui->w.parent_win);
   fui->current_idx = 0;
   fui->current_page = 1;
@@ -129,13 +129,13 @@ ui_file_list_t *init_file_list(WINDOW **win, WINDOW *const *info_win) {
   return fui;
 }
 
-void delete_file_list(ui_file_list_t **fui) {
+void w_fl_destroy(w_ui_file_list_t **fui) {
    fl_clear((*fui)->start, (*fui)->current);
    free(*fui);
    *fui = NULL;
 }
 
-void reset_file_list(ui_file_list_t *fl_ui) {
+void w_fl_rest(w_ui_file_list_t *fl_ui) {
   fl_clear(fl_ui->start, fl_ui->current);
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
@@ -146,7 +146,7 @@ void reset_file_list(ui_file_list_t *fl_ui) {
   fl_ui->active_search = false;
 }
 
-void draw_file_list(ui_file_list_t *fui) {
+void w_fl_draw(w_ui_file_list_t *fui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
   WINDOW *parent_win = *(fui->w.parent_win);
@@ -186,7 +186,7 @@ void draw_file_list(ui_file_list_t *fui) {
       active_el = el;
     }
     p_x = 1;
-    p_x += curs_printw(parent_win, p_y, p_x, el->name);
+    p_x += u_utf8_curs_printw(parent_win, p_y, p_x, el->name);
     mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - p_x, "");
     if (cur_el_idx == fui->current_idx) {
       wattroff(parent_win, A_BOLD | A_REVERSE);
@@ -234,7 +234,7 @@ void draw_file_list(ui_file_list_t *fui) {
       mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
       if (active_el->description != NULL) {
         mvwprintw(i_win, p_y++, p_x, "Description: ");
-        print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+        w_print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
       }
     }
   }
