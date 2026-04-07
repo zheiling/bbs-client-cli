@@ -110,29 +110,56 @@ void w_fl_cb(w_cb_args_t *args) {
   }
 }
 
-w_ui_file_list_t *w_fl_init(WINDOW **win, WINDOW *const *info_win) {
+static void w_fl_cb_refresh(void *data) {
+  w_app_t *app = (w_app_t *)data;
+  if (app->main_ui.type != mw_fl_server) {
+    return;
+  }
+  w_ui_file_list_t *fui = app->main_ui.ui;
+  wnoutrefresh(fui->win_list);
+  wnoutrefresh(fui->win_info);
+}
+
+w_ui_file_list_t *w_fl_init(w_app_t *app) {
   w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
-  w_init(&(fui->w), NULL, win, "");
-  WINDOW *parent_win = *(fui->w.parent_win);
+  app->main_ui.ui = fui;
+  app->main_ui.type = mw_fl_server;
+  app->main_ui.cb_refresh = w_fl_cb_refresh;
+  w_init(&(fui->w), NULL, &(app->win), "");
+  WINDOW *parent_win = app->win;
   fui->current_idx = 0;
   fui->current_page = 1;
   fui->pages = 1;
   fui->current_count = 0;
   fui->full_count = 0;
   fui->activate_last = false;
-  fui->info_win = info_win;
   fui->max_lines = getmaxy(parent_win) - 3; /* 2+1 (bottom info line) */
   fui->active_search = false;
   fui->search_key = bfromcstrrangealloc(12, 64, "");
   fui->start = NULL;
   fui->current = NULL;
+  fui->w.sz.x = getmaxx(app->win);
+  fui->w.sz.y = getmaxy(app->win);
+
+  /* * INIT UI * */
+
+  /* define the width for each sub window */
+  int64_t left_w_x = app->coordinates.max_x / 10 * 5;
+  int64_t right_w_x = app->coordinates.max_x - left_w_x - 2;
+
+  /* create the list window */
+  fui->win_list = newwin(app->coordinates.max_y - 4, left_w_x, 2, 1);
+
+  /* create the action window */
+  fui->win_info =
+      newwin(app->coordinates.max_y - 4, right_w_x, 2, left_w_x + 1);
   return fui;
 }
 
 void w_fl_destroy(w_ui_file_list_t **fui) {
-   fl_clear((*fui)->start, (*fui)->current);
-   free(*fui);
-   *fui = NULL;
+  fl_clear((*fui)->start, (*fui)->current);
+  free(*fui);
+  *fui = NULL;
 }
 
 void w_fl_rest(w_ui_file_list_t *fl_ui) {
@@ -149,15 +176,20 @@ void w_fl_rest(w_ui_file_list_t *fl_ui) {
 void w_fl_draw(w_ui_file_list_t *fui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
-  WINDOW *parent_win = *(fui->w.parent_win);
-  getmaxyx(parent_win, sz_y, sz_x);
+  WINDOW *win = fui->win_list;
+  getmaxyx(win, sz_y, sz_x);
+
   int32_t sz_y_f = sz_y - 2; /* TODO: можно заменить на поле max_lines */
+  sz_x -= 1; /* do not count the borders */
   p_y = 1;
   p_x = 1;
   fl_item_t *el = NULL;
   fl_item_t *active_el = NULL;
   int32_t cur_el_idx = 0;
   curs_set(false);
+
+  box(fui->win_list, 0, 0);
+  box(fui->win_info, 0, 0);
 
   if (fui->start != NULL) {
     el = *(fui->start);
@@ -182,14 +214,17 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       continue;
     }
     if (cur_el_idx == fui->current_idx) {
-      wattrset(parent_win, A_BOLD | A_REVERSE);
+      wattrset(win, A_BOLD | A_REVERSE);
       active_el = el;
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(parent_win, p_y, p_x, el->name);
-    mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - p_x, "");
+    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x-1);
+    int pad = sz_x - p_x;
+    if (pad >= 0) {
+      mvwprintw(win, p_y, p_x, "%*s", pad, "");
+    }
     if (cur_el_idx == fui->current_idx) {
-      wattroff(parent_win, A_BOLD | A_REVERSE);
+      wattroff(win, A_BOLD | A_REVERSE);
     }
     p_y++;
     cur_el_idx++;
@@ -202,17 +237,16 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       *(fui->start) == NULL) {
     bstring text = bfromStatic("[No data to show]");
     for (; p_y < (sz_y_f / 2); p_y++) {
-      mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
+      mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
     }
     p_len = (sz_x - text->slen) / 2;
-    mvwprintw(parent_win, p_y++, p_x, "%*s%s%*s", p_len, "", text->data, p_len,
-              "");
+    mvwprintw(win, p_y++, p_x, "%*s%s%*s", p_len, "", text->data, p_len, "");
     for (; p_y < sz_y_f; p_y++) {
-      mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
+      mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
     }
   } else {
     for (; p_y < sz_y_f; p_y++) {
-      mvwprintw(parent_win, p_y, p_x, "%*s", sz_x - 1, "");
+      mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");
     }
   }
 
@@ -222,7 +256,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   {
     uint32_t p_y = 1;
     p_x = 1;
-    WINDOW *i_win = *fui->info_win;
+    WINDOW *i_win = fui->win_info;
     wclear(i_win);
 
     /* Write to the right side the information about the file */
@@ -234,36 +268,40 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
       if (active_el->description != NULL) {
         mvwprintw(i_win, p_y++, p_x, "Description: ");
-        w_print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x, 0);
+        w_print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x,
+                               0);
       }
     }
   }
 
   /* Search bar */
   p_x = 1;
-  wattrset(parent_win, A_BOLD);
+  wattrset(win, A_BOLD);
   if (fui->active_search) {
     sprintf(p_info, "[search]: %s%n", fui->search_key->data, &p_len);
-    mvwprintw(parent_win, p_y, p_x, "%-*s", sz_x, p_info);
+    mvwprintw(win, p_y, p_x, "%-*s", sz_x, p_info);
     curs_set(true);
-    wmove(parent_win, p_y, p_x + p_len);
+    wmove(win, p_y, p_x + p_len);
   } else {
     uint32_t l_pad = 0;
     sprintf(p_info, "P: %u/%u F: %u L: %u%n", fui->current_page, fui->pages,
             fui->current_count, fui->full_count, &p_len);
 
     if (fui->search_key->slen > 0) {
-      wattrset(parent_win, A_REVERSE);
-      mvwprintw(parent_win, p_y, p_x, "[%s]", fui->search_key->data);
-      wattroff(parent_win, A_REVERSE);
+      wattrset(win, A_REVERSE);
+      mvwprintw(win, p_y, p_x, "[%s]", fui->search_key->data);
+      wattroff(win, A_REVERSE);
       l_pad = fui->search_key->slen + 2;
-      mvwprintw(parent_win, p_y, p_x + l_pad, " %.*s", sz_x - l_pad, p_info);
+      mvwprintw(win, p_y, p_x + l_pad, " %.*s", sz_x - l_pad, p_info);
     } else {
       sprintf(p_info, "page: %u/%u files: %u left: %u%n", fui->current_page,
               fui->pages, fui->current_count, fui->full_count, &p_len);
       l_pad = (sz_x - p_len) / 2;
-      mvwprintw(parent_win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
+      if (!(l_pad % 2)) {
+        l_pad--;
+      }
+      mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
     }
   }
-  wattroff(parent_win, A_BOLD);
+  wattroff(win, A_BOLD);
 }

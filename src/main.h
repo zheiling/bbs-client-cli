@@ -90,7 +90,8 @@ enum main_window_type {
 
 typedef struct main_window {
   enum main_window_type type;
-  void *ui; /* structure that describes window UI */
+  void *ui; /* structure which describes window UI */
+  void (*cb_refresh) (void *app); /* refresh callback */
 } main_window_t;
 
 typedef struct query_args {

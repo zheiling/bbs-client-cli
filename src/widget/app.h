@@ -15,24 +15,14 @@ typedef enum {
   modal_color_pair = 3,
 } w_app_color;
 
-typedef enum {
-  aw_left,
-  aw_right,
-  aw_modal
-} w_active_win_t;
-
 typedef struct {
   WINDOW *win;
-  WINDOW *left_win;
-  WINDOW *right_win;
   w_dialogue_t modal;
   params_t *params;
   coordinates_t coordinates;
   query_args_t *query_args;
   file_args_t *file_args;
-  w_active_win_t active_win_type;
   void (*active_callback)(w_cb_args_t *args);
-  WINDOW *active_win;
   void *active_widget;
   main_window_t main_ui;
 } w_app_t;

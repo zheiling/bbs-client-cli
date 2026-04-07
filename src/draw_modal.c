@@ -47,8 +47,6 @@ void w_app_draw_modal(w_app_t *app) {
       }
     }
     app->active_callback = app->modal.w.callback;
-    app->active_win = app->modal.win;
-    app->active_win_type = aw_modal;
     app->active_widget = &(app->modal);
   }
   w_dialogue_draw(&(app->modal));

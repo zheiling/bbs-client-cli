@@ -259,7 +259,7 @@ w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
   WINDOW *win_par = *(w_parent->w_parent->parent_win);
   w_init(&(fl_ui->w), w_parent, win, "");
   fl_ui->current_idx = 0;
-  fl_ui->info_win = NULL;
+  fl_ui->win_info = NULL;
   fl_ui->d_path = NULL;
   char *path = get_current_dir_name();
   get_files_from_fs(fl_ui, path);
@@ -272,21 +272,47 @@ w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
   return fl_ui;
 }
 
-w_lfl_ui_t *w_lfl_init_win(WINDOW **win, WINDOW *const *info_win) {
-  w_lfl_ui_t *fl_ui = malloc(sizeof(w_lfl_ui_t));
-  w_init(&(fl_ui->w), NULL, win, "");
-  fl_ui->current_idx = 0;
-  fl_ui->info_win = NULL;
-  fl_ui->d_path = NULL;
+static void w_lfl_cb_refresh(void *data) {
+  w_app_t *app = (w_app_t *)data;
+  if (app->main_ui.type != mw_fl_local) {
+    return;
+  }
+  w_lfl_ui_t *fui = app->main_ui.ui;
+  wnoutrefresh(fui->win_list);
+  wnoutrefresh(fui->win_info);
+}
+
+w_lfl_ui_t *w_lfl_init_win(w_app_t *app) {
+  w_lfl_ui_t *fui = malloc(sizeof(w_lfl_ui_t));
+  app->main_ui.ui = fui;
+  app->main_ui.type = mw_fl_local;
+  app->main_ui.cb_refresh = w_lfl_cb_refresh;
+  w_init(&(fui->w), NULL, &(app->win), "");
+  fui->current_idx = 0;
+  fui->win_info = NULL;
+  fui->d_path = NULL;
   char *path = get_current_dir_name();
-  get_files_from_fs(fl_ui, path);
-  fl_ui->current = fl_ui->start;
-  fl_ui->w.callback = w_lfl_cb;
-  fl_ui->w.sz.x = getmaxx(*win) / 10 * 8;
-  fl_ui->w.sz.y = getmaxy(*win) / 10 * 8;
-  fl_ui->rows_num = 0; /* detects on the first draw */
-  fl_ui->cur_page = 1;
-  return fl_ui;
+  get_files_from_fs(fui, path);
+  fui->current = fui->start;
+  fui->w.callback = w_lfl_cb;
+  fui->w.sz.x = getmaxx(app->win);
+  fui->w.sz.y = getmaxy(app->win);
+  fui->rows_num = 0; /* detects on the first draw */
+  fui->cur_page = 1;
+  fui->w.parent_win = &(app->win);
+  /* * INIT UI * */
+
+  /* define the width for each sub window */
+  int32_t left_w_x = app->coordinates.max_x / 10 * 4;
+  int32_t right_w_x = app->coordinates.max_x - left_w_x - 2;
+
+  /* create the list window */
+  fui->win_list = newwin(app->coordinates.max_y - 4, left_w_x, 2, 1);
+
+  /* create the action window */
+  fui->win_info =
+      newwin(app->coordinates.max_y - 4, right_w_x, 2, left_w_x + 1);
+  return fui;
 }
 
 void w_lfl_reset(w_lfl_ui_t *fl_ui) { fl_ui->current_idx = 0; }
@@ -294,7 +320,7 @@ void w_lfl_reset(w_lfl_ui_t *fl_ui) { fl_ui->current_idx = 0; }
 void w_lfl_draw(w_lfl_ui_t *fui) {
   int32_t sz_y, sz_x;
   int32_t p_y, p_x;
-  WINDOW *win = *(fui->w.parent_win);
+  WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 2; // actual size (without box)
   int32_t sz_x_f = sz_x - 2; // actual size (without box)
@@ -309,6 +335,9 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
     p_y -= fui->current_idx - sz_y_f + 2;
   }
 
+  box(fui->win_list, 0, 0);
+  box(fui->win_info, 0, 0);
+
   wattrset(win, A_REVERSE); /* Match with modal background */
   do {
     if (p_y < 1) {
@@ -319,7 +348,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name);
+    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x);
     mvwprintw(win, p_y, p_x, "%*s", sz_x_f - p_x, "");
     if (el == fui->current) {
       wattroff(win, COLOR_PAIR(3) | A_BOLD);

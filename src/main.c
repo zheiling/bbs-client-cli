@@ -26,7 +26,7 @@ uint32_t m_id = 0;
 int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args);
 void main_window_set(w_app_t *app, enum main_window_type type);
 void main_window_draw(w_app_t *app);
-void main_window_delete(w_app_t *app);
+void main_window_destroy(w_app_t *app);
 
 int main(int argc, char **argv) {
   w_app_t *app;
@@ -44,9 +44,6 @@ int main(int argc, char **argv) {
 
   /* init alert */
   w_alert_init(app);
-
-  wrefresh(app->left_win);
-  wrefresh(app->right_win);
 
   init_query_args(q_args, app->params);
   q_args->buf = malloc(INBUFSIZE);
@@ -85,7 +82,8 @@ int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
     return OK;
   case 'U':
   case 'u':
-    if (!app->modal.is_initiated && !fui->active_search && app->main_ui.type != mw_fl_local) {
+    if (!app->modal.is_initiated && !fui->active_search &&
+        app->main_ui.type != mw_fl_local) {
       /* app->query_args->state = S_UPLOAD_FILE_SELECT; */
       main_window_set(app, mw_fl_local);
       main_window_draw(app);
@@ -109,17 +107,16 @@ int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
 
 void main_window_set(w_app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
-    main_window_delete(app);
+    main_window_destroy(app);
   }
   app->main_ui.type = type;
   switch (type) {
   case mw_fl_server:
-    app->main_ui.ui = w_fl_init(&(app->left_win), &(app->right_win));
+    app->main_ui.ui = w_fl_init(app);
     app->active_callback = w_fl_cb;
     break;
   case mw_fl_local:
-    app->main_ui.ui =
-        w_lfl_init_win(&(app->left_win), &(app->right_win));
+    app->main_ui.ui = w_lfl_init_win(app);
     app->active_callback = w_lfl_cb;
     break;
   case mw_f_desc:
@@ -142,10 +139,11 @@ void main_window_draw(w_app_t *app) {
   }
 }
 
-void main_window_delete(w_app_t *app) {
+void main_window_destroy(w_app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
     w_fl_destroy((w_ui_file_list_t **)&(app->main_ui.ui));
+    app->main_ui.cb_refresh = NULL;
     break;
   case mw_fl_local:
   /* TODO: delete fs_file_list */

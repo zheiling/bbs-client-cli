@@ -4,6 +4,7 @@
 #ifndef W_LFL_H /* LOCAL FILE LIST */
 #define W_LFL_H
 
+#include "app.h"
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -27,15 +28,16 @@ typedef struct {
     int32_t cur_page;
     int32_t pages_num;
     size_t files_num;
-    WINDOW *const* info_win;
+    WINDOW *win_info;
+    WINDOW *win_list;
     char *d_path;
 } w_lfl_ui_t;
 
-void               w_lfl_draw(w_lfl_ui_t *fl_ui);
-void               w_lfl_destroy(w_lfl_ui_t *fl_ui);
-void               w_lfl_cb(w_cb_args_t *args);
-void               w_lfl_reset(w_lfl_ui_t *fl_ui);
-w_lfl_ui_t        *w_lfl_init(WINDOW **win, w_t *w_parent);
-w_lfl_ui_t        *w_lfl_init_win(WINDOW **win, WINDOW *const *info_win);
+void        w_lfl_draw(w_lfl_ui_t *fl_ui);
+void        w_lfl_destroy(w_lfl_ui_t *fl_ui);
+void        w_lfl_cb(w_cb_args_t *args);
+void        w_lfl_reset(w_lfl_ui_t *fl_ui);
+w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent);
+w_lfl_ui_t *w_lfl_init_win(w_app_t *app);
 
 #endif

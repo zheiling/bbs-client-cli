@@ -30,11 +30,13 @@ int64_t u_utf8_conver_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
   return 0;
 }
 
-int64_t u_utf8_curs_printw(WINDOW *win, int64_t y, int64_t x, char *const utf8_str) {
+int64_t u_utf8_curs_printw(WINDOW *win, int64_t y, int64_t x, char *const utf8_str, int max_len) {
   wchar_t *wname = NULL;
   size_t nsize = 0;
   u_utf8_conver_to_wide(utf8_str, &wname, &nsize);
-  mvwaddwstr(win, y, x, wname);
+  /* mvwaddwstr(win, y, x, wname); */
+  wmove(win,(y),(x));
+  waddnwstr(win, wname, max_len);
   free(wname);
   return nsize;
 }

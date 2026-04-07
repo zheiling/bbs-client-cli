@@ -80,11 +80,11 @@ void PRINT_TEXT(WINDOW *win, char *l_buf, char *text, int64_t i,
   l_buf[c_line_len] = '\0';
   utf8len = u_utf8_code_points_count(l_buf);
   if ((attrs & PMT_ALIGN_CENTER) == PMT_ALIGN_CENTER) {
-    u_utf8_curs_printw(win, line_v_pos, (win_width - utf8len) / 2, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, (win_width - utf8len) / 2, l_buf, -1);
   } else if (attrs & PMT_POS_CENTER) {
-    u_utf8_curs_printw(win, line_v_pos, (win_width - max_line_len) / 2, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, (win_width - max_line_len) / 2, l_buf, -1);
   } else {
-    u_utf8_curs_printw(win, line_v_pos, x, l_buf);
+    u_utf8_curs_printw(win, line_v_pos, x, l_buf, -1);
   }
 }
 

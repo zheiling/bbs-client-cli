@@ -1,7 +1,6 @@
 # TODO:
 
 ## Current:
-- [ ] Variable naming convention
 - [ ] Sorting in file list
 - [ ] File upload multiline description (window)
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)

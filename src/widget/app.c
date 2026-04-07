@@ -29,22 +29,9 @@ w_app_t *w_app_init() {
 
   _app->win = newwin(_app->coordinates.cur_y, _app->coordinates.cur_x, 0, 0);
 
-  /* define the width for each sub window */
-  int32_t left_w_x = x_max / 10 * 4;
-  int32_t right_w_x = x_max - left_w_x - 2;
-
-  /* create the menu window */
-  _app->left_win = newwin(y_max - 4, left_w_x, 2, 1);
-
-  /* create the action window */
-  _app->right_win = newwin(y_max - 4, right_w_x, 2, left_w_x + 1);
-
   /* dialogue */
   _app->modal.win = NULL;
   _app->modal.is_initiated = 0;
-
-  /* default win */
-  _app->active_win_type = aw_left;
 
   /* default callback */
   _app->active_callback = w_fl_cb;
@@ -57,13 +44,12 @@ w_app_t *w_app_init() {
 
   /* NULL to main_ui */
   _app->main_ui.ui = NULL;
+  _app->main_ui.cb_refresh = NULL;
 
   keypad(_app->win, TRUE);
 
   /* refresh the windows */
   wnoutrefresh(_app->win);
-  wnoutrefresh(_app->left_win);
-  wnoutrefresh(_app->right_win);
   doupdate();
 
   return _app;
@@ -95,8 +81,6 @@ void w_app_draw_borders(w_app_t *app) {
   }
   clear();
   box(app->win, 0, 0);
-  box(app->left_win, 0, 0);
-  box(app->right_win, 0, 0);
 }
 
 struct action_key {
@@ -148,9 +132,10 @@ void w_app_print_bars(w_app_t *app) {
       {.key = "F9", .title = "Quit"},
   };
 
-  int t_margin = 0; /* tab margin */
+  int t_margin = 0;                        /* tab margin */
   int c_size = app->coordinates.max_x / 4; /* column size */
-  int incr_last = app->coordinates.max_x % 4; /* increment size fo the last element (fill empty space) */
+  int incr_last = app->coordinates.max_x %
+                  4; /* increment size fo the last element (fill empty space) */
 
   for (int i = 0; i < 3; i++) {
     struct action_key *k = &action_keys[i];
@@ -168,14 +153,14 @@ void w_app_print_bars(w_app_t *app) {
 
 void w_app_refresh(w_app_t *app) {
   w_app_draw_borders(app);
-
   wnoutrefresh(app->win);
-  wnoutrefresh(app->right_win);
-  wnoutrefresh(app->left_win);
   if (app->modal.win != NULL) {
     if (app->modal.is_initiated != 0) {
       wnoutrefresh(app->modal.win);
     }
+  }
+  if (app->main_ui.cb_refresh != NULL) {
+    app->main_ui.cb_refresh(app);
   }
   doupdate();
 }

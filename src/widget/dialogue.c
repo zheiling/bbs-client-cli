@@ -319,8 +319,6 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   d->win = NULL;
   d->is_initiated = 0;
   d->needs_destroy = false;
-  app->active_win_type = aw_left;
-  app->active_win = app->left_win;
   app->active_callback = w_fl_cb;
   app->query_args->active_dialogue = NULL;
   u_d_arr_ptr_free(&(d->id_map));
