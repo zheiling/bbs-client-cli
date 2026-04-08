@@ -195,7 +195,6 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   curs_set(false);
 
   box(fui->win_list, 0, 0);
-  box(fui->win_info, 0, 0);
 
   if (fui->start != NULL) {
     el = *(fui->start);
@@ -264,6 +263,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     p_x = 1;
     WINDOW *i_win = fui->win_info;
     wclear(i_win);
+    box(fui->win_info, 0, 0);
 
     /* Write to the right side the information about the file */
     if (active_el != NULL) {
