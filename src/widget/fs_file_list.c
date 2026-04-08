@@ -19,7 +19,7 @@
 #include "fs_file_list.h"
 #include "widget_core.h"
 
-void w_fl_rest(w_lfl_ui_t *fl_ui);
+void w_fl_reset(w_lfl_ui_t *fl_ui);
 
 struct fl_args {
   char *name;
@@ -225,22 +225,24 @@ void w_lfl_cb(w_cb_args_t *args) {
       if (fui->current_idx < fui->rows_num - 1) {
         fui->current = fui->current->next;
         fui->current_idx++;
-        w_lfl_draw(fui);
       } else {
         page_next(fui);
+        break;
       }
     }
+    w_lfl_draw(fui);
     break;
   case KEY_UP:
     if (fui->current->prev != NULL) {
       if (fui->current_idx > 0) {
         fui->current = fui->current->prev;
         fui->current_idx--;
-        w_lfl_draw(fui);
       } else {
         page_previous(fui);
+        break;
       }
     }
+    w_lfl_draw(fui);
     break;
   case KEY_NPAGE:
     page_next(fui);

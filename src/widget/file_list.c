@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void w_fl_rest(w_ui_file_list_t *fl_ui);
+void w_fl_reset(w_ui_file_list_t *fl_ui);
 
 void w_fl_cb(w_cb_args_t *args) {
   w_app_t *app = args->app;
@@ -45,7 +45,7 @@ void w_fl_cb(w_cb_args_t *args) {
       }
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, 1);
-      w_fl_rest(fui);
+      w_fl_reset(fui);
     } else {
       bconchar(fui->search_key, key);
       w_fl_draw(fui);
@@ -57,43 +57,48 @@ void w_fl_cb(w_cb_args_t *args) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
       fui->current_idx++;
-      w_fl_draw(fui);
     } else if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
-      w_fl_rest(fui);
+      w_fl_reset(fui);
+      break;
     }
+    w_fl_draw(fui);
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
       fui->current_idx--;
-      w_fl_draw(fui);
     } else if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
-      w_fl_rest(fui);
+      w_fl_reset(fui);
       fui->activate_last = true;
+      break;
     }
+    w_fl_draw(fui);
     break;
   case KEY_NPAGE:
     if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
-      w_fl_rest(fui);
+      w_fl_reset(fui);
+      break;
     }
+    w_fl_draw(fui);
     break;
   case KEY_PPAGE:
     if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %u %u\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
-      w_fl_rest(fui);
+      w_fl_reset(fui);
       fui->activate_last = true;
+      break;
     }
-    break;
+    w_fl_draw(fui);
     break;
   case '\33':
     fui->active_search = false;
@@ -103,7 +108,7 @@ void w_fl_cb(w_cb_args_t *args) {
     app->query_args->state = S_FILE_LIST;
     server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines,
                        1);
-    w_fl_rest(fui);
+    w_fl_reset(fui);
   case '\n':
     ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
     break;
@@ -126,14 +131,13 @@ w_ui_file_list_t *w_fl_init(w_app_t *app) {
   app->main_ui.type = mw_fl_server;
   app->main_ui.cb_refresh = w_fl_cb_refresh;
   w_init(&(fui->w), NULL, &(app->win), "");
-  WINDOW *parent_win = app->win;
+  WINDOW *win_parent = app->win;
   fui->current_idx = 0;
   fui->current_page = 1;
   fui->pages = 1;
   fui->current_count = 0;
   fui->full_count = 0;
   fui->activate_last = false;
-  fui->max_lines = getmaxy(parent_win) - 3; /* 2+1 (bottom info line) */
   fui->active_search = false;
   fui->search_key = bfromcstrrangealloc(12, 64, "");
   fui->start = NULL;
@@ -153,6 +157,8 @@ w_ui_file_list_t *w_fl_init(w_app_t *app) {
   /* create the action window */
   fui->win_info =
       newwin(app->coordinates.max_y - 4, right_w_x, 2, left_w_x + 1);
+  fui->max_lines = getmaxy(fui->win_list) - 3; /* 2+1 (bottom info line) */
+
   return fui;
 }
 
@@ -162,7 +168,7 @@ void w_fl_destroy(w_ui_file_list_t **fui) {
   *fui = NULL;
 }
 
-void w_fl_rest(w_ui_file_list_t *fl_ui) {
+void w_fl_reset(w_ui_file_list_t *fl_ui) {
   fl_clear(fl_ui->start, fl_ui->current);
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
@@ -180,7 +186,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   getmaxyx(win, sz_y, sz_x);
 
   int32_t sz_y_f = sz_y - 2; /* TODO: можно заменить на поле max_lines */
-  sz_x -= 1; /* do not count the borders */
+  sz_x -= 1;                 /* do not count the borders */
   p_y = 1;
   p_x = 1;
   fl_item_t *el = NULL;
@@ -218,7 +224,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       active_el = el;
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x-1);
+    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x - 1);
     int pad = sz_x - p_x;
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");

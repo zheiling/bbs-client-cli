@@ -136,7 +136,7 @@ int upload_confirm_cb(w_app_t *app, char *query, int q_len) {
     clear_file_in_query(app->query_args);
     app->query_args->state = S_FILE_LIST;
     app->modal.needs_destroy = true;
-    w_fl_rest(fui);
+    w_fl_reset(fui);
     server_send_string(app->query_args, "file list %u %u\n", fui->max_lines, 1);
     return 0;
   }

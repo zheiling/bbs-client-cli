@@ -29,7 +29,7 @@ typedef struct {
 void              w_fl_draw(w_ui_file_list_t *fl_ui);
 w_ui_file_list_t *w_fl_init(w_app_t *app);
 void              w_fl_cb(w_cb_args_t *args);
-void              w_fl_rest(w_ui_file_list_t *fl_ui);
+void              w_fl_reset(w_ui_file_list_t *fl_ui);
 void              w_fl_destroy(w_ui_file_list_t **fui);
 
 #endif
