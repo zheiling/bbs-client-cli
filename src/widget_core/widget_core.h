@@ -72,6 +72,8 @@ typedef struct {
   void *active_el;
 } w_cb_args_t;
 
+typedef void (*w_cb_t)(w_cb_args_t *args);
+
 typedef struct w_t {
   int64_t id;
   char title[DIALOGUE_TITLE];
@@ -93,10 +95,8 @@ typedef struct w_t {
   } ps; /* position (relative to the window) */
   WINDOW *const *parent_win;
   struct w_t *w_parent;
-  void (*callback)(w_cb_args_t *args);
+  w_cb_t callback;
 } w_t;
-
-typedef void (*w_cb_t)(w_cb_args_t *args);
 
 enum w_pmt_attrs {
   PMT_POS_CENTER = 01,

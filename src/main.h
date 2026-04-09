@@ -4,6 +4,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "common.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -91,7 +92,9 @@ enum main_window_type {
 typedef struct main_window {
   enum main_window_type type;
   void *ui; /* structure which describes window UI */
+  int32_t (*cb_b_press) (void *app, void *args); /* callback on button press */
   void (*cb_refresh) (void *app); /* refresh callback */
+  struct action_key *b_keys;
 } main_window_t;
 
 typedef struct query_args {

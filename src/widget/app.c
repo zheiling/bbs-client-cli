@@ -43,8 +43,7 @@ w_app_t *w_app_init() {
   w_app_draw_borders(_app);
 
   /* NULL to main_ui */
-  _app->main_ui.ui = NULL;
-  _app->main_ui.cb_refresh = NULL;
+  MAIN_UI_RESET(_app);
 
   keypad(_app->win, TRUE);
 
@@ -82,11 +81,6 @@ void w_app_draw_borders(w_app_t *app) {
   clear();
   box(app->win, 0, 0);
 }
-
-struct action_key {
-  char *const key;
-  char *const title;
-};
 
 int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
                                  int64_t x, int32_t size) {

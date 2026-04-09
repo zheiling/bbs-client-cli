@@ -1,7 +1,10 @@
 # TODO:
 
 ## Current:
-- [ ] Sorting in file list
+- [ ] Separate common structures in the common.h
+- [ ] Bottom panel attach to the windows
+- [ ] Testing
+- [ ] Sorting in the file list
 - [ ] File upload multiline description (window)
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 - [ ] Cancel upload/download

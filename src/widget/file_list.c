@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "../main_window.h"
 
 void w_fl_reset(w_ui_file_list_t *fl_ui);
 
@@ -125,11 +126,53 @@ static void w_fl_cb_refresh(void *data) {
   wnoutrefresh(fui->win_info);
 }
 
+static struct action_key action_keys[] = {
+    {.key = "F1", .title = "Help", .code = KEY_F(1)},
+    {.key = "U", .title = "Upload", .code = 'u'},
+    {.key = "S", .title = "Search", .code = 's'},
+    {.key = "F9", .title = "Quit", .code = KEY_F(9)},
+};
+
+int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+  int32_t c;
+  w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
+  c = wgetch(app->win);
+  switch (c) {
+  case KEY_F(9):
+    w_app_destroy(app, 0);
+    return OK;
+  case 'U':
+  case 'u':
+    if (!app->modal.is_initiated && !fui->active_search &&
+        app->main_ui.type != mw_fl_local) {
+      /* app->query_args->state = S_UPLOAD_FILE_SELECT; */
+      main_window_set(app, mw_fl_local);
+      main_window_draw(app);
+      d_args->element = app->main_ui.ui;
+      break;
+    }
+  case 's':
+  case 'S':
+    if (!app->modal.is_initiated && !fui->active_search) {
+      fui->active_search = true;
+      w_fl_draw(fui);
+      return OK;
+    }
+  default:
+    d_args->data = (void *)&c;
+    app->active_callback(d_args);
+    break;
+  }
+  return OK;
+}
+
 w_ui_file_list_t *w_fl_init(w_app_t *app) {
   w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_server;
   app->main_ui.cb_refresh = w_fl_cb_refresh;
+  app->main_ui.b_keys = action_keys;
+  app->main_ui.cb_b_press = process_user_input;
   w_init(&(fui->w), NULL, &(app->win), "");
   WINDOW *win_parent = app->win;
   fui->current_idx = 0;
@@ -158,7 +201,6 @@ w_ui_file_list_t *w_fl_init(w_app_t *app) {
   fui->win_info =
       newwin(app->coordinates.max_y - 4, right_w_x, 2, left_w_x + 1);
   fui->max_lines = getmaxy(fui->win_list) - 3; /* 2+1 (bottom info line) */
-
   return fui;
 }
 
