@@ -319,7 +319,7 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   d->win = NULL;
   d->is_initiated = 0;
   d->needs_destroy = false;
-  app->active_callback = w_fl_cb;
+  app->active_callback = (w_cb_t) app->main_ui.cb_b_press;
   app->query_args->active_dialogue = NULL;
   u_d_arr_ptr_free(&(d->id_map));
   w_app_refresh(app);

@@ -29,7 +29,7 @@ void login_modal_option_cb(w_cb_args_t *args) {
       strcpy(app->params->uname, "anonymous");
       server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
-      w_app_print_bars(app);
+      w_app_draw_bars(app);
       break;
     case 2:
       d->needs_destroy = true;

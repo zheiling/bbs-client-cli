@@ -31,8 +31,9 @@ w_app_t *w_app_init(void);
 void  w_app_init_nc(void);
 void  w_app_destroy(w_app_t *app, int32_t exit_code);
 void  w_app_draw_borders(w_app_t *app);
-void  w_app_print_bars(w_app_t *app);
+void  w_app_draw_bars(w_app_t *app);
 void  w_app_refresh(w_app_t *app);
 void  w_app_draw_modal(w_app_t *app);
+void  w_app_draw_bbar(w_app_t *app);
 
 #endif // N_APP_H

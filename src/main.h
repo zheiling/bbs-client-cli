@@ -95,6 +95,7 @@ typedef struct main_window {
   int32_t (*cb_b_press) (void *app, void *args); /* callback on button press */
   void (*cb_refresh) (void *app); /* refresh callback */
   struct action_key *b_keys;
+  int32_t b_keys_len;
 } main_window_t;
 
 typedef struct query_args {

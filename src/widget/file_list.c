@@ -19,7 +19,7 @@
 
 void w_fl_reset(w_ui_file_list_t *fl_ui);
 
-void w_fl_cb(w_cb_args_t *args) {
+static void w_fl_cb(w_cb_args_t *args) {
   w_app_t *app = args->app;
   w_ui_file_list_t *fui = app->query_args->main_ui->ui;
   int32_t key = *((int32_t *)args->data);
@@ -133,7 +133,7 @@ static struct action_key action_keys[] = {
     {.key = "F9", .title = "Quit", .code = KEY_F(9)},
 };
 
-int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
@@ -143,8 +143,7 @@ int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
     return OK;
   case 'U':
   case 'u':
-    if (!app->modal.is_initiated && !fui->active_search &&
-        app->main_ui.type != mw_fl_local) {
+    if (!app->modal.is_initiated && !fui->active_search) {
       /* app->query_args->state = S_UPLOAD_FILE_SELECT; */
       main_window_set(app, mw_fl_local);
       main_window_draw(app);
@@ -166,13 +165,15 @@ int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
   return OK;
 }
 
-w_ui_file_list_t *w_fl_init(w_app_t *app) {
+void *w_fl_init(w_app_t *app) {
   w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_server;
   app->main_ui.cb_refresh = w_fl_cb_refresh;
   app->main_ui.b_keys = action_keys;
-  app->main_ui.cb_b_press = process_user_input;
+  app->main_ui.b_keys_len = 4;
+  app->main_ui.cb_b_press = (w_cb_press_t) process_user_input;
+  app->active_callback = w_fl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
   WINDOW *win_parent = app->win;
   fui->current_idx = 0;

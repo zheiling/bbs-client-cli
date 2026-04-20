@@ -14,12 +14,13 @@
 #include <unistd.h>
 #include <utils.h>
 
+#include "../main_window.h"
+#include "../server.h"
 #include "alert.h"
-
 #include "fs_file_list.h"
 #include "widget_core.h"
 
-void w_fl_reset(w_lfl_ui_t *fl_ui);
+// void w_fl_reset(w_lfl_ui_t *fl_ui);
 
 struct fl_args {
   char *name;
@@ -186,7 +187,7 @@ void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
 
 /* next page */
 void page_next(w_lfl_ui_t *fui) {
-  int count = fui->rows_num;
+  int count = fui->max_lines;
   w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page < fui->pages_num) {
     for (; count; count--) {
@@ -202,7 +203,7 @@ void page_next(w_lfl_ui_t *fui) {
 
 /* previous page */
 void page_previous(w_lfl_ui_t *fui) {
-  int count = fui->rows_num;
+  int count = fui->max_lines;
   w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page > 1) {
     for (; count; count--) {
@@ -216,13 +217,13 @@ void page_previous(w_lfl_ui_t *fui) {
   w_lfl_draw(fui);
 }
 
-void w_lfl_cb(w_cb_args_t *args) {
+static void w_lfl_cb(w_cb_args_t *args) {
   w_lfl_ui_t *fui = args->element;
   int32_t key = *((int32_t *)args->data);
   switch (key) {
   case KEY_DOWN:
     if (fui->current->next != NULL) {
-      if (fui->current_idx < fui->rows_num - 1) {
+      if (fui->current_idx < fui->max_lines - 1) {
         fui->current = fui->current->next;
         fui->current_idx++;
       } else {
@@ -269,7 +270,7 @@ w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
   fl_ui->w.callback = w_lfl_cb;
   fl_ui->w.sz.x = getmaxx(win_par) / 10 * 8;
   fl_ui->w.sz.y = getmaxy(win_par) / 10 * 8;
-  fl_ui->rows_num = 0; /* detects on the first draw */
+  fl_ui->max_lines = 0; /* detects on the first draw */
   fl_ui->cur_page = 1;
   return fl_ui;
 }
@@ -284,11 +285,47 @@ static void w_lfl_cb_refresh(void *data) {
   wnoutrefresh(fui->win_info);
 }
 
+static struct action_key action_keys[] = {
+    {.key = "Esc", .title = "Back", .code = '\33'},
+    {.key = "F9", .title = "Quit", .code = KEY_F(9)},
+};
+
+static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+  int32_t c;
+  w_lfl_ui_t *fui = (w_lfl_ui_t *)app->query_args->main_ui->ui;
+  c = wgetch(app->win);
+  switch (c) {
+  case KEY_F(9):
+    w_app_destroy(app, 0);
+    return OK;
+  case 'D':
+  case 'd':
+  case '\33': /* ESC key */
+    if (!app->modal.is_initiated) {
+      main_window_set(app, mw_fl_server);
+      main_window_draw(app);
+      server_send_string(app->query_args, "file list %u %u\n", fui->max_lines,
+                         1);
+      d_args->element = app->main_ui.ui;
+      break;
+    }
+  default:
+    d_args->data = (void *)&c;
+    app->active_callback(d_args);
+    break;
+  }
+  return OK;
+}
+
 w_lfl_ui_t *w_lfl_init_win(w_app_t *app) {
   w_lfl_ui_t *fui = malloc(sizeof(w_lfl_ui_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_local;
   app->main_ui.cb_refresh = w_lfl_cb_refresh;
+  app->main_ui.b_keys = action_keys;
+  app->main_ui.b_keys_len = 2;
+  app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
+  app->active_callback = w_lfl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
   fui->current_idx = 0;
   fui->win_info = NULL;
@@ -299,7 +336,7 @@ w_lfl_ui_t *w_lfl_init_win(w_app_t *app) {
   fui->w.callback = w_lfl_cb;
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
-  fui->rows_num = 0; /* detects on the first draw */
+  fui->max_lines = 0; /* detects on the first draw */
   fui->cur_page = 1;
   fui->w.parent_win = &(app->win);
   /* * INIT UI * */
@@ -326,9 +363,9 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 2; // actual size (without box)
   int32_t sz_x_f = sz_x - 2; // actual size (without box)
-  fui->rows_num = sz_y_f;
-  fui->pages_num = fui->files_num / fui->rows_num +
-                   (fui->files_num % fui->rows_num > 0 ? 1 : 0);
+  fui->max_lines = sz_y_f;
+  fui->pages_num = fui->files_num / fui->max_lines +
+                   (fui->files_num % fui->max_lines > 0 ? 1 : 0);
   p_y = 1;
   p_x = 1;
   w_lfl_item_t *el = fui->page_start;

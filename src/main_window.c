@@ -1,5 +1,6 @@
 #include "main_window.h"
 #include "fs_file_list.h"
+#include "server.h"
 
 void main_window_set(w_app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
@@ -8,12 +9,11 @@ void main_window_set(w_app_t *app, enum main_window_type type) {
   app->main_ui.type = type;
   switch (type) {
   case mw_fl_server:
-    app->main_ui.ui = w_fl_init(app);
-    app->active_callback = w_fl_cb;
+    w_fl_init(app);
+    app->query_args->state = S_FILE_LIST;
     break;
   case mw_fl_local:
-    app->main_ui.ui = w_lfl_init_win(app);
-    app->active_callback = w_lfl_cb;
+    w_lfl_init_win(app);
     break;
   case mw_f_desc:
     break;
@@ -33,6 +33,7 @@ void main_window_draw(w_app_t *app) {
   case mw_f_desc:
     break;
   }
+  w_app_draw_bbar(app);
 }
 
 void main_window_destroy(w_app_t *app) {

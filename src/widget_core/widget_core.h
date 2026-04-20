@@ -73,6 +73,7 @@ typedef struct {
 } w_cb_args_t;
 
 typedef void (*w_cb_t)(w_cb_args_t *args);
+typedef int32_t (*w_cb_press_t)(void *app, void *data);
 
 typedef struct w_t {
   int64_t id;

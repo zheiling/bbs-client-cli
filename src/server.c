@@ -47,7 +47,7 @@ int server_wait_reg_confirm_cb(w_app_t *app, char *line, int l_len) {
             "Welcome, %s!",
             app->params->uname);
     w_notification("Registration", dc_normal, query);
-    w_app_print_bars(app);
+    w_app_draw_bars(app);
     return 0;
   } else {
     q_args->state = S_ASK_REGISTER;

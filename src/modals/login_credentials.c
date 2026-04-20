@@ -35,7 +35,7 @@ void init_login_credentials_modal_cb(w_cb_args_t *args) {
       server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
       d->needs_destroy = true;
-      w_app_print_bars(app);
+      w_app_draw_bars(app);
       break;
     case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;

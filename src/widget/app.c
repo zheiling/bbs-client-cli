@@ -33,11 +33,9 @@ w_app_t *w_app_init() {
   _app->modal.win = NULL;
   _app->modal.is_initiated = 0;
 
-  /* default callback */
-  _app->active_callback = w_fl_cb;
-
-  /* print decorative bars */
-  w_app_print_bars(_app);
+  /* print top and bottom bars */
+  _app->main_ui.b_keys_len = 0;
+  w_app_draw_bars(_app);
 
   /* here goes box borders */
   w_app_draw_borders(_app);
@@ -96,7 +94,9 @@ int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
   return key_len + title_len;
 }
 
-void w_app_print_bars(w_app_t *app) {
+void w_app_draw_bbar(w_app_t *app);
+
+void w_app_draw_bars(w_app_t *app) {
   char top_text[64] = "Hello!";
 
   wattrset(app->win, A_REVERSE);
@@ -116,32 +116,38 @@ void w_app_print_bars(w_app_t *app) {
             ip_addr[1], ip_addr[2], ip_addr[3], app->params->uname);
   }
   mvwprintw(app->win, 1, 2, "%s", top_text);
+  wattroff(app->win, A_REVERSE);
 
   /* add content to the bottom bar */
+  if (app->main_ui.b_keys_len > 0) {
+    w_app_draw_bbar(app);
+  }
+}
 
-  struct action_key action_keys[] = {
-      {.key = "F1", .title = "Help"},
-      {.key = "U", .title = "Upload"},
-      {.key = "S", .title = "Search"},
-      {.key = "F9", .title = "Quit"},
-  };
-
-  int t_margin = 0;                        /* tab margin */
-  int c_size = app->coordinates.max_x / 4; /* column size */
+void w_app_draw_bbar(w_app_t *app) {
+  wattrset(app->win, A_REVERSE);
+  int t_margin = 0; /* tab margin */
+  int c_size =
+      app->coordinates.max_x / app->main_ui.b_keys_len; /* column size */
   int incr_last = app->coordinates.max_x %
-                  4; /* increment size fo the last element (fill empty space) */
+                  app->main_ui.b_keys_len; /* increment size fo the last element
+                                              (fill empty space) */
 
-  for (int i = 0; i < 3; i++) {
-    struct action_key *k = &action_keys[i];
-    t_margin +=
-        print_bottom_menu_option(app->win, k->key, k->title,
-                                 app->coordinates.cur_y - 2, t_margin, c_size);
+  struct action_key *k = NULL;
+  if (app->main_ui.b_keys_len > 1) {
+    for (int i = 0; i < app->main_ui.b_keys_len - 1; i++) {
+      k = &(app->main_ui.b_keys)[i];
+      t_margin += print_bottom_menu_option(app->win, k->key, k->title,
+                                           app->coordinates.cur_y - 2, t_margin,
+                                           c_size);
+    }
   }
 
-  t_margin += print_bottom_menu_option(
-      app->win, action_keys[3].key, action_keys[3].title,
-      app->coordinates.cur_y - 2, t_margin, c_size + incr_last);
+  k = &(app->main_ui.b_keys)[app->main_ui.b_keys_len - 1];
 
+  t_margin += print_bottom_menu_option(app->win, k->key, k->title,
+                                       app->coordinates.cur_y - 2, t_margin,
+                                       c_size + incr_last);
   wattroff(app->win, A_REVERSE);
 }
 

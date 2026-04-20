@@ -26,7 +26,7 @@ void connect_to_server(w_app_t *app) {
     w_app_destroy(app, 2);
   }
   app->params->is_connected = TRUE;
-  w_app_print_bars(app);
+  w_app_draw_bars(app);
 }
 
 void init_params(params_t *params) {
@@ -59,7 +59,7 @@ void get_ip_port(params_t *params, char *ip, char *port) {
 
 void close_session(int sd) { close(sd); }
 
-int init_client() {
+int init_client(void) {
   int res;
   int cs = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in client;
