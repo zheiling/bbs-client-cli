@@ -5,7 +5,6 @@
 #include "button.h"
 #include "checkbox.h"
 #include "d_array.h"
-#include "fs_file_list.h"
 #include "input.h"
 #include "progress_bar.h"
 #include "widget_core.h"
@@ -126,10 +125,6 @@ w_group_t *w_group_init(WINDOW **win, w_t *w_parent, w_group_el_init_t *children
       elements[i].element = w_pgb_ui_init(win, &(group->w));
       w = &(((w_pgb_ui_t *)elements[i].element)->w);
       break;
-    case w_fs_file_list:
-      elements[i].element = w_lfl_init(win, &(group->w));
-      w = &(((w_pgb_ui_t *)elements[i].element)->w);
-      break;
     case w_checkbox:
       elements[i].element = w_checkbox_init(win, &(group->w), children[i].label);
       w = &(((w_checkbox_t *)elements[i].element)->w);
@@ -188,9 +183,6 @@ void w_group_draw(WINDOW *win, w_group_t *group, int32_t active_id) {
     case w_progress:
       w_pgb_ui_draw((w_pgb_ui_t *)el->element);
       break;
-    case w_fs_file_list:
-      w_lfl_draw((w_lfl_ui_t *)el->element);
-      break;
     case w_checkbox:
       w_checkbox_draw((w_checkbox_t *)el->element, active_id);
       break;
@@ -217,9 +209,6 @@ void w_group_destroy(w_group_t *group) {
       break;
     case w_progress:
       w_pgb_ui_destroy(el->element);
-      break;
-    case w_fs_file_list:
-      w_lfl_destroy(el->element);
       break;
     case w_checkbox:
       w_checkbox_destroy(el->element);

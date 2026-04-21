@@ -20,6 +20,7 @@ add_subdirectory(src/widget)
 add_subdirectory(src/modals)
 add_subdirectory(src/lib)
 add_subdirectory(src/utils)
+add_subdirectory(src/windows)
 
 add_subdirectory(src) 
 

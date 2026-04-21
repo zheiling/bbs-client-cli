@@ -20,6 +20,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
+#include <windows.h>
 
 #include "file_processor.h"
 #include "main.h"

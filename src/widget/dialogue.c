@@ -9,8 +9,6 @@
 #include <widget.h>
 #include <widget_core.h>
 
-#include "file_list.h"
-
 void incr_active_id(w_dialogue_t *d) {
   w_g_el_t *active_el = NULL;
   while (true) {
@@ -114,21 +112,15 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
     }
     break;
   case KEY_UP:
-    if (d->active_el->type == w_fs_file_list) {
-      new_args.element = d->g_content;
-      w_group_cb_default(&new_args);
-    } else if (d->active_el->g_type == g_content &&
-               d->g_content->direction == vertical) {
+    if (d->active_el->g_type == g_content &&
+        d->g_content->direction == vertical) {
       decr_active_id(d);
       args->resp_data.code = cbrc_none;
     }
     break;
   case KEY_DOWN:
-    if (d->active_el->type == w_fs_file_list) {
-      new_args.element = d->g_content;
-      w_group_cb_default(&new_args);
-    } else if (d->active_el->g_type == g_content &&
-               d->g_content->direction == vertical) {
+    if (d->active_el->g_type == g_content &&
+        d->g_content->direction == vertical) {
       incr_active_id(d);
       args->resp_data.code = cbrc_none;
     }
@@ -144,8 +136,8 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
   }
 }
 
-void w_dialogue_init(w_dialogue_t *dialogue, const char title[], const char text[],
-                   coordinates_t *p_coordinates) {
+void w_dialogue_init(w_dialogue_t *dialogue, const char title[],
+                     const char text[], coordinates_t *p_coordinates) {
   uint32_t t_size = 0;
   dialogue->win = 0;
   dialogue->g_content = NULL;
@@ -168,7 +160,8 @@ void w_dialogue_init(w_dialogue_t *dialogue, const char title[], const char text
 
 /* variadic */
 void w_dialogue_vinit(w_dialogue_t *dialogue, const char title[],
-                    coordinates_t *p_coordinates, const char fmt[], va_list *v_args) {
+                      coordinates_t *p_coordinates, const char fmt[],
+                      va_list *v_args) {
   char f_text[DIALOGUE_TEXT];
   vsprintf(f_text, fmt, *v_args);
   w_dialogue_init(dialogue, title, f_text, p_coordinates);
@@ -179,7 +172,7 @@ int group_init_active_id(w_group_t *g, w_dialogue_t *d) {
 
   for (int i = 0; i < g->count; i++) {
     wt = g->elements[i].type;
-    if (wt == w_button || wt == w_input || wt == w_fs_file_list ||
+    if (wt == w_button || wt == w_input ||
         wt == w_checkbox) { /* Add here new types */
       d->active_el = g->elements + i;
       return 1;
@@ -319,7 +312,7 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   d->win = NULL;
   d->is_initiated = 0;
   d->needs_destroy = false;
-  app->active_callback = (w_cb_t) app->main_ui.cb_b_press;
+  app->active_callback = (w_cb_t)app->main_ui.cb_b_press;
   app->query_args->active_dialogue = NULL;
   u_d_arr_ptr_free(&(d->id_map));
   w_app_refresh(app);

@@ -14,11 +14,11 @@
 #include <unistd.h>
 #include <utils.h>
 
-#include "../main_window.h"
-#include "../server.h"
+#include "main_window.h"
 #include "alert.h"
 #include "fs_file_list.h"
 #include "widget_core.h"
+#include "../server.h"
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
 
@@ -377,20 +377,19 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
   box(fui->win_list, 0, 0);
   box(fui->win_info, 0, 0);
 
-  wattrset(win, A_REVERSE); /* Match with modal background */
   do {
     if (p_y < 1) {
       p_y++;
       continue;
     }
     if (el == fui->current) {
-      wattrset(win, COLOR_PAIR(3) | A_BOLD | A_REVERSE);
+      wattrset(win, A_BOLD | A_REVERSE);
     }
     p_x = 1;
     p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x);
     mvwprintw(win, p_y, p_x, "%*s", sz_x_f - p_x, "");
     if (el == fui->current) {
-      wattroff(win, COLOR_PAIR(3) | A_BOLD);
+      wattroff(win, A_BOLD | A_REVERSE);
     }
     p_y++;
   } while ((el = el->next) != NULL && p_y < sz_y_f);
@@ -401,12 +400,13 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
     mvwprintw(win, p_y, p_x, "%*s", sz_x_f - 1, "");
   }
 
-  wattroff(win, A_BOLD | A_REVERSE);
-  wattrset(win, COLOR_PAIR(0));
+  wattroff(win, A_BOLD);
   curs_set(false);
 }
 
-void w_lfl_destroy(w_lfl_ui_t *fui) {
-  fl_clear(&(fui->start), &(fui->current));
-  free(fui);
+void w_lfl_destroy(w_lfl_ui_t **fui) {
+  w_lfl_ui_t *f =  *fui;
+  fl_clear(&(f->start), &(f->current));
+  free(*fui);
+  *fui = NULL;
 }

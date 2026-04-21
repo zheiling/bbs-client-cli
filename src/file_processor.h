@@ -4,7 +4,6 @@
 #ifndef FILE_PROCESSOR_H
 #define FILE_PROCESSOR_H
 #include "main.h"
-#include "widget/file_list.h"
 
 void file_list(file_args_t *f_args, query_args_t *q_args);
 void file_download(file_args_t *f_args, query_args_t *q_args);

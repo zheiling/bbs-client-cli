@@ -18,6 +18,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
+#include <windows.h>
 
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);

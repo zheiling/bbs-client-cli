@@ -33,6 +33,7 @@ target_link_libraries(zbbs-client-tui
         widget
         modals
         bstring
+        windows
         utils
         ${CURSES_LIBRARIES}
 )

@@ -15,8 +15,8 @@ typedef struct {
   app->main_ui.ui = NULL;                                                      \
   app->main_ui.cb_refresh = NULL;                                              \
   app->main_ui.cb_b_press = NULL;                                              \
-  app->main_ui.b_keys = NULL;
-  
+  app->main_ui.b_keys = NULL;                                                  \
+  app->main_ui.b_keys_len = 0;
 
 struct action_key {
   char *const key;

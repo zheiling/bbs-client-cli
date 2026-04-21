@@ -2,7 +2,6 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "app.h"
-#include "file_list.h"
 #include <locale.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>

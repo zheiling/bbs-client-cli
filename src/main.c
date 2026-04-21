@@ -13,13 +13,12 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
+#include <windows.h>
 
+#include "main.h"
 #include "app.h"
 #include "connection.h"
 #include "file_list.h"
-#include "main_window.h"
-
-#include "main.h"
 #include "query.h"
 
 uint32_t m_id = 0;

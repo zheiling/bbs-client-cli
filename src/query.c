@@ -23,6 +23,7 @@
 #include <modals.h>
 #include <widget.h>
 #include <widget_core.h>
+#include <windows.h>
 
 #include "alert.h"
 #include "connection.h"

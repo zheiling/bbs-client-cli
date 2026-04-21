@@ -23,7 +23,6 @@ enum w_type {
   w_input,
   w_checkbox,
   w_progress,
-  w_fs_file_list,
 };
 
 enum w_val_type {

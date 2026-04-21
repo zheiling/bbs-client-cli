@@ -30,9 +30,6 @@ void w_app_draw_modal(w_app_t *app) {
     case S_UPLOAD_FILE:
       m_load_pr_init(app, true);
       break;
-    case S_UPLOAD_FILE_SELECT:
-      m_upload_dialogue_init(app);
-      break;
     case S_ASK_REGISTER:
       m_register_init(app);
       break;

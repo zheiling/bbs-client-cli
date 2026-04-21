@@ -34,7 +34,7 @@ typedef struct {
 } w_lfl_ui_t;
 
 void        w_lfl_draw(w_lfl_ui_t *fl_ui);
-void        w_lfl_destroy(w_lfl_ui_t *fl_ui);
+void        w_lfl_destroy(w_lfl_ui_t **fui);
 void        w_lfl_reset(w_lfl_ui_t *fl_ui);
 w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent);
 w_lfl_ui_t *w_lfl_init_win(w_app_t *app);

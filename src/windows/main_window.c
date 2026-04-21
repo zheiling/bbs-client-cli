@@ -1,6 +1,9 @@
+/* SPDX-License-Identifier: MIT */
+/* Copyright (c) 2026 Oleksandr Zhylin */
+
 #include "main_window.h"
 #include "fs_file_list.h"
-#include "server.h"
+#include "file_list.h"
 
 void main_window_set(w_app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
@@ -40,11 +43,11 @@ void main_window_destroy(w_app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
     w_fl_destroy((w_ui_file_list_t **)&(app->main_ui.ui));
-    MAIN_UI_RESET(app);
     break;
   case mw_fl_local:
-  /* TODO: delete fs_file_list */
+    w_lfl_destroy((w_lfl_ui_t **)&(app->main_ui.ui));
   case mw_f_desc:
     break;
   }
+  MAIN_UI_RESET(app);
 }

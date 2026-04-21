@@ -1,10 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "file_list.h"
-#include "../file_processor.h"
-#include "../fs.h"
-#include "../server.h"
 #include "app.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>
@@ -15,7 +11,11 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "../main_window.h"
+#include "main_window.h"
+#include "file_list.h"
+#include "../file_processor.h"
+#include "../fs.h"
+#include "../server.h"
 
 void w_fl_reset(w_ui_file_list_t *fl_ui);
 
