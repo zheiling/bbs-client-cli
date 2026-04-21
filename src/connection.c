@@ -15,7 +15,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-void connect_to_server(w_app_t *app) {
+void connect_to_server(app_t *app) {
   struct sockaddr_in server;
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = app->params->addr;
@@ -23,10 +23,10 @@ void connect_to_server(w_app_t *app) {
   if (-1 ==
       connect(app->params->sd, (struct sockaddr *)&server, sizeof(server))) {
     perror("connect");
-    w_app_destroy(app, 2);
+    app_destroy(app, 2);
   }
   app->params->is_connected = TRUE;
-  w_app_draw_bars(app);
+  app_draw_bars(app);
 }
 
 void init_params(params_t *params) {

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "app.h"
+#include "../app.h"
 #include "checkbox.h"
 #include <widget_core.h>
 

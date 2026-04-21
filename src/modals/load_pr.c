@@ -8,7 +8,7 @@ void dwn_pr_modal_cb(w_cb_args_t *args) {
   /* TODO: cancel action */
 }
 
-w_dialogue_t *m_load_pr_init(w_app_t *app, bool is_upload) {
+w_dialogue_t *m_load_pr_init(app_t *app, bool is_upload) {
   if (app == NULL)
     return NULL;
   w_group_el_init_t content[] = {

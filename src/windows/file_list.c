@@ -1,7 +1,12 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "app.h"
+#include "file_list.h"
+#include "../app.h"
+#include "../file_processor.h"
+#include "../fs.h"
+#include "../server.h"
+#include "main_window.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
@@ -11,16 +16,11 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "main_window.h"
-#include "file_list.h"
-#include "../file_processor.h"
-#include "../fs.h"
-#include "../server.h"
 
 void w_fl_reset(w_ui_file_list_t *fl_ui);
 
 static void w_fl_cb(w_cb_args_t *args) {
-  w_app_t *app = args->app;
+  app_t *app = args->app;
   w_ui_file_list_t *fui = app->query_args->main_ui->ui;
   int32_t key = *((int32_t *)args->data);
   char q_prefix[128];
@@ -117,7 +117,7 @@ static void w_fl_cb(w_cb_args_t *args) {
 }
 
 static void w_fl_cb_refresh(void *data) {
-  w_app_t *app = (w_app_t *)data;
+  app_t *app = (app_t *)data;
   if (app->main_ui.type != mw_fl_server) {
     return;
   }
@@ -133,20 +133,19 @@ static struct action_key action_keys[] = {
     {.key = "F9", .title = "Quit", .code = KEY_F(9)},
 };
 
-static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
-    w_app_destroy(app, 0);
+    app_destroy(app, 0);
     return OK;
   case 'U':
   case 'u':
     if (!app->modal.is_initiated && !fui->active_search) {
       /* app->query_args->state = S_UPLOAD_FILE_SELECT; */
       main_window_set(app, mw_fl_local);
-      main_window_draw(app);
       d_args->element = app->main_ui.ui;
       break;
     }
@@ -165,14 +164,14 @@ static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
   return OK;
 }
 
-void *w_fl_init(w_app_t *app) {
+void *w_fl_init(app_t *app) {
   w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_server;
   app->main_ui.cb_refresh = w_fl_cb_refresh;
   app->main_ui.b_keys = action_keys;
   app->main_ui.b_keys_len = 4;
-  app->main_ui.cb_b_press = (w_cb_press_t) process_user_input;
+  app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
   app->active_callback = w_fl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
   WINDOW *win_parent = app->win;
@@ -245,7 +244,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   }
 
   if (fui->activate_last) {
-    fui->current_idx = fui->current_count - 1;
+    fui->current_idx = fui->max_lines - 1;
     fui->activate_last = false;
   }
 

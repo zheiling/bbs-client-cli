@@ -301,7 +301,7 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
 }
 
 void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
-  w_app_t *app = (w_app_t *)_app;
+  app_t *app = (app_t *)_app;
   if (d->g_content) {
     w_group_destroy(d->g_content);
   }
@@ -315,5 +315,5 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   app->active_callback = (w_cb_t)app->main_ui.cb_b_press;
   app->query_args->active_dialogue = NULL;
   u_d_arr_ptr_free(&(d->id_map));
-  w_app_refresh(app);
+  app_refresh(app);
 }

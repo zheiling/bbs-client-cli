@@ -2,7 +2,7 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "progress_bar.h"
-#include "app.h"
+#include "../app.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>

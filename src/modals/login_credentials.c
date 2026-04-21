@@ -15,7 +15,7 @@ typedef struct {
 
 void init_login_credentials_modal_cb(w_cb_args_t *args) {
   w_cb_args_t d_args;
-  w_app_t *app = args->app;
+  app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
@@ -35,7 +35,7 @@ void init_login_credentials_modal_cb(w_cb_args_t *args) {
       server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
       d->needs_destroy = true;
-      w_app_draw_bars(app);
+      app_draw_bars(app);
       break;
     case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;
@@ -44,7 +44,7 @@ void init_login_credentials_modal_cb(w_cb_args_t *args) {
   }
 }
 
-w_dialogue_t *m_login_credentials_init(w_app_t *app) {
+w_dialogue_t *m_login_credentials_init(app_t *app) {
   if (app == NULL)
     return NULL;
   w_group_el_init_t content[] = {

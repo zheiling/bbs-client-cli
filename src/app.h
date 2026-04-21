@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#ifndef W_APP_H
-#define W_APP_H
+#ifndef APP_H
+#define APP_H
 
 #include "../main.h"
 #include "../common.h"
@@ -13,7 +13,7 @@
 
 typedef enum {
   modal_color_pair = 3,
-} w_app_color;
+} app_color;
 
 typedef struct {
   WINDOW *win;
@@ -25,15 +25,15 @@ typedef struct {
   void (*active_callback)(w_cb_args_t *args);
   void *active_widget;
   main_window_t main_ui;
-} w_app_t;
+} app_t;
 
-w_app_t *w_app_init(void);
-void  w_app_init_nc(void);
-void  w_app_destroy(w_app_t *app, int32_t exit_code);
-void  w_app_draw_borders(w_app_t *app);
-void  w_app_draw_bars(w_app_t *app);
-void  w_app_refresh(w_app_t *app);
-void  w_app_draw_modal(w_app_t *app);
-void  w_app_draw_bbar(w_app_t *app);
+app_t *app_init(void);
+void   app_init_nc(void);
+void   app_destroy(app_t *app, int32_t exit_code);
+void   app_draw_borders(app_t *app);
+void   app_draw_bars(app_t *app);
+void   app_refresh(app_t *app);
+void   app_draw_modal(app_t *app);
+void   app_draw_bbar(app_t *app);
 
 #endif // N_APP_H

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "app.h"
+#include "../app.h"
 #include "dialogue.h"
 #include "main.h"
 #include "query.h"
@@ -33,7 +33,7 @@ void server_send_string(query_args_t *q, const char *fmt, ...) {
   va_end(args);
 }
 
-int server_wait_reg_confirm_cb(w_app_t *app, char *line, int l_len) {
+int server_wait_reg_confirm_cb(app_t *app, char *line, int l_len) {
   query_args_t *q_args = app->query_args;
   char query[INBUFSIZE];
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
@@ -48,7 +48,7 @@ int server_wait_reg_confirm_cb(w_app_t *app, char *line, int l_len) {
             "Welcome, %s!",
             app->params->uname);
     w_notification("Registration", dc_normal, query);
-    w_app_draw_bars(app);
+    app_draw_bars(app);
     return 0;
   } else {
     q_args->state = S_ASK_REGISTER;
@@ -57,7 +57,7 @@ int server_wait_reg_confirm_cb(w_app_t *app, char *line, int l_len) {
   }
 }
 
-int server_print_message_cb(w_app_t *app, char *line, int l_len) {
+int server_print_message_cb(app_t *app, char *line, int l_len) {
   int64_t new_capacity;
   query_args_t *q_args = app->query_args;
   if (q_args->server_message.text == NULL) {
@@ -93,7 +93,7 @@ int server_print_message_cb(w_app_t *app, char *line, int l_len) {
   return 0;
 }
 
-int process_server_command(char *line, int l_len, w_app_t *app) {
+int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
   params_t *params = q_args->params;

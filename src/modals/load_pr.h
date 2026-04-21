@@ -3,6 +3,6 @@
 
 #include <widget.h>
 
-w_dialogue_t *m_load_pr_init(w_app_t *app, bool is_upload);
+w_dialogue_t *m_load_pr_init(app_t *app, bool is_upload);
 
 #endif

@@ -2,7 +2,7 @@
 
 ## Current:
 - [ ] Separate common structures in the common.h
-- [ ] Bottom panel attach to the windows
+- [ ] Fix sizes in upload window
 - [ ] Testing
 - [ ] Sorting in the file list
 - [ ] File upload multiline description (window)

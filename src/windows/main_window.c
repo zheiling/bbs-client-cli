@@ -2,10 +2,10 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "main_window.h"
-#include "fs_file_list.h"
 #include "file_list.h"
+#include "fs_file_list.h"
 
-void main_window_set(w_app_t *app, enum main_window_type type) {
+void main_window_set(app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
     main_window_destroy(app);
   }
@@ -25,7 +25,7 @@ void main_window_set(w_app_t *app, enum main_window_type type) {
   }
 }
 
-void main_window_draw(w_app_t *app) {
+void main_window_draw(app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
     w_fl_draw((w_ui_file_list_t *)app->main_ui.ui);
@@ -36,16 +36,17 @@ void main_window_draw(w_app_t *app) {
   case mw_f_desc:
     break;
   }
-  w_app_draw_bbar(app);
+  app_draw_bbar(app);
 }
 
-void main_window_destroy(w_app_t *app) {
+void main_window_destroy(app_t *app) {
   switch (app->main_ui.type) {
   case mw_fl_server:
     w_fl_destroy((w_ui_file_list_t **)&(app->main_ui.ui));
     break;
   case mw_fl_local:
     w_lfl_destroy((w_lfl_ui_t **)&(app->main_ui.ui));
+    break;
   case mw_f_desc:
     break;
   }

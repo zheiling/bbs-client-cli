@@ -16,25 +16,25 @@
 #include <windows.h>
 
 #include "main.h"
-#include "app.h"
+#include "../app.h"
 #include "connection.h"
 #include "file_list.h"
 #include "query.h"
 
 uint32_t m_id = 0;
 
-int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args);
+int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
 
 int main(int argc, char **argv) {
-  w_app_t *app;
+  app_t *app;
   params_t params;
   query_args_t *q_args = malloc(sizeof(query_args_t));
 
-  app = calloc(1, sizeof(w_app_t));
+  app = calloc(1, sizeof(app_t));
 
-  w_app_init_nc();
+  app_init_nc();
 
-  app = w_app_init();
+  app = app_init();
   init_params(&params);
   app->params = &params;
   analyze_args(argc, argv, &params);
@@ -47,7 +47,6 @@ int main(int argc, char **argv) {
   app->query_args = q_args;
 
   main_window_set(app, mw_fl_server);
-  main_window_draw(app);
 
   /* init client to connect to the server */
   app->params->sd = init_client();
@@ -64,18 +63,18 @@ int main(int argc, char **argv) {
 
   query_loop(app);
   clear_params(&params);
-  w_app_destroy(app, 0);
+  app_destroy(app, 0);
 
   return OK;
 }
 
-int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
-    w_app_destroy(app, 0);
+    app_destroy(app, 0);
     return OK;
   case 'U':
   case 'u':

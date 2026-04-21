@@ -9,7 +9,6 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include "app.h"
 #include "button.h"
 #include "dialogue.h"
 #include "group.h"

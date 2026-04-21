@@ -276,7 +276,7 @@ w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
 }
 
 static void w_lfl_cb_refresh(void *data) {
-  w_app_t *app = (w_app_t *)data;
+  app_t *app = (app_t *)data;
   if (app->main_ui.type != mw_fl_local) {
     return;
   }
@@ -290,22 +290,21 @@ static struct action_key action_keys[] = {
     {.key = "F9", .title = "Quit", .code = KEY_F(9)},
 };
 
-static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
+static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_lfl_ui_t *fui = (w_lfl_ui_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
   switch (c) {
   case KEY_F(9):
-    w_app_destroy(app, 0);
+    app_destroy(app, 0);
     return OK;
   case 'D':
   case 'd':
   case '\33': /* ESC key */
     if (!app->modal.is_initiated) {
-      main_window_set(app, mw_fl_server);
-      main_window_draw(app);
-      server_send_string(app->query_args, "file list %u %u\n", fui->max_lines,
+      server_send_string(app->query_args, "file list %u %u\n", fui->max_lines-1,
                          1);
+      main_window_set(app, mw_fl_server);
       d_args->element = app->main_ui.ui;
       break;
     }
@@ -317,7 +316,7 @@ static int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args) {
   return OK;
 }
 
-w_lfl_ui_t *w_lfl_init_win(w_app_t *app) {
+w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   w_lfl_ui_t *fui = malloc(sizeof(w_lfl_ui_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_local;

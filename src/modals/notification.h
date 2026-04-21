@@ -3,6 +3,6 @@
 
 #include <widget.h>
 
-w_dialogue_t *m_notification_init(w_app_t *app);
+w_dialogue_t *m_notification_init(app_t *app);
 
 #endif

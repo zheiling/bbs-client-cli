@@ -13,7 +13,7 @@ typedef struct {
 
 void server_message_modal_cb(w_cb_args_t *args) {
   w_cb_args_t d_args;
-  w_app_t *app = args->app;
+  app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
@@ -34,7 +34,7 @@ void server_message_modal_cb(w_cb_args_t *args) {
   }
 }
 
-void *m_server_message_init(w_app_t *app) {
+void *m_server_message_init(app_t *app) {
   if (app == NULL)
     return NULL;
   w_group_el_init_t children[] = {

@@ -15,7 +15,7 @@ typedef struct {
 
 void login_modal_option_cb(w_cb_args_t *args) {
   w_cb_args_t d_args;
-  w_app_t *app = args->app;
+  app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
@@ -29,7 +29,7 @@ void login_modal_option_cb(w_cb_args_t *args) {
       strcpy(app->params->uname, "anonymous");
       server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
-      w_app_draw_bars(app);
+      app_draw_bars(app);
       break;
     case 2:
       d->needs_destroy = true;
@@ -43,7 +43,7 @@ void login_modal_option_cb(w_cb_args_t *args) {
   }
 }
 
-w_dialogue_t *m_login_option_init(w_app_t *app) {
+w_dialogue_t *m_login_option_init(app_t *app) {
   if (app == NULL)
     return NULL;
   w_group_el_init_t children[] = {{.type = w_button, .label = "Anonymous", .val.num = 1},

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "app.h"
+#include "../app.h"
 #include <locale.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>
@@ -14,13 +14,13 @@
 
 void ac_file(WINDOW *win, int is_action_w);
 
-w_app_t *w_app_init() {
+app_t *app_init() {
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
 
   /* allocate app struct memory */
-  w_app_t *_app = calloc(1, sizeof(w_app_t));
+  app_t *_app = calloc(1, sizeof(app_t));
 
   /* associate values for screen size */
   _app->coordinates.max_x = _app->coordinates.cur_x = x_max;
@@ -34,10 +34,10 @@ w_app_t *w_app_init() {
 
   /* print top and bottom bars */
   _app->main_ui.b_keys_len = 0;
-  w_app_draw_bars(_app);
+  app_draw_bars(_app);
 
   /* here goes box borders */
-  w_app_draw_borders(_app);
+  app_draw_borders(_app);
 
   /* NULL to main_ui */
   MAIN_UI_RESET(_app);
@@ -51,7 +51,7 @@ w_app_t *w_app_init() {
   return _app;
 }
 
-void w_app_init_nc() {
+void app_init_nc() {
   initscr();
   cbreak();
   keypad(stdscr, TRUE);
@@ -71,7 +71,7 @@ void w_app_init_nc() {
   }
 }
 
-void w_app_draw_borders(w_app_t *app) {
+void app_draw_borders(app_t *app) {
   if (app->modal.win != NULL && !app->modal.needs_update) {
     return;
   }
@@ -93,9 +93,9 @@ int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
   return key_len + title_len;
 }
 
-void w_app_draw_bbar(w_app_t *app);
+void app_draw_bbar(app_t *app);
 
-void w_app_draw_bars(w_app_t *app) {
+void app_draw_bars(app_t *app) {
   char top_text[64] = "Hello!";
 
   wattrset(app->win, A_REVERSE);
@@ -119,11 +119,11 @@ void w_app_draw_bars(w_app_t *app) {
 
   /* add content to the bottom bar */
   if (app->main_ui.b_keys_len > 0) {
-    w_app_draw_bbar(app);
+    app_draw_bbar(app);
   }
 }
 
-void w_app_draw_bbar(w_app_t *app) {
+void app_draw_bbar(app_t *app) {
   wattrset(app->win, A_REVERSE);
   int t_margin = 0; /* tab margin */
   int c_size =
@@ -150,8 +150,8 @@ void w_app_draw_bbar(w_app_t *app) {
   wattroff(app->win, A_REVERSE);
 }
 
-void w_app_refresh(w_app_t *app) {
-  w_app_draw_borders(app);
+void app_refresh(app_t *app) {
+  app_draw_borders(app);
   wnoutrefresh(app->win);
   if (app->modal.win != NULL) {
     if (app->modal.is_initiated != 0) {
@@ -164,7 +164,7 @@ void w_app_refresh(w_app_t *app) {
   doupdate();
 }
 
-void w_app_destroy(w_app_t *app, int32_t exit_code) {
+void app_destroy(app_t *app, int32_t exit_code) {
   delwin(app->win);
   endwin();
   app->win = NULL;

@@ -5,7 +5,7 @@
 #include <widget.h>
 #include "main.h"
 
-void w_app_draw_modal(w_app_t *app) {
+void app_draw_modal(app_t *app) {
   if (app->modal.needs_destroy ||
       (app->query_args->state == S_WAIT_SERVER && app->modal.is_initiated)) {
     w_dialogue_destroy(&(app->modal), app);

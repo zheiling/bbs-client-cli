@@ -13,7 +13,7 @@ typedef struct {
 
 void asa_modal_dialogue_callback(w_cb_args_t *args) {
   w_cb_args_t d_args;
-  w_app_t *app = args->app;
+  app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
   d_args.app = NULL;
@@ -30,12 +30,12 @@ void asa_modal_dialogue_callback(w_cb_args_t *args) {
       app->query_args->state = S_WAIT_SERVER;
       break;
     case 2:
-      w_app_destroy(app, 0);
+      app_destroy(app, 0);
     }
   }
 }
 
-w_dialogue_t *m_asa_init(w_app_t *app) {
+w_dialogue_t *m_asa_init(app_t *app) {
   if (app == NULL)
     return NULL;
   w_group_el_init_t content[] = {

@@ -4,7 +4,7 @@
 #ifndef W_FILE_LIST_H
 #define W_FILE_LIST_H
 
-#include "app.h"
+#include "../app.h"
 #include <bstrlib.h>
 #include <stdint.h>
 #include <widget_core.h>
@@ -27,7 +27,7 @@ typedef struct {
 } w_ui_file_list_t;
 
 void              w_fl_draw(w_ui_file_list_t *fl_ui);
-void             *w_fl_init(w_app_t *app);
+void             *w_fl_init(app_t *app);
 void              w_fl_reset(w_ui_file_list_t *fl_ui);
 void              w_fl_destroy(w_ui_file_list_t **fui);
 

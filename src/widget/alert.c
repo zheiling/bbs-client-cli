@@ -7,13 +7,13 @@
 
 /* Short notifications. Prefer using this method to simply notify the client */
 
-static w_app_t *app;
+static app_t *app;
 
 void alert_cb(w_cb_args_t *args) {
   //
 }
 
-void w_alert_init(w_app_t *_app) { app = _app; }
+void w_alert_init(app_t *_app) { app = _app; }
 
 void w_alert(const char *message) { w_notification("Alert", dc_alert, message); }
 
@@ -54,7 +54,7 @@ void w_notification(const char *title, enum w_dialogue_color_scheme color,
   delwin(d->win);
   free(d);
   app->active_callback = callback;
-  w_app_refresh(app);
+  app_refresh(app);
   if (app->modal.win != NULL) {
     app->modal.needs_update = true;
   }

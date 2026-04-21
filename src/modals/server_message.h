@@ -3,6 +3,6 @@
 
 #include <widget.h>
 
-void *m_server_message_init(w_app_t *app);
+void *m_server_message_init(app_t *app);
 
 #endif

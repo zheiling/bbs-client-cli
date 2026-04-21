@@ -33,19 +33,19 @@
 #include "server.h"
 #include "types.h"
 
-static int process_command(w_app_t *app, wait_server_cb *cb);
+static int process_command(app_t *app, wait_server_cb *cb);
 void user_request_description(query_args_t *q_args);
-int process_query(w_app_t *app);
-int32_t process_user_input(w_app_t *app, w_cb_args_t *d_args);
+int process_query(app_t *app);
+int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
 
 #define EXIT_APP(message, app, exit_code)                                      \
   {                                                                            \
     w_alert(message);                                                          \
     close_session(app->params->sd);                                            \
-    w_app_destroy(app, exit_code);                                             \
+    app_destroy(app, exit_code);                                             \
   }
 
-void query_loop(w_app_t *app) {
+void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
   int32_t sd = app->params->sd;
@@ -61,8 +61,9 @@ void query_loop(w_app_t *app) {
 
   for (;;) {
     /* update screen */
-    w_app_draw_modal(app);
-    w_app_refresh(app);
+    app_draw_modal(app);
+    main_window_draw(app);
+    app_refresh(app);
 
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
@@ -135,7 +136,7 @@ void wait_register(query_args_t *q_args) {
                      email);
 }
 
-int upload_confirm_cb(w_app_t *app, char *query, int q_len) {
+int upload_confirm_cb(app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
     w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
     w_notification("File upload", dc_normal,
@@ -151,7 +152,7 @@ int upload_confirm_cb(w_app_t *app, char *query, int q_len) {
   return 1; /* TODO: Error case */
 }
 
-int process_query(w_app_t *app) {
+int process_query(app_t *app) {
   query_args_t *query_args = app->query_args;
   file_args_t *file_args = app->file_args;
   query_args->buf[query_args->buf_used] = 0;
@@ -259,7 +260,7 @@ void query_return_to_buf(char *buf, int *buf_used, char *input_line) {
   buf[*buf_used] = 0;
 }
 
-static int process_command(w_app_t *app, wait_server_cb *callback) {
+static int process_command(app_t *app, wait_server_cb *callback) {
   query_args_t *q_args = app->query_args;
   int qlen;
   char *query = NULL;
