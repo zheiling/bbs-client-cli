@@ -14,11 +14,11 @@
 #include <unistd.h>
 #include <utils.h>
 
-#include "main_window.h"
+#include "../server.h"
 #include "alert.h"
 #include "fs_file_list.h"
+#include "main_window.h"
 #include "widget_core.h"
-#include "../server.h"
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
 
@@ -302,8 +302,8 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   case 'd':
   case '\33': /* ESC key */
     if (!app->modal.is_initiated) {
-      server_send_string(app->query_args, "file list %u %u\n", fui->max_lines-1,
-                         1);
+      server_send_string(app->query_args, "file list %u %u\n",
+                         fui->max_lines - 1, 1);
       main_window_set(app, mw_fl_server);
       d_args->element = app->main_ui.ui;
       break;
@@ -341,7 +341,7 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   /* * INIT UI * */
 
   /* define the width for each sub window */
-  int32_t left_w_x = app->coordinates.max_x / 10 * 4;
+  int32_t left_w_x = app->coordinates.max_x / 10 * 5;
   int32_t right_w_x = app->coordinates.max_x - left_w_x - 2;
 
   /* create the list window */
@@ -360,18 +360,14 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
   int32_t p_y, p_x;
   WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
-  int32_t sz_y_f = sz_y - 2; // actual size (without box)
-  int32_t sz_x_f = sz_x - 2; // actual size (without box)
-  fui->max_lines = sz_y_f;
+  int32_t sz_y_f = sz_y - 1; // actual size (without box)
+  int32_t sz_x_f = sz_x - 1; // actual size (without box)
+  fui->max_lines = sz_y_f - 1;
   fui->pages_num = fui->files_num / fui->max_lines +
                    (fui->files_num % fui->max_lines > 0 ? 1 : 0);
   p_y = 1;
   p_x = 1;
   w_lfl_item_t *el = fui->page_start;
-
-  if (fui->current_idx + 1 >= sz_y_f) {
-    p_y -= fui->current_idx - sz_y_f + 2;
-  }
 
   box(fui->win_list, 0, 0);
   box(fui->win_info, 0, 0);
@@ -385,8 +381,11 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       wattrset(win, A_BOLD | A_REVERSE);
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x);
-    mvwprintw(win, p_y, p_x, "%*s", sz_x_f - p_x, "");
+    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x_f-1);
+    int pad = sz_x_f - p_x;
+    if (pad >= 0) {
+      mvwprintw(win, p_y, p_x, "%*s", pad, "");
+    }
     if (el == fui->current) {
       wattroff(win, A_BOLD | A_REVERSE);
     }
@@ -404,7 +403,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 }
 
 void w_lfl_destroy(w_lfl_ui_t **fui) {
-  w_lfl_ui_t *f =  *fui;
+  w_lfl_ui_t *f = *fui;
   fl_clear(&(f->start), &(f->current));
   free(*fui);
   *fui = NULL;

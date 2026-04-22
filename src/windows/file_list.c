@@ -248,10 +248,6 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     fui->activate_last = false;
   }
 
-  if (fui->current_idx + 1 >= sz_y_f) {
-    p_y -= fui->current_idx - sz_y_f + 2;
-  }
-
   do {
     if (el == NULL)
       break;
