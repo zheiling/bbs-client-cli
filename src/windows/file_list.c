@@ -223,7 +223,7 @@ void w_fl_reset(w_ui_file_list_t *fl_ui) {
 
 void w_fl_draw(w_ui_file_list_t *fui) {
   int32_t sz_y, sz_x;
-  int32_t p_y, p_x;
+  int64_t p_y, p_x;
   WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
 
@@ -261,7 +261,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       active_el = el;
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x - 1);
+    p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x - 1, false);
     int pad = sz_x - p_x;
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");
@@ -295,29 +295,6 @@ void w_fl_draw(w_ui_file_list_t *fui) {
 
   char p_info[64];
 
-  /* Draw file info [right side] */
-  {
-    uint32_t p_y = 1;
-    p_x = 1;
-    WINDOW *i_win = fui->win_info;
-    wclear(i_win);
-    box(fui->win_info, 0, 0);
-
-    /* Write to the right side the information about the file */
-    if (active_el != NULL) {
-      char size_text[64];
-      size_to_text(active_el->size, size_text);
-
-      mvwprintw(i_win, p_y++, p_x, "Size: %s", size_text);
-      mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
-      if (active_el->description != NULL) {
-        mvwprintw(i_win, p_y++, p_x, "Description: ");
-        w_print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x,
-                               0);
-      }
-    }
-  }
-
   /* Search bar */
   p_x = 1;
   wattrset(win, A_BOLD);
@@ -347,5 +324,35 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       mvwprintw(win, p_y, p_x, "%*s%s%*s", l_pad, "", p_info, l_pad, "");
     }
   }
+
+  /* Draw file info [right side] */
+  {
+    int64_t p_y = 1;
+    p_x = 1;
+    WINDOW *i_win = fui->win_info;
+    wclear(i_win);
+    box(fui->win_info, 0, 0);
+
+    /* Write to the right side the information about the file */
+    if (active_el != NULL) {
+      char size_text[64];
+
+      mvwprintw(i_win, p_y, p_x, "Name:  ");
+
+      p_x = 8; /* 7 (size of "Name: ") + 1 */
+      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x, true);
+      p_x = 1;
+
+      size_to_text(active_el->size, size_text);
+      mvwprintw(i_win, p_y++, p_x, "Size:  %s", size_text);
+      mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner);
+      if (active_el->description != NULL) {
+        mvwprintw(i_win, p_y++, p_x, "Description: ");
+        w_print_multiline_text(i_win, active_el->description, sz_x, p_y, p_x,
+                               0);
+      }
+    }
+  }
+
   wattroff(win, A_BOLD);
 }

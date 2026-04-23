@@ -13,8 +13,22 @@ size_t u_utf8_code_points_count(const char *s) {
   return count;
 }
 
-int64_t u_utf8_conver_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
-                             size_t *restrict len) {
+const char *u_utf8_wind_n(const char *s, int n) {
+  size_t count = 0;
+  const char *_s = s;
+  while (*_s) {
+    count += (*_s++ & 0xC0) != 0x80;
+    if (count == n)
+      break;
+  }
+  if (s == _s)
+    return NULL;
+  return _s;
+}
+
+int64_t u_utf8_convert_to_wide(const char *utf8_str,
+                               wchar_t **restrict wide_str,
+                               size_t *restrict len) {
   // Step 1: Convert UTF-8 (MBCS) to wchar_t (wide)
   size_t wide_len =
       u_utf8_code_points_count(utf8_str); // Get required length (-1 on error)
@@ -30,13 +44,28 @@ int64_t u_utf8_conver_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
   return 0;
 }
 
-int64_t u_utf8_curs_printw(WINDOW *win, int64_t y, int64_t x, char *const utf8_str, int max_len) {
-  wchar_t *wname = NULL;
+int64_t u_utf8_curs_printw(WINDOW *win, int64_t *y, int64_t *x,
+                           const char *utf8_str, int max_len, bool multi_line) {
+  wchar_t *wline = NULL;
   size_t nsize = 0;
-  u_utf8_conver_to_wide(utf8_str, &wname, &nsize);
-  /* mvwaddwstr(win, y, x, wname); */
-  wmove(win,(y),(x));
-  waddnwstr(win, wname, max_len);
-  free(wname);
+  int64_t _x = *x;
+  int64_t _y = *y;
+  u_utf8_convert_to_wide(utf8_str, &wline, &nsize);
+  size_t s_rest = nsize;
+  mvwaddnwstr(win, _y, _x, wline, max_len);
+
+  if (multi_line) {
+    s_rest -= max_len;
+    for (int i = 1; s_rest > 0; s_rest -= max_len, i++) {
+      _y++;
+      _x = *x;
+      mvwaddnwstr(win, _y, _x, wline + max_len*i, max_len);
+    }
+  }
+
+  *y = _y;
+  *x = _x;
+
+  free(wline);
   return nsize;
 }

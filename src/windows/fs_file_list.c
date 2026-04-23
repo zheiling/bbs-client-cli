@@ -357,7 +357,7 @@ void w_lfl_reset(w_lfl_ui_t *fl_ui) { fl_ui->current_idx = 0; }
 
 void w_lfl_draw(w_lfl_ui_t *fui) {
   int32_t sz_y, sz_x;
-  int32_t p_y, p_x;
+  int64_t p_y, p_x;
   WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 1; // actual size (without box)
@@ -381,7 +381,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       wattrset(win, A_BOLD | A_REVERSE);
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, p_y, p_x, el->name, sz_x_f-1);
+    p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x_f-1, false);
     int pad = sz_x_f - p_x;
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");
