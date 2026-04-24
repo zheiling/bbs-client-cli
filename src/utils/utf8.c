@@ -45,21 +45,19 @@ int64_t u_utf8_convert_to_wide(const char *utf8_str,
 }
 
 int64_t u_utf8_curs_printw(WINDOW *win, int64_t *y, int64_t *x,
-                           const char *utf8_str, int max_len, bool multi_line) {
+                           const char *utf8_str, int max_len, bool multiline) {
   wchar_t *wline = NULL;
   size_t nsize = 0;
   int64_t _x = *x;
   int64_t _y = *y;
   u_utf8_convert_to_wide(utf8_str, &wline, &nsize);
-  size_t s_rest = nsize;
   mvwaddnwstr(win, _y, _x, wline, max_len);
 
-  if (multi_line) {
-    s_rest -= max_len;
-    for (int i = 1; s_rest > 0; s_rest -= max_len, i++) {
-      _y++;
+  if (multiline) {
+    _y++;
+    for (int i = 1; max_len*i < nsize; i++) {
       _x = *x;
-      mvwaddnwstr(win, _y, _x, wline + max_len*i, max_len);
+      mvwaddnwstr(win, _y++, _x, wline + max_len*i, max_len);
     }
   }
 
