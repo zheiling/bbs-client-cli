@@ -5,6 +5,7 @@
 #define W_LFL_H
 
 #include "../app.h"
+#include <stddef.h>
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -13,6 +14,8 @@
 typedef struct fs_fl_item {
   char *name;
   char *path;
+  char *d_name;
+  size_t size;
   struct fs_fl_item *next;
   struct fs_fl_item *prev;
   u_char d_type;

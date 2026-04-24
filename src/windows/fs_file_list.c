@@ -2,6 +2,7 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -19,12 +20,26 @@
 #include "fs_file_list.h"
 #include "main_window.h"
 #include "widget_core.h"
+#include "../fs.h"
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
+
+static size_t get_file_size(char *path) {
+  int fd = open(path, O_RDONLY);
+  if (fd == -1) {
+    perror(path);
+    return 0;
+  }
+  size_t fsize = lseek(fd, 0, SEEK_END);
+  close(fd);
+  return fsize;
+}
 
 struct fl_args {
   char *name;
   char *path;
+  size_t size;
+  char *owner;
   u_char d_type;
 };
 
@@ -33,6 +48,7 @@ static void fl_add(w_lfl_item_t **f_start, w_lfl_item_t **f_current,
   w_lfl_item_t *c_item = malloc(sizeof(w_lfl_item_t));
   c_item->name = malloc(strlen(fargs->name) + 1);
   strcpy(c_item->name, fargs->name);
+  c_item->size = fargs->size;
   c_item->next = NULL;
   c_item->d_type = fargs->d_type;
   if (fargs->path != NULL) {
@@ -69,6 +85,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
   DIR *dir;
   struct dirent *dent;
   char name[257];
+  char d_name[257];
   char l_path[INBUFSIZE];
   struct fl_args f_args;
   ssize_t r = 0;
@@ -93,6 +110,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
         w_lfl_item_t *t_st = NULL, *t_cur = NULL;
         sprintf(name, "/%s", dent->d_name);
         f_args.name = name;
+        f_args.size = 0;
         fl_add(&t_st, &t_cur, &f_args);
         fui->files_num++;
         /* Always put .. at the beginning */
@@ -108,6 +126,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
       fl_add(&d_start, &d_current, &f_args);
+      f_args.size = 0;
       fui->files_num++;
     } else if (f_args.d_type == DT_LNK) {
       sprintf(name, "%s/%s", fui->d_path, dent->d_name);
@@ -115,6 +134,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       sprintf(name, "->/%s", dent->d_name);
       f_args.name = name;
       f_args.path = l_path;
+      f_args.size = 0;
       fl_add(&d_start, &d_current, &f_args);
       fui->files_num++;
     } else {
@@ -122,9 +142,10 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       if (!strncmp(dent->d_name, ".", 1))
         continue;
       f_args.name = dent->d_name;
-      sprintf(name, "%s", dent->d_name);
+      f_args.size = get_file_size(dent->d_name);
       fl_add(&f_start, &f_current, &f_args);
       fui->files_num++;
+      sprintf(name, "%s", dent->d_name);
     }
   }
   if (d_current != NULL)
@@ -368,9 +389,15 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
   p_y = 1;
   p_x = 1;
   w_lfl_item_t *el = fui->page_start;
+  w_lfl_item_t *active_el = fui->page_start;
 
   box(fui->win_list, 0, 0);
   box(fui->win_info, 0, 0);
+
+  if (fui->start != NULL) {
+    el = fui->start;
+    active_el = el;
+  }
 
   do {
     if (p_y < 1) {
@@ -379,9 +406,10 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
     }
     if (el == fui->current) {
       wattrset(win, A_BOLD | A_REVERSE);
+      active_el = el;
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x_f-1, false);
+    p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x_f - 1, false);
     int pad = sz_x_f - p_x;
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");
@@ -396,6 +424,32 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
   for (; p_y < sz_y_f; p_y++) {
     mvwprintw(win, p_y, p_x, "%*s", sz_x_f - 1, "");
+  }
+
+  /* Draw file info [right side] */
+  {
+    int64_t p_y = 1;
+    p_x = 1;
+    WINDOW *i_win = fui->win_info;
+    wclear(i_win);
+    box(fui->win_info, 0, 0);
+
+    /* Write to the right side the information about the file */
+    if (active_el != NULL) {
+      char size_text[64];
+
+      mvwprintw(i_win, p_y, p_x, "Name:  ");
+
+      p_x = 8; /* 7 (size of "Name: ") + 1 */
+      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x, true);
+      p_x = 1;
+ 
+      if (active_el->size > 0) {
+        size_to_text(active_el->size, size_text);
+        mvwprintw(i_win, p_y++, p_x, "Size:  %s", size_text);
+      }
+      /* mvwprintw(i_win, p_y++, p_x, "Owner: %s", active_el->owner); */
+    }
   }
 
   wattroff(win, A_BOLD);
