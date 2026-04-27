@@ -2,7 +2,6 @@
 
 ## Current:
 - [ ] Separate common structures in the common.h
-- [ ] Fix sizes in upload window
 - [ ] Testing
 - [ ] Sorting in the file list
 - [ ] File upload multiline description (window)
@@ -24,7 +23,6 @@
 - [ ] Encryption
 - [x] UTF-8 support
 - [ ] Check MD5 sum after download/upload
-- [ ] UI: separate file browser with more functions
 - [ ] Hotkeys for buttons
 
 ## Fixes:
