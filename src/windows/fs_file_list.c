@@ -3,6 +3,7 @@
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <math.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -15,12 +16,12 @@
 #include <unistd.h>
 #include <utils.h>
 
+#include "../fs.h"
 #include "../server.h"
 #include "alert.h"
 #include "fs_file_list.h"
 #include "main_window.h"
 #include "widget_core.h"
-#include "../fs.h"
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
 
@@ -157,10 +158,14 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
   fui->page_start = d_start;
   fui->current = d_start;
   fui->cur_page = 1;
+  fui->pages_num = fui->files_num / fui->max_lines;
+  if (fui->files_num % fui->max_lines) {
+    fui->pages_num++;
+  }
   return 0;
 }
 
-void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
+static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
   char *bash_case = NULL;
   char *selection = NULL;
   size_t dp_current;
@@ -207,51 +212,52 @@ void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
 }
 
 /* next page */
-void page_next(w_lfl_ui_t *fui) {
+static void page_next(w_lfl_ui_t *fui) {
   int count = fui->max_lines;
   w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page < fui->pages_num) {
-    for (; count; count--) {
+    for (; count >= 0; count--) {
       n_page_item = n_page_item->next;
     }
-    fui->cur_page++;
+    fui->cur_page++; 
     fui->page_start = n_page_item;
     fui->current_idx = 0;
     fui->current = n_page_item;
   }
-  w_lfl_draw(fui);
 }
 
 /* previous page */
-void page_previous(w_lfl_ui_t *fui) {
+static void page_previous(w_lfl_ui_t *fui) {
   int count = fui->max_lines;
   w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page > 1) {
-    for (; count; count--) {
+    for (; count >= 0; count--) {
       n_page_item = n_page_item->prev;
     }
     fui->cur_page--;
+    fui->current = fui->page_start->prev; /* the last element of the previous page */
     fui->page_start = n_page_item;
-    fui->current_idx = 0;
-    fui->current = n_page_item;
+    fui->current_idx = fui->max_lines;
   }
-  w_lfl_draw(fui);
 }
 
 static void w_lfl_cb(w_cb_args_t *args) {
   w_lfl_ui_t *fui = args->element;
   int32_t key = *((int32_t *)args->data);
+  bool is_cur_p = 0; /* current page */
   switch (key) {
   case KEY_DOWN:
+    is_cur_p = (fui->current_idx % fui->max_lines || fui->current_idx == 0);
     if (fui->current->next != NULL) {
-      if (fui->current_idx < fui->max_lines - 1) {
-        fui->current = fui->current->next;
-        fui->current_idx++;
-      } else {
+      if (is_cur_p) {
+        if (fui->current_idx < fui->max_lines) {
+          fui->current = fui->current->next;
+          fui->current_idx++;
+        }
+      } else { /* is_cur_p */
         page_next(fui);
-        break;
       }
-    }
+    } else break; /* fui->current->next != NULL */
     w_lfl_draw(fui);
     break;
   case KEY_UP:
@@ -261,9 +267,8 @@ static void w_lfl_cb(w_cb_args_t *args) {
         fui->current_idx--;
       } else {
         page_previous(fui);
-        break;
       }
-    }
+    } else break;
     w_lfl_draw(fui);
     break;
   case KEY_NPAGE:
@@ -350,13 +355,9 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   fui->current_idx = 0;
   fui->win_info = NULL;
   fui->d_path = NULL;
-  char *path = get_current_dir_name();
-  get_files_from_fs(fui, path);
-  fui->current = fui->start;
   fui->w.callback = w_lfl_cb;
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
-  fui->max_lines = 0; /* detects on the first draw */
   fui->cur_page = 1;
   fui->w.parent_win = &(app->win);
   /* * INIT UI * */
@@ -367,10 +368,16 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
 
   /* create the list window */
   fui->win_list = newwin(app->coordinates.max_y - 4, left_w_x, 2, 1);
+  fui->max_lines = fui->max_lines = getmaxy(fui->win_list) - 3;
 
   /* create the action window */
   fui->win_info =
       newwin(app->coordinates.max_y - 4, right_w_x, 2, left_w_x + 1);
+
+  /* get files */
+  char *path = get_current_dir_name();
+  get_files_from_fs(fui, path);
+  fui->current = fui->start;
   return fui;
 }
 
@@ -383,9 +390,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 1; // actual size (without box)
   int32_t sz_x_f = sz_x - 1; // actual size (without box)
-  fui->max_lines = sz_y_f - 1;
-  fui->pages_num = fui->files_num / fui->max_lines +
-                   (fui->files_num % fui->max_lines > 0 ? 1 : 0);
+
   p_y = 1;
   p_x = 1;
   w_lfl_item_t *el = fui->page_start;
@@ -393,11 +398,6 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
   box(fui->win_list, 0, 0);
   box(fui->win_info, 0, 0);
-
-  if (fui->start != NULL) {
-    el = fui->start;
-    active_el = el;
-  }
 
   do {
     if (p_y < 1) {
@@ -443,7 +443,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       p_x = 8; /* 7 (size of "Name: ") + 1 */
       u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x, true);
       p_x = 1;
- 
+
       if (active_el->size > 0) {
         size_to_text(active_el->size, size_text);
         mvwprintw(i_win, p_y++, p_x, "Size:  %s", size_text);
