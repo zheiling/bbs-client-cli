@@ -2,6 +2,7 @@
 
 ## Current:
 - [ ] Check registration / enter server name again
+- [ ] Get rid of unsigned integers
 - [ ] Separate common structures in the common.h
 - [ ] Testing
 - [ ] Sorting in the file list
