@@ -1,6 +1,7 @@
 # TODO:
 
 ## Current:
+- [ ] Check registration / enter server name again
 - [ ] Separate common structures in the common.h
 - [ ] Testing
 - [ ] Sorting in the file list
