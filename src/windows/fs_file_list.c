@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <utils.h>
 
+#include "../file_processor.h"
 #include "../fs.h"
 #include "../server.h"
 #include "alert.h"
@@ -67,7 +68,7 @@ static void fl_add(w_lfl_item_t **f_start, w_lfl_item_t **f_current,
   }
 }
 
-static void fl_clear(w_lfl_item_t **start, w_lfl_item_t **arg_current) {
+static void lfl_clear(w_lfl_item_t **start, w_lfl_item_t **arg_current) {
   if (*start == NULL)
     return;
   w_lfl_item_t *next, *current;
@@ -100,7 +101,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
     return 1;
   if (fui->d_path != NULL) {
     free(fui->d_path);
-    fl_clear(&(fui->start), &(fui->current));
+    lfl_clear(&(fui->start), &(fui->current));
   }
   fui->d_path = malloc(strlen(path) + 1);
   strcpy(fui->d_path, path);
@@ -219,7 +220,7 @@ static void page_next(w_lfl_ui_t *fui) {
     for (; count >= 0; count--) {
       n_page_item = n_page_item->next;
     }
-    fui->cur_page++; 
+    fui->cur_page++;
     fui->page_start = n_page_item;
     fui->current_idx = 0;
     fui->current = n_page_item;
@@ -235,7 +236,8 @@ static void page_previous(w_lfl_ui_t *fui) {
       n_page_item = n_page_item->prev;
     }
     fui->cur_page--;
-    fui->current = fui->page_start->prev; /* the last element of the previous page */
+    fui->current =
+        fui->page_start->prev; /* the last element of the previous page */
     fui->page_start = n_page_item;
     fui->current_idx = fui->max_lines;
   }
@@ -245,6 +247,7 @@ static void w_lfl_cb(w_cb_args_t *args) {
   w_lfl_ui_t *fui = args->element;
   int32_t key = *((int32_t *)args->data);
   bool is_cur_p = 0; /* current page */
+  app_t *app = (app_t *)args->app;
   switch (key) {
   case KEY_DOWN:
     is_cur_p = (fui->current_idx % fui->max_lines || fui->current_idx == 0);
@@ -257,7 +260,8 @@ static void w_lfl_cb(w_cb_args_t *args) {
       } else { /* is_cur_p */
         page_next(fui);
       }
-    } else break; /* fui->current->next != NULL */
+    } else
+      break; /* fui->current->next != NULL */
     w_lfl_draw(fui);
     break;
   case KEY_UP:
@@ -268,7 +272,8 @@ static void w_lfl_cb(w_cb_args_t *args) {
       } else {
         page_previous(fui);
       }
-    } else break;
+    } else
+      break;
     w_lfl_draw(fui);
     break;
   case KEY_NPAGE:
@@ -338,6 +343,13 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
     d_args->data = (void *)&c;
     app->active_callback(d_args);
     break;
+  }
+  /* case: file upload */
+  if (d_args->resp_data.code == cbrp_val &&
+      d_args->resp_data.val.type == val_num &&
+      d_args->resp_data.val.val.num == 1) {
+    file_upload_open(fui->d_path, fui->current->name, app->query_args);
+    app->query_args->state = S_UPLOAD_PARAMS;
   }
   return OK;
 }
@@ -458,7 +470,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
 void w_lfl_destroy(w_lfl_ui_t **fui) {
   w_lfl_ui_t *f = *fui;
-  fl_clear(&(f->start), &(f->current));
+  lfl_clear(&(f->start), &(f->current));
   free(*fui);
   *fui = NULL;
 }

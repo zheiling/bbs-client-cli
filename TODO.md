@@ -1,6 +1,7 @@
 # TODO:
 
 ## Current:
+- [ ] Check callback functions in dialogues
 - [ ] Check registration / enter server name again
 - [ ] Get rid of unsigned integers
 - [ ] Separate common structures in the common.h

@@ -14,7 +14,7 @@
 
 void ac_file(WINDOW *win, int is_action_w);
 
-app_t *app_init() {
+app_t *app_init(void) {
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
@@ -51,7 +51,7 @@ app_t *app_init() {
   return _app;
 }
 
-void app_init_nc() {
+void app_init_nc(void) {
   initscr();
   cbreak();
   keypad(stdscr, TRUE);
@@ -157,8 +157,7 @@ void app_refresh(app_t *app) {
     if (app->modal.is_initiated != 0) {
       wnoutrefresh(app->modal.win);
     }
-  }
-  if (app->main_ui.cb_refresh != NULL) {
+  } else if (app->main_ui.cb_refresh != NULL) {
     app->main_ui.cb_refresh(app);
   }
   doupdate();
