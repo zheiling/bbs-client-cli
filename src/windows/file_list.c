@@ -234,7 +234,6 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   fl_item_t *el = NULL;
   fl_item_t *active_el = NULL;
   int32_t cur_el_idx = 0;
-  curs_set(false);
 
   box(fui->win_list, 0, 0);
 

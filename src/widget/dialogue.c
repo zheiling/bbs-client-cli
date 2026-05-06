@@ -315,5 +315,6 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   app->active_callback = (w_cb_t)app->main_ui.cb_b_press;
   app->query_args->active_dialogue = NULL;
   u_d_arr_ptr_free(&(d->id_map));
+  curs_set(false);
   app_refresh(app);
 }
