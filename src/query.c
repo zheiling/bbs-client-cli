@@ -91,8 +91,8 @@ void query_loop(app_t *app) {
       }
     }
 
+    /* process request from the server */
     if (FD_ISSET(sd, &readfds)) {
-      /* process request from the server */
       qlen = read(sd, query_args->buf, INBUFSIZE);
       if (qlen == 0) {
         EXIT_APP("*** server closed the connection ***", app, 1)
@@ -105,22 +105,22 @@ void query_loop(app_t *app) {
       }
     }
 
+    /* process upload/download */
     if (query_args->file && query_args->file->fd > -1 &&
         FD_ISSET(query_args->file->fd, &readfds)) {
-      /* process upload/download */
       query_args->buf_used =
           read(query_args->file->fd, query_args->buf, INBUFSIZE);
       process_query(app);
     }
 
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
-      if (app->main_ui.cb_b_press != NULL) {
+      if (app->main_ui.cb_b_press != NULL && app->modal.is_initiated == false) {
         if (ERR == app->main_ui.cb_b_press(app, &d_args)) {
-          EXIT_APP("*** error while processing user input ***", app, 4)
+          w_alert("error while processing user input");
         }
       } else {
         if (ERR == process_user_input(app, &d_args)) {
-          EXIT_APP("*** error while processing user input ***", app, 4)
+          w_alert("error while processing user input");
         }
       }
     }

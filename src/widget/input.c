@@ -80,9 +80,9 @@ int32_t w_input_draw(w_input_t *input, uint32_t active_id) {
   }
 
   if (input->w.id == active_id) {
-    wattrset(win, COLOR_PAIR(3));
+    wattrset(win, COLOR_PAIR(3) | A_BOLD);
   } else {
-    wattrset(win, COLOR_PAIR(0) | A_REVERSE | A_BOLD);
+    wattrset(win, COLOR_PAIR(0) | A_REVERSE);
   }
 
   mvwhline(win, pos_y, pos_x, 0, input->w.sz.x);

@@ -248,10 +248,10 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
 
   switch (d->color_scheme) {
   case dc_normal:
-    wattrset(d->win, COLOR_PAIR(0) | A_BOLD | A_REVERSE);
+    wattrset(d->win, COLOR_PAIR(0) | A_REVERSE);
     break;
   case dc_alert:
-    wattrset(d->win, COLOR_PAIR(4) | A_BOLD | A_REVERSE);
+    wattrset(d->win, COLOR_PAIR(4) | A_REVERSE);
     break;
   }
 

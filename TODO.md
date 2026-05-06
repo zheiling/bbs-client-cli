@@ -1,18 +1,23 @@
 # TODO:
 
 ## Current:
+- [ ] Input: fix non-Latin letters
 - [ ] Check callback functions in dialogues
-- [ ] Check registration / enter server name again
+  resp_data.code приходит cbrp_val вместо cbrp_none
 - [ ] Get rid of unsigned integers
 - [ ] Separate common structures in the common.h
-- [ ] Testing
 - [ ] Sorting in the file list
 - [ ] File upload multiline description (window)
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 - [ ] Cancel upload/download
+- [x] Check registration / enter server name again
 - [x] PageUp/PageDown key functionality in lists
 - [x] Permission checkboxes for file upload/edit
 - [x] Upload menu disappears after alert (when opening link to non-existing directory for example).
+
+## Global tasks:
+- [ ] Testing
+- [ ] Documentation
 
 ## Bugs:
 - [ ] Sometimes segfaults while navigating through modal menu
