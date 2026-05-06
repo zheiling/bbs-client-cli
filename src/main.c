@@ -55,10 +55,8 @@ int main(int argc, char **argv) {
     app->query_args->state = S_ASK_SEVER_IP;
   } else {
     connect_to_server(app);
-    app->query_args->state = S_WAIT_SERVER;
   }
 
-  app->query_args->sd = app->params->sd;
   app->query_args->main_ui = &(app->main_ui);
 
   query_loop(app);

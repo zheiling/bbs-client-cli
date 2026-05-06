@@ -25,9 +25,10 @@ void asa_modal_dialogue_callback(w_cb_args_t *args) {
     switch (d_args.resp_data.val.val.num) {
     case 1:
       get_ip_port(app->params, in_ip->value, in_port->value);
-      connect_to_server(app);
-      d->needs_destroy = true;
-      app->query_args->state = S_WAIT_SERVER;
+      if (connect_to_server(app)) {
+        d->needs_destroy = true;
+        app->query_args->state = S_WAIT_SERVER;
+      }
       break;
     case 2:
       app_destroy(app, 0);

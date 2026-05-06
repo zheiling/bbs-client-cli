@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "alert.h"
 #include "main.h"
-#include <widget.h>
 #include <arpa/inet.h>
+#include <errno.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -14,19 +15,26 @@
 #include <sys/un.h>
 #include <termios.h>
 #include <unistd.h>
+#include <widget.h>
 
-void connect_to_server(app_t *app) {
+bool connect_to_server(app_t *app) {
   struct sockaddr_in server;
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = app->params->addr;
   server.sin_port = app->params->port;
   if (-1 ==
       connect(app->params->sd, (struct sockaddr *)&server, sizeof(server))) {
-    perror("connect");
-    app_destroy(app, 2);
+    w_alert(strerror(errno));
+    /* TODO: ask new server address */
+    // app_destroy(app, 2);
+    app->query_args->state = S_ASK_SEVER_IP;
+    return false;
   }
+  app->query_args->state = S_WAIT_SERVER;
   app->params->is_connected = TRUE;
+  app->query_args->sd = app->params->sd;
   app_draw_bars(app);
+  return true;
 }
 
 void init_params(params_t *params) {
