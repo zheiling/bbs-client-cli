@@ -2,8 +2,6 @@
 
 ## Current:
 - [ ] Input: fix non-Latin letters
-- [ ] Check callback functions in dialogues
-  resp_data.code приходит cbrp_val вместо cbrp_none
 - [ ] Get rid of unsigned integers
 - [ ] Separate common structures in the common.h
 - [ ] Sorting in the file list
