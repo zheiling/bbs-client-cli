@@ -51,6 +51,7 @@ void upload_props_dialogue_modal_cb(w_cb_args_t *args) {
       FREE_MLC(app->query_args->file->name);
       FREE_MLC(app->query_args->file->path)
       FREE_MLC(app->query_args->file);
+      app->modal.needs_destroy = true;
       app->query_args->state = S_WAIT_SERVER;
       break;
     }

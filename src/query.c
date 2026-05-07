@@ -42,7 +42,7 @@ int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
   {                                                                            \
     w_alert(message);                                                          \
     close_session(app->params->sd);                                            \
-    app_destroy(app, exit_code);                                             \
+    app_destroy(app, exit_code);                                               \
   }
 
 void query_loop(app_t *app) {
@@ -123,6 +123,7 @@ void query_loop(app_t *app) {
           w_alert("error while processing user input");
         }
       }
+      d_args.resp_data.code = cbrc_none;
     }
   }
 }
@@ -184,6 +185,11 @@ int process_query(app_t *app) {
     if (!file_upload_start(query_args)) {
       query_args->state = S_UPLOAD_FILE;
     } else {
+      if (app->query_args->file != NULL) {
+        FREE_MLC(app->query_args->file->name);
+        FREE_MLC(app->query_args->file->path)
+        FREE_MLC(app->query_args->file);
+      }
       query_args->state = WAIT_CLIENT;
     }
     break;

@@ -9,6 +9,8 @@
 #include <widget.h>
 #include <widget_core.h>
 
+static void (*active_callback_backup)(w_cb_args_t *) = NULL;
+
 void incr_active_id(w_dialogue_t *d) {
   w_g_el_t *active_el = NULL;
   while (true) {
@@ -133,6 +135,8 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
       new_args.element = d->g_action;
     }
     w_group_cb_default(&new_args);
+    /* copy new result to the parental structure */
+    mempcpy(&(args->resp_data), &(new_args.resp_data), sizeof(new_args.resp_data));
   }
 }
 

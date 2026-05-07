@@ -15,7 +15,7 @@ bool w_checkbox_default_key_action(w_cb_args_t *args) {
   w_g_el_t *g_el = args->active_el;
   w_checkbox_t *cbx = g_el->element;
   switch (key) {
-  case '\40':
+  case '\40': /* SPACE */
     cbx->value = !cbx->value;
     break;
   default:

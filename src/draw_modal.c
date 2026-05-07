@@ -5,12 +5,16 @@
 #include <widget.h>
 #include "main.h"
 
+static void (*active_callback_backup)(w_cb_args_t *) = NULL;
+
 void app_draw_modal(app_t *app) {
   if (app->modal.needs_destroy ||
       (app->query_args->state == S_WAIT_SERVER && app->modal.is_initiated)) {
     w_dialogue_destroy(&(app->modal), app);
+    app->active_callback = active_callback_backup;
   }
   if (!app->modal.is_initiated) {
+    active_callback_backup = app->active_callback;
     switch (app->query_args->state) {
     case S_ASK_SEVER_IP:
       m_asa_init(app);
