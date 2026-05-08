@@ -354,20 +354,24 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   return OK;
 }
 
+void w_lfl_reset_app(void *app);
+
 w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   w_lfl_ui_t *fui = malloc(sizeof(w_lfl_ui_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_local;
-  app->main_ui.cb_refresh = w_lfl_cb_refresh;
+  app->main_ui.cb_ui_refresh = w_lfl_cb_refresh;
   app->main_ui.b_keys = action_keys;
   app->main_ui.b_keys_len = 2;
   app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
+  app->main_ui.reset = w_lfl_reset_app;
+  app->main_ui.draw = (draw_f_t *) w_lfl_draw;
   app->active_callback = w_lfl_cb;
+  fui->w.callback = w_lfl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
   fui->current_idx = 0;
   fui->win_info = NULL;
   fui->d_path = NULL;
-  fui->w.callback = w_lfl_cb;
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
   fui->cur_page = 1;
@@ -393,7 +397,16 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   return fui;
 }
 
-void w_lfl_reset(w_lfl_ui_t *fl_ui) { fl_ui->current_idx = 0; }
+void w_lfl_reset(w_lfl_ui_t *fl_ui) {
+  fl_ui->current_idx = 0;
+  lfl_clear(&(fl_ui->start), &(fl_ui->current));
+}
+
+void w_lfl_reset_app(void *app) {
+  app_t *_app = app;
+  w_lfl_ui_t *fl_ui = (w_lfl_ui_t *) _app->main_ui.ui;
+  w_lfl_reset(fl_ui);
+}
 
 void w_lfl_draw(w_lfl_ui_t *fui) {
   int32_t sz_y, sz_x;

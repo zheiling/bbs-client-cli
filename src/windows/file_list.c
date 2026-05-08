@@ -164,15 +164,20 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   return OK;
 }
 
+void w_fl_reset_app(void *app);
+
 void *w_fl_init(app_t *app) {
   w_ui_file_list_t *fui = malloc(sizeof(w_ui_file_list_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_fl_server;
-  app->main_ui.cb_refresh = w_fl_cb_refresh;
+  app->main_ui.cb_ui_refresh = w_fl_cb_refresh;
   app->main_ui.b_keys = action_keys;
   app->main_ui.b_keys_len = 4;
   app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
+  app->main_ui.reset = w_fl_reset_app;
+  app->main_ui.draw = (draw_f_t *) w_fl_draw;
   app->active_callback = w_fl_cb;
+  fui->w.callback = w_fl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
   WINDOW *win_parent = app->win;
   fui->current_idx = 0;
@@ -219,6 +224,12 @@ void w_fl_reset(w_ui_file_list_t *fl_ui) {
   fl_ui->full_count = 0;
   fl_ui->activate_last = false;
   fl_ui->active_search = false;
+}
+
+void w_fl_reset_app(void *app) {
+  app_t *_app = (app_t *) app;
+  w_ui_file_list_t *fl_ui = (w_ui_file_list_t *) _app->main_ui.ui;
+  w_fl_reset(fl_ui);
 }
 
 void w_fl_draw(w_ui_file_list_t *fui) {

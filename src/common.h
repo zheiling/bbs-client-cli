@@ -13,7 +13,7 @@ typedef struct {
 
 #define MAIN_UI_RESET(app)                                                     \
   app->main_ui.ui = NULL;                                                      \
-  app->main_ui.cb_refresh = NULL;                                              \
+  app->main_ui.cb_ui_refresh = NULL;                                              \
   app->main_ui.cb_b_press = NULL;                                              \
   app->main_ui.b_keys = NULL;                                                  \
   app->main_ui.b_keys_len = 0;

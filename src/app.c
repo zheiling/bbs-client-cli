@@ -157,8 +157,8 @@ void app_refresh(app_t *app) {
     if (app->modal.is_initiated != 0) {
       wnoutrefresh(app->modal.win);
     }
-  } else if (app->main_ui.cb_refresh != NULL) {
-    app->main_ui.cb_refresh(app);
+  } else if (app->main_ui.cb_ui_refresh != NULL) {
+    app->main_ui.cb_ui_refresh(app);
   }
   doupdate();
 }

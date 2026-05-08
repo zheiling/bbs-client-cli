@@ -89,11 +89,15 @@ enum main_window_type {
   mw_f_desc, /* file description */
 };
 
+typedef void (draw_f_t) (void *fui) ;
+
 typedef struct main_window {
   enum main_window_type type;
   void *ui; /* structure which describes window UI */
   int32_t (*cb_b_press) (void *app, void *args); /* callback on button press */
-  void (*cb_refresh) (void *app); /* refresh callback */
+  void (*cb_ui_refresh) (void *app); /* refresh callback */
+  void (*reset) (void *app); /* reset state of the window */
+  draw_f_t *draw;
   struct action_key *b_keys;
   int32_t b_keys_len;
 } main_window_t;

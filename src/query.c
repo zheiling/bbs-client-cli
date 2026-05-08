@@ -139,15 +139,12 @@ void wait_register(query_args_t *q_args) {
 
 int upload_confirm_cb(app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
-    w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
     w_notification("File upload", dc_normal,
                    "File %s is uploaded to the server!",
                    app->query_args->file->name);
     clear_file_in_query(app->query_args);
     app->query_args->state = S_FILE_LIST;
     app->modal.needs_destroy = true;
-    w_fl_reset(fui);
-    server_send_string(app->query_args, "file list %u %u\n", fui->max_lines, 1);
     return 0;
   }
   return 1; /* TODO: Error case */
