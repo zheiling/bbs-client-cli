@@ -11,7 +11,7 @@
 typedef struct {
   w_t w;
   wchar_t w_value[INPUT_TEXT];
-  char value[INPUT_TEXT];
+  char value[INPUT_TEXT*2];
   int32_t cur_pos; /* is relative to the end of a string */
   int32_t value_len;
   int32_t max_len;

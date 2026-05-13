@@ -1,12 +1,14 @@
 # TODO:
 
+- [ ] Input: get rid of char accumulator and use everywhere wchar_t
+
 ## Current:
 - [ ] File upload multiline description (window)
-- [x] Input: fix non-Latin letters
 - [ ] Separate common structures in the common.h
 - [ ] Sorting in the file list
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 - [ ] Cancel upload/download
+- [x] Input: fix non-Latin letters
 - [x] Get rid of unsigned integers
 - [x] Check registration / enter server name again
 - [x] PageUp/PageDown key functionality in lists
