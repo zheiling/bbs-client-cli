@@ -35,13 +35,13 @@ struct w_val_t {
   enum w_val_type type;
   union {
     void *ptr;
-    int64_t num;
+    int32_t num;
   } val;
 };
 
 typedef struct {
-  int64_t id;
-  int64_t idx; /* element index in the group */
+  int32_t id;
+  int32_t idx; /* element index in the group */
   void *element;
   enum w_type type;
   enum w_g_type g_type;
@@ -75,23 +75,23 @@ typedef void (*w_cb_t)(w_cb_args_t *args);
 typedef int32_t (*w_cb_press_t)(void *app, void *data);
 
 typedef struct w_t {
-  int64_t id;
+  int32_t id;
   char title[DIALOGUE_TITLE];
   struct {
-    int64_t y;
-    int64_t x;
+    int32_t y;
+    int32_t x;
   } cur; /* cursor position */
   struct {
-    int64_t y;
-    int64_t x;
+    int32_t y;
+    int32_t x;
   } sz; /* size */
   struct {
-    int64_t y;
-    int64_t x;
+    int32_t y;
+    int32_t x;
   } m; /* margin (relative to the parent) */
   struct {
-    int64_t y;
-    int64_t x;
+    int32_t y;
+    int32_t x;
   } ps; /* position (relative to the window) */
   WINDOW *const *parent_win;
   struct w_t *w_parent;
@@ -104,9 +104,9 @@ enum w_pmt_attrs {
 };
 
 void     w_init(w_t *w, w_t *w_parent, WINDOW **win, char *title);
-int32_t  w_get_max_line_len(const char *text, uint32_t *line_count);
-uint32_t w_print_multiline_text(WINDOW *win, const char *text,
-                              const uint32_t win_width, const uint32_t y,
-                              const uint32_t x, const uint16_t attrs);
+int32_t  w_get_max_line_len(const char *text, int32_t *line_count);
+int32_t  w_print_multiline_text(WINDOW *win, const char *text,
+                              const int32_t win_width, const int32_t y,
+                              const int32_t x, const int16_t attrs);
 
 #endif

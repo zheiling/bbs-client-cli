@@ -1,13 +1,13 @@
 # TODO:
 
 ## Current:
-- [ ] Input: fix non-Latin letters
-- [ ] Get rid of unsigned integers
+- [ ] File upload multiline description (window)
+- [x] Input: fix non-Latin letters
 - [ ] Separate common structures in the common.h
 - [ ] Sorting in the file list
-- [ ] File upload multiline description (window)
 - [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 - [ ] Cancel upload/download
+- [x] Get rid of unsigned integers
 - [x] Check registration / enter server name again
 - [x] PageUp/PageDown key functionality in lists
 - [x] Permission checkboxes for file upload/edit

@@ -15,7 +15,7 @@ typedef struct {
 
 bool          w_checkbox_default_key_action(w_cb_args_t *args);
 w_checkbox_t *w_checkbox_init(WINDOW **win, w_t *w_parent, char *label);
-int32_t       w_checkbox_draw(w_checkbox_t *cbx, uint32_t active_id);
+int32_t       w_checkbox_draw(w_checkbox_t *cbx, int32_t active_id);
 void          w_checkbox_destroy(w_checkbox_t *cbx);
 
 #endif

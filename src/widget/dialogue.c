@@ -142,7 +142,7 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
 
 void w_dialogue_init(w_dialogue_t *dialogue, const char title[],
                      const char text[], coordinates_t *p_coordinates) {
-  uint32_t t_size = 0;
+  int32_t t_size = 0;
   dialogue->win = 0;
   dialogue->g_content = NULL;
   dialogue->w.sz.x = 0;
@@ -222,12 +222,12 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
 
   w_g_el_t *ae_ptr = NULL; /* active element */
   /* count dimensions */
-  uint32_t x = 1; /* when uses box */
-  uint32_t y = 1; /* when uses box */
+  int32_t x = 1; /* when uses box */
+  int32_t y = 1; /* when uses box */
 
   /* analyze text content */
-  uint32_t line_count = 0;
-  uint32_t line_max_len = 0;
+  int32_t line_count = 0;
+  int32_t line_max_len = 0;
   line_max_len = w_get_max_line_len(d->text, &line_count);
   y += line_count;
   y += 2; /* margin for text */
@@ -265,7 +265,7 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
   }
 
   /* title */
-  const uint32_t title_mx_pos = (d->w.sz.x - strlen(d->w.title)) / 2;
+  const int32_t title_mx_pos = (d->w.sz.x - strlen(d->w.title)) / 2;
   box(d->win, 0, 0);
   mvwprintw(d->win, 0, title_mx_pos - 1, " ");
   mvwprintw(d->win, 0, title_mx_pos, "%s", d->w.title);

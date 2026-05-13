@@ -8,7 +8,7 @@
 
 typedef struct {
   w_t w;
-  uint32_t procent;
+  int32_t procent;
   char text[24];
 } w_pgb_ui_t;
 

@@ -31,10 +31,10 @@ fl_item_t *fl_select(fl_item_t *start, int num);
 void fl_clear(fl_item_t **start, fl_item_t **current);
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
-  uint32_t qlen;
+  int32_t qlen;
   char *query = NULL;
   static char qbuf[INBUFSIZE * 2];
-  static uint32_t qbuf_used = 0;
+  static int32_t qbuf_used = 0;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
   w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   fui->start = &(f_args->l_start);
@@ -46,7 +46,7 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
     if (!strncmp(":END:", query, sizeof(":END:") - 1)) {
-      sscanf(query, ":END: PAGE %u/%u COUNT: %u/%u\n", &fui->current_page,
+      sscanf(query, ":END: PAGE %d/%d COUNT: %d/%d\n", &fui->current_page,
              &fui->pages, &fui->current_count, &fui->full_count);
       if (d != NULL && d->is_initiated) {
         d->needs_update = true;
@@ -108,7 +108,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
 
 void file_download(file_args_t *f_args, query_args_t *q_args) {
   fl_item_t *f_selected = &(f_args->f_selected);
-  static uint32_t it_count = 0;
+  static int32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
     it_interval = (f_selected->size / INBUFSIZE / 100) * 5; /* every 1% */
@@ -118,7 +118,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   char answer[256];
 
   static size_t size_rest = 0;
-  uint32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
+  int32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
   w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
   w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
@@ -126,7 +126,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
 
   if (size_rest == 0)
     size_rest = f_selected->size;
-  uint32_t qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
+  int32_t qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
   if (qlen) {
     it_count++;
     if (!(it_count % it_interval)) {
@@ -151,7 +151,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
       q_args->notification = malloc(strlen(answer) + 1);
       strcpy(q_args->notification, answer);
       free(f_selected->name);
-      server_send_string(q_args, "file list %u %u\n%n", fui->max_lines,
+      server_send_string(q_args, "file list %d %d\n%n", fui->max_lines,
                          fui->current_page, &a_len);
       q_args->state = S_FILE_LIST;
     }
@@ -190,14 +190,14 @@ int32_t file_upload_start(query_args_t *q_args) {
 }
 
 int32_t file_upload(query_args_t *q_args) {
-  static uint32_t it_count = 0;
+  static int32_t it_count = 0;
   static size_t it_interval = 0;
   if (it_interval == 0) {
     it_interval = (q_args->file->size / INBUFSIZE / 100) * 5; /* every 1% */
     if (it_interval == 0)
       it_interval = 1;
   }
-  uint32_t progress =
+  int32_t progress =
       (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
   w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
   w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;

@@ -26,7 +26,7 @@ const char *u_utf8_wind_n(const char *s, int n) {
   return _s;
 }
 
-int64_t u_utf8_convert_to_wide(const char *utf8_str,
+int32_t u_utf8_convert_to_wide(const char *utf8_str,
                                wchar_t **restrict wide_str,
                                size_t *restrict len) {
   // Step 1: Convert UTF-8 (MBCS) to wchar_t (wide)
@@ -44,12 +44,12 @@ int64_t u_utf8_convert_to_wide(const char *utf8_str,
   return 0;
 }
 
-int64_t u_utf8_curs_printw(WINDOW *win, int64_t *y, int64_t *x,
+int32_t u_utf8_curs_printw(WINDOW *win, int32_t *y, int32_t *x,
                            const char *utf8_str, int max_len, bool multiline) {
   wchar_t *wline = NULL;
   size_t nsize = 0;
-  int64_t _x = *x;
-  int64_t _y = *y;
+  int32_t _x = *x;
+  int32_t _y = *y;
   u_utf8_convert_to_wide(utf8_str, &wline, &nsize);
   mvwaddnwstr(win, _y, _x, wline, max_len);
 

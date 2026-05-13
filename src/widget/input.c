@@ -8,13 +8,17 @@
 
 #include "../app.h"
 #include "input.h"
+#include <wchar.h>
 #include <widget_core.h>
 
 bool w_input_default_key_action(w_cb_args_t *args) {
   int32_t key = *((int32_t *)args->data);
   w_g_el_t *g_el = args->active_el;
   w_input_t *input = g_el->element;
-  int64_t start_pos = 0;
+  int32_t start_pos = 0;
+  wchar_t w_key[2];
+  app_t *app = args->app;
+  char long_key[3];
 
   switch (key) {
   case KEY_BACKSPACE:
@@ -30,14 +34,27 @@ bool w_input_default_key_action(w_cb_args_t *args) {
     }
     break;
   default:
+    if (input->value_len == input->max_len) break;
+    long_key[0] = key;
+    if ((key & 0xC0) == 0xC0) {
+      long_key[1] = wgetch(app->win);
+      long_key[2] = '\0';
+    } else {
+      long_key[1] = '\0';
+    }
+    mbstowcs(w_key, (const char *)&long_key, 2);
     if (input->cur_pos > 0) {
       start_pos = input->value_len++ - input->cur_pos;
       memmove(input->value + start_pos + 1, input->value + start_pos,
               input->value_len - start_pos);
       input->value[start_pos] = key;
+      input->w_value[start_pos] = w_key[0];
     } else {
       input->value[input->value_len++] = key;
       input->value[input->value_len] = '\0';
+
+      input->w_value[input->value_len - 1] = w_key[0];
+      input->w_value[input->value_len] = '\0';
     }
     break;
   }
@@ -46,14 +63,14 @@ bool w_input_default_key_action(w_cb_args_t *args) {
 }
 
 w_input_t *w_input_init(WINDOW **win, w_t *w_parent, char *label,
-                    uint32_t length, uint32_t is_hidden_value) {
+                        int32_t length, int32_t is_hidden_value) {
   w_input_t *input = malloc(sizeof(w_input_t));
   w_init(&(input->w), w_parent, win, label);
   input->is_disabled = 0;
   input->w.sz.y = 3; // with borders
   input->w.sz.x =
       length + 3; // with borders and extra space for the last element
-  uint32_t t_len = strlen(input->w.title) + 4; // with borders and space
+  int32_t t_len = strlen(input->w.title) + 4; // with borders and space
   if (input->w.sz.x < t_len)
     input->w.sz.x = t_len;
   input->w.ps.x = 1;
@@ -65,11 +82,11 @@ w_input_t *w_input_init(WINDOW **win, w_t *w_parent, char *label,
   return input;
 }
 
-int32_t w_input_draw(w_input_t *input, uint32_t active_id) {
+int32_t w_input_draw(w_input_t *input, int32_t active_id) {
   const char stars[] = "*******************";
   WINDOW *win = *(input->w.parent_win);
-  uint32_t pos_y = input->w.ps.y + input->w.m.y;
-  uint32_t pos_x = input->w.ps.x + input->w.m.x;
+  int32_t pos_y = input->w.ps.y + input->w.m.y;
+  int32_t pos_x = input->w.ps.x + input->w.m.x;
 
   /* counts margins of the ancestors of the same window */
   w_t *w_par = input->w.w_parent;
@@ -108,15 +125,19 @@ int32_t w_input_draw(w_input_t *input, uint32_t active_id) {
     wattrset(win, COLOR_PAIR(0) | A_BOLD);
   }
 
+  pos_y++;
+
   if (input->is_hidden) {
-    mvwprintw(win, pos_y + 1, pos_x, "%.*s%*s", (int)input->value_len, stars,
+    mvwprintw(win, pos_y, pos_x, "%.*s%*s", (int)input->value_len, stars,
               (int)(input->w.sz.x - input->value_len - 2), "");
   } else {
-    mvwprintw(win, pos_y + 1, pos_x, "%s%*s", input->value,
-              (int)(input->w.sz.x - input->value_len - 2), "");
+    pos_x = 2;
+    mvwaddnwstr(win, pos_y, pos_x, input->w_value, input->max_len);
+    mvwprintw(win, pos_y, pos_x + input->value_len, "%*s",
+              input->w.sz.x - input->value_len - 2, "");
   }
 
-  input->w.cur.y = pos_y + 1;
+  input->w.cur.y = pos_y;
   input->w.cur.x = pos_x + input->value_len - input->cur_pos;
 
   wattroff(win, A_BOLD | A_REVERSE);

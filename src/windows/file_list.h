@@ -14,11 +14,11 @@ typedef struct {
   fl_item_t **current;
   fl_item_t **start;
   int32_t current_idx;
-  uint32_t current_count;
-  uint32_t full_count;
-  uint32_t pages;
-  uint32_t current_page;
-  uint32_t max_lines;
+  int32_t current_count;
+  int32_t full_count;
+  int32_t pages;
+  int32_t current_page;
+  int32_t max_lines;
   WINDOW *win_info;
   WINDOW *win_list;
   bstring search_key;

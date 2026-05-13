@@ -21,7 +21,7 @@
 #include "file_list.h"
 #include "query.h"
 
-uint32_t m_id = 0;
+int32_t m_id = 0;
 
 int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
 

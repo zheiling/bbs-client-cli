@@ -44,7 +44,7 @@ static void w_fl_cb(w_cb_args_t *args) {
         fui->search_key->slen = 0;
         sprintf(q_prefix, "file list");
       }
-      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+      server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, 1);
       w_fl_reset(fui);
     } else {
@@ -60,7 +60,7 @@ static void w_fl_cb(w_cb_args_t *args) {
       fui->current_idx++;
     } else if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
-      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+      server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
       w_fl_reset(fui);
       break;
@@ -72,7 +72,7 @@ static void w_fl_cb(w_cb_args_t *args) {
       fui->current_idx--;
     } else if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
-      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+      server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
       w_fl_reset(fui);
       fui->activate_last = true;
@@ -83,7 +83,7 @@ static void w_fl_cb(w_cb_args_t *args) {
   case KEY_NPAGE:
     if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
-      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+      server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, fui->current_page + 1);
       w_fl_reset(fui);
       break;
@@ -93,7 +93,7 @@ static void w_fl_cb(w_cb_args_t *args) {
   case KEY_PPAGE:
     if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
-      server_send_string(app->query_args, "%s %u %u\n", q_prefix,
+      server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, fui->current_page - 1);
       w_fl_reset(fui);
       fui->activate_last = true;
@@ -107,7 +107,7 @@ static void w_fl_cb(w_cb_args_t *args) {
     fui->search_key->slen = 0;
     sprintf(q_prefix, "file list");
     app->query_args->state = S_FILE_LIST;
-    server_send_string(app->query_args, "%s %u %u\n", q_prefix, fui->max_lines,
+    server_send_string(app->query_args, "%s %d %d\n", q_prefix, fui->max_lines,
                        1);
     w_fl_reset(fui);
   case '\n':
@@ -196,8 +196,8 @@ void *w_fl_init(app_t *app) {
   /* * INIT UI * */
 
   /* define the width for each sub window */
-  int64_t left_w_x = app->coordinates.max_x / 10 * 5;
-  int64_t right_w_x = app->coordinates.max_x - left_w_x - 2;
+  int32_t left_w_x = app->coordinates.max_x / 10 * 5;
+  int32_t right_w_x = app->coordinates.max_x - left_w_x - 2;
 
   /* create the list window */
   fui->win_list = newwin(app->coordinates.max_y - 4, left_w_x, 2, 1);
@@ -234,7 +234,7 @@ void w_fl_reset_app(void *app) {
 
 void w_fl_draw(w_ui_file_list_t *fui) {
   int32_t sz_y, sz_x;
-  int64_t p_y, p_x;
+  int32_t p_y, p_x;
   WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
 
@@ -314,8 +314,8 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     curs_set(true);
     wmove(win, p_y, p_x + p_len);
   } else {
-    uint32_t l_pad = 0;
-    sprintf(p_info, "P: %u/%u F: %u L: %u%n", fui->current_page, fui->pages,
+    int32_t l_pad = 0;
+    sprintf(p_info, "P: %d/%d F: %d L: %d%n", fui->current_page, fui->pages,
             fui->current_count, fui->full_count, &p_len);
 
     if (fui->search_key->slen > 0) {
@@ -325,7 +325,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       l_pad = fui->search_key->slen + 2;
       mvwprintw(win, p_y, p_x + l_pad, " %.*s", sz_x - l_pad, p_info);
     } else {
-      sprintf(p_info, "page: %u/%u files: %u left: %u%n", fui->current_page,
+      sprintf(p_info, "page: %d/%d files: %d left: %d%n", fui->current_page,
               fui->pages, fui->current_count, fui->full_count, &p_len);
       l_pad = (sz_x - p_len) / 2;
       if (!(l_pad % 2)) {
@@ -337,7 +337,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
 
   /* Draw file info [right side] */
   {
-    int64_t p_y = 1;
+    int32_t p_y = 1;
     p_x = 1;
     WINDOW *i_win = fui->win_info;
     wclear(i_win);

@@ -20,8 +20,8 @@ w_pgb_ui_t *w_pgb_ui_init(WINDOW **win, w_t *w_parent) {
 
 void w_pgb_ui_draw(w_pgb_ui_t *pb) {
   WINDOW *win = *(pb->w.w_parent->parent_win);
-  uint32_t margin_y = pb->w.ps.y + pb->w.w_parent->ps.y;
-  uint32_t margin_x = pb->w.ps.x + pb->w.w_parent->ps.x + 1;
+  int32_t margin_y = pb->w.ps.y + pb->w.w_parent->ps.y;
+  int32_t margin_x = pb->w.ps.x + pb->w.w_parent->ps.x + 1;
 
   wattrset(win, COLOR_PAIR(modal_color_pair));
 
@@ -29,7 +29,7 @@ void w_pgb_ui_draw(w_pgb_ui_t *pb) {
 
   float procent = pb->procent;
   procent /= 100;
-  uint32_t filled_num = procent * pb->w.sz.x;
+  int32_t filled_num = procent * pb->w.sz.x;
   if (filled_num > 2) {
     filled_num -= 2;
   }

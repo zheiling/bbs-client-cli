@@ -79,8 +79,8 @@ void app_draw_borders(app_t *app) {
   box(app->win, 0, 0);
 }
 
-int64_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int64_t y,
-                                 int64_t x, int32_t size) {
+int32_t print_bottom_menu_option(WINDOW *win, char *key, char *title, int32_t y,
+                                 int32_t x, int32_t size) {
   int32_t key_len = 0;
   int32_t title_len = 0;
 
@@ -108,7 +108,7 @@ void app_draw_bars(app_t *app) {
 
   /* add content to the top bar */
   if (app->params && app->params->is_connected) {
-    uint32_t ip_address = app->params->addr;
+    int32_t ip_address = app->params->addr;
     u_char ip_addr[4];
     mempcpy(ip_addr, &ip_address, 4);
     sprintf(top_text, "Connected to %u.%u.%u.%u, user: %s", ip_addr[0],

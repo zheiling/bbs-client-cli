@@ -13,7 +13,7 @@
 #include <string.h>
 #include <utils.h>
 
-extern uint32_t m_id;
+extern int32_t m_id;
 
 void w_init(w_t *w, w_t *w_parent, WINDOW **win, char *title) {
   w->id = m_id++;
@@ -35,11 +35,11 @@ void w_init(w_t *w, w_t *w_parent, WINDOW **win, char *title) {
   strcpy(w->title, title);
 }
 
-int32_t w_get_max_line_len(const char *text, uint32_t *line_count) {
-  uint32_t nl_pos = 0; /* new line position */
-  uint32_t c_len = 0;  /* current line length */
-  uint32_t m_len = 0;  /* max length */
-  uint32_t line_num = 1;
+int32_t w_get_max_line_len(const char *text, int32_t *line_count) {
+  int32_t nl_pos = 0; /* new line position */
+  int32_t c_len = 0;  /* current line length */
+  int32_t m_len = 0;  /* max length */
+  int32_t line_num = 1;
   for (int i = 0; text[i] != '\0'; i++, c_len++) {
     if (text[i] == '\n') {
       if (i - nl_pos > c_len || !m_len) {
@@ -72,41 +72,41 @@ int32_t w_get_max_line_len(const char *text, uint32_t *line_count) {
   }
  */
 
-void PRINT_TEXT(WINDOW *win, char *l_buf, char *text, int64_t i,
-                int64_t c_line_len, int64_t win_width, int64_t line_v_pos,
-                int64_t attrs, int64_t x, int64_t max_line_len) {
-  int64_t utf8len = 0;
+void PRINT_TEXT(WINDOW *win, char *l_buf, char *text, int32_t i,
+                int32_t c_line_len, int32_t win_width, int32_t line_v_pos,
+                int32_t attrs, int32_t x, int32_t max_line_len) {
+  int32_t utf8len = 0;
   strncpy(l_buf, text + i - c_line_len, c_line_len);
   l_buf[c_line_len] = '\0';
   utf8len = u_utf8_code_points_count(l_buf);
   if ((attrs & PMT_ALIGN_CENTER) == PMT_ALIGN_CENTER) {
-    int64_t _x = (win_width - utf8len) / 2;
+    int32_t _x = (win_width - utf8len) / 2;
     u_utf8_curs_printw(win, &line_v_pos, &_x, l_buf, -1, false);
   } else if (attrs & PMT_POS_CENTER) {
-    int64_t _x = (win_width - max_line_len) / 2;
+    int32_t _x = (win_width - max_line_len) / 2;
     u_utf8_curs_printw(win, &line_v_pos, &_x, l_buf, -1, false);
   } else {
     u_utf8_curs_printw(win, &line_v_pos, &x, l_buf, -1, false);
   }
 }
 
-uint32_t w_print_multiline_text(WINDOW *win, const char *_text,
-                              const uint32_t win_width, const uint32_t y,
-                              const uint32_t x, const uint16_t attrs) {
+int32_t w_print_multiline_text(WINDOW *win, const char *_text,
+                              const int32_t win_width, const int32_t y,
+                              const int32_t x, const int16_t attrs) {
 
-  uint16_t line_v_pos = y;
-  int64_t c_line_len = 0;
-  int64_t m_line_len = 0;
-  int64_t i = 0;
+  int16_t line_v_pos = y;
+  int32_t c_line_len = 0;
+  int32_t m_line_len = 0;
+  int32_t i = 0;
   char l_buf[DIALOGUE_TEXT];
   char *text = malloc(strlen(_text) + 1);
   strcpy(text, _text);
 
-  uint l_size = 0;
-  for (uint m = 0; text[m] != '\0'; m++) {
+  int l_size = 0;
+  for (int m = 0; text[m] != '\0'; m++) {
     if (text[m] != '\n') {
       if (l_size >= win_width) {
-        uint j = m;
+        int j = m;
         while (text[j] != ' ') {
           j--;
         }

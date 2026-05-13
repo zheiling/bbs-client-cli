@@ -25,7 +25,7 @@ typedef struct params {
   char *pass;
   char privileges;
   int32_t sd;
-  uint32_t is_connected : 1;
+  int32_t is_connected : 1;
 } params_t;
 
 enum state {
@@ -112,8 +112,8 @@ typedef struct query_args {
   params_t *params;
   struct {
     char *text;
-    uint64_t capacity;
-    uint64_t size;
+    int32_t capacity;
+    int32_t size;
   } server_message;
   main_window_t *main_ui;
   void *progress_bar;

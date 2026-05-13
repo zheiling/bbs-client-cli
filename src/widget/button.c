@@ -21,11 +21,11 @@ w_button_t *init_button(WINDOW **win, w_t *w_parent, char *label) {
   return btn;
 }
 
-int32_t draw_button(w_button_t *btn, uint32_t active_id) {
+int32_t draw_button(w_button_t *btn, int32_t active_id) {
   char title[DIALOGUE_TITLE + 6];
   WINDOW *win = *(btn->w.parent_win);
-  uint32_t margin_y = btn->w.ps.y + btn->w.m.y;
-  uint32_t margin_x = btn->w.ps.x + btn->w.m.x;
+  int32_t margin_y = btn->w.ps.y + btn->w.m.y;
+  int32_t margin_x = btn->w.ps.x + btn->w.m.x;
 
   w_t *w_par = btn->w.w_parent;
 

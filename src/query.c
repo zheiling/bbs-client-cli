@@ -113,6 +113,7 @@ void query_loop(app_t *app) {
       process_query(app);
     }
 
+    /* process user input */
     if (FD_ISSET(STDIN_FILENO, &readfds)) {
       if (app->main_ui.cb_b_press != NULL && app->modal.is_initiated == false) {
         if (ERR == app->main_ui.cb_b_press(app, &d_args)) {

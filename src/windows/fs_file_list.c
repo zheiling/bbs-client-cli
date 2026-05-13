@@ -333,7 +333,7 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   case 'd':
   case '\33': /* ESC key */
     if (!app->modal.is_initiated) {
-      server_send_string(app->query_args, "file list %u %u\n",
+      server_send_string(app->query_args, "file list %d %d\n",
                          fui->max_lines - 1, 1);
       main_window_set(app, mw_fl_server);
       d_args->element = app->main_ui.ui;
@@ -410,7 +410,7 @@ void w_lfl_reset_app(void *app) {
 
 void w_lfl_draw(w_lfl_ui_t *fui) {
   int32_t sz_y, sz_x;
-  int64_t p_y, p_x;
+  int32_t p_y, p_x;
   WINDOW *win = fui->win_list;
   getmaxyx(win, sz_y, sz_x);
   int32_t sz_y_f = sz_y - 1; // actual size (without box)
@@ -453,7 +453,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
   /* Draw file info [right side] */
   {
-    int64_t p_y = 1;
+    int32_t p_y = 1;
     p_x = 1;
     WINDOW *i_win = fui->win_info;
     wclear(i_win);

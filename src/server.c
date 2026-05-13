@@ -39,7 +39,7 @@ int server_wait_reg_confirm_cb(app_t *app, char *line, int l_len) {
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
 
   if (!strcmp(line, "ok\n")) {
-    server_send_string(q_args, "file list %u %u\n", fui->max_lines,
+    server_send_string(q_args, "file list %d %d\n", fui->max_lines,
                        fui->current_page);
     q_args->state = S_FILE_LIST;
     w_dialogue_destroy(&(app->modal), app);
@@ -58,7 +58,7 @@ int server_wait_reg_confirm_cb(app_t *app, char *line, int l_len) {
 }
 
 int server_print_message_cb(app_t *app, char *line, int l_len) {
-  int64_t new_capacity;
+  int32_t new_capacity;
   query_args_t *q_args = app->query_args;
   if (q_args->server_message.text == NULL) {
     q_args->server_message.text = malloc(l_len + 1);
@@ -140,7 +140,7 @@ int process_server_command(char *line, int l_len, app_t *app) {
 
   /* WELCOME MES */
   if (!strncmp(line, "Welcome, ", ws_pos)) {
-    server_send_string(q_args, "file list %u %u\n", fui->max_lines,
+    server_send_string(q_args, "file list %d %d\n", fui->max_lines,
                        fui->current_page);
     q_args->state = S_FILE_LIST;
     return 0;

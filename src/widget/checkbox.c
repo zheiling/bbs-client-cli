@@ -36,11 +36,11 @@ w_checkbox_t *w_checkbox_init(WINDOW **win, w_t *w_parent, char *label) {
   return cbx;
 }
 
-int32_t w_checkbox_draw(w_checkbox_t *cbx, uint32_t active_id) {
+int32_t w_checkbox_draw(w_checkbox_t *cbx, int32_t active_id) {
   char title[DIALOGUE_TITLE + 6];
   WINDOW *win = *(cbx->w.parent_win);
-  uint32_t margin_y = cbx->w.ps.y + cbx->w.m.y;
-  uint32_t margin_x = cbx->w.ps.x + cbx->w.m.x;
+  int32_t margin_y = cbx->w.ps.y + cbx->w.m.y;
+  int32_t margin_x = cbx->w.ps.x + cbx->w.m.x;
 
   w_t *w_par = cbx->w.w_parent;
 

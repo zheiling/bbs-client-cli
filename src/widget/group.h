@@ -13,10 +13,10 @@ typedef struct group_el_init_t {
   bool is_default;
   bool is_hidden_value;
   char label[DIALOGUE_TITLE];
-  uint32_t length;
+  int32_t length;
   enum w_g_dir direction;
   union {
-    int64_t num;
+    int32_t num;
   } val;
   struct group_el_init_t *children;
 } w_group_el_init_t;
@@ -25,8 +25,8 @@ typedef struct group_t {
   w_t w;
   w_g_el_t *elements;
   enum w_g_dir direction;
-  uint32_t count;
-  uint32_t first_id, last_id;
+  int32_t count;
+  int32_t first_id, last_id;
   struct group_t *parent_group;
 } w_group_t;
 
