@@ -131,8 +131,9 @@ int32_t w_input_draw(w_input_t *input, int32_t active_id) {
     mvwprintw(win, pos_y, pos_x, "%.*s%*s", (int)input->value_len, stars,
               (int)(input->w.sz.x - input->value_len - 2), "");
   } else {
-    pos_x = 2;
-    mvwaddnwstr(win, pos_y, pos_x, input->w_value, input->max_len);
+    if (input->value_len > 0) {
+      mvwaddnwstr(win, pos_y, pos_x, input->w_value, input->value_len);
+    }
     mvwprintw(win, pos_y, pos_x + input->value_len, "%*s",
               input->w.sz.x - input->value_len - 2, "");
   }

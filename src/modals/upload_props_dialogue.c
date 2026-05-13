@@ -16,7 +16,7 @@ void upload_props_dialogue_modal_cb(w_cb_args_t *args) {
   app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
-  d_args.app = NULL;
+  /* d_args.app = NULL; */
   d_args.element = app->active_widget;
   w_dialogue_callback_default(&d_args);
   int32_t query_len = 0;

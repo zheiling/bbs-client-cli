@@ -16,7 +16,6 @@ void asa_modal_dialogue_callback(w_cb_args_t *args) {
   app_t *app = args->app;
   w_dialogue_t *d = (w_dialogue_t *)app->active_widget;
   memcpy(&d_args, args, sizeof(w_cb_args_t));
-  d_args.app = NULL;
   d_args.element = app->active_widget;
   w_input_t *in_ip = d->g_content->elements[0].element;
   w_input_t *in_port = d->g_content->elements[1].element;
