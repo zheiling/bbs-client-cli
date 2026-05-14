@@ -37,6 +37,12 @@ void init_register_modal_cb(w_cb_args_t *args) {
     w_input_t *in_email = d->g_content->elements[2].element;
     w_input_t *in_pass = g_passwords->elements[0].element;
     w_input_t *in_pass_r = g_passwords->elements[1].element;
+
+    char *name_value = w_input_get_value(in_name);
+    char *email_value = w_input_get_value(in_email);
+    char *pass_value = w_input_get_value(in_pass);
+    char *pass_r_value = w_input_get_value(in_pass_r);
+    
     if (in_name->value_len == 0) {
       w_alert("Name field is empty!");
       return;
@@ -49,22 +55,22 @@ void init_register_modal_cb(w_cb_args_t *args) {
       w_alert("One of password's field is empty!");
       return;
     }
-    if (strcmp(in_pass->value, in_pass_r->value)) {
+    if (strcmp(pass_value, pass_r_value)) {
       w_alert("Your passwords do not match!");
-      in_pass->value[0] = '\0';
+      in_pass->w_value[0] = '\0';
       in_pass->value_len = 0;
-      in_pass_r->value[0] = '\0';
+      in_pass_r->w_value[0] = '\0';
       in_pass_r->value_len = 0;
       return;
     }
     app->params->uname = malloc(in_name->value_len + 1);
     app->params->pass = malloc(in_pass->value_len + 1);
-    strncpy(app->params->uname, in_name->value, in_name->value_len);
+    strncpy(app->params->uname, name_value, in_name->value_len);
     app->params->uname[in_name->value_len] = 0;
-    strncpy(app->params->pass, in_pass->value, in_pass->value_len);
+    strncpy(app->params->pass, pass_value, in_pass->value_len);
     app->params->pass[in_pass->value_len] = 0;
     server_send_string(app->query_args, "register %s %s %*s\n", app->params->uname,
-            app->params->pass, (int)in_email->value_len, in_email->value
+            app->params->pass, (int)in_email->value_len, email_value
             );
     app->query_args->state = S_WAIT_REGISTER_CONFIRMATION;
   }

@@ -11,7 +11,6 @@
 typedef struct {
   w_t w;
   wchar_t w_value[INPUT_TEXT];
-  char value[INPUT_TEXT*2];
   int32_t cur_pos; /* is relative to the end of a string */
   int32_t value_len;
   int32_t max_len;
@@ -24,5 +23,6 @@ w_input_t *w_input_init(WINDOW **win, w_t *w_parent, char *label,
                     int32_t size, int32_t is_hidden_value);
 int32_t    w_input_draw(w_input_t *input, int32_t active_id);
 void       w_input_destroy(w_input_t *input);
+char      *w_input_get_value(w_input_t *input);
 
 #endif

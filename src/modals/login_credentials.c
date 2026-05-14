@@ -21,20 +21,24 @@ void init_login_credentials_modal_cb(w_cb_args_t *args) {
   d_args.element = app->active_widget;
   w_input_t *in_name = d->g_content->elements[0].element;
   w_input_t *in_pass = d->g_content->elements[1].element;
+  char *name_value = w_input_get_value(in_name);
+  char *pass_value = w_input_get_value(in_pass);
   w_dialogue_callback_default(&d_args);
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
     case 1:
       app->params->uname = malloc(in_name->value_len + 1);
       app->params->pass = malloc(in_pass->value_len + 1);
-      strncpy(app->params->uname, in_name->value, in_name->value_len);
+      strncpy(app->params->uname, name_value, in_name->value_len);
       app->params->uname[in_name->value_len] = 0;
-      strncpy(app->params->pass, in_pass->value, in_pass->value_len);
+      strncpy(app->params->pass, pass_value, in_pass->value_len);
       app->params->pass[in_pass->value_len] = 0;
       server_send_string(app->query_args, app->params->uname);
       app->query_args->state = S_WAIT_SERVER;
       d->needs_destroy = true;
       app_draw_bars(app);
+      free(name_value);
+      free(pass_value);
       break;
     case 2:
       app->query_args->state = S_ASK_LOGIN_TYPE;

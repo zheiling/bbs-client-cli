@@ -1,7 +1,5 @@
 # TODO:
 
-- [ ] Input: get rid of char accumulator and use everywhere wchar_t
-
 ## Current:
 - [ ] File upload multiline description (window)
 - [ ] Separate common structures in the common.h

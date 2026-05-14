@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ncursesw/ncurses.h>
 #include <widget.h>
@@ -19,11 +20,15 @@ void asa_modal_dialogue_callback(w_cb_args_t *args) {
   d_args.element = app->active_widget;
   w_input_t *in_ip = d->g_content->elements[0].element;
   w_input_t *in_port = d->g_content->elements[1].element;
+  char *ip_val = w_input_get_value(in_ip);
+  char *port_val = w_input_get_value(in_port);
   w_dialogue_callback_default(&d_args);
   if (d_args.resp_data.code == cbrp_val) {
     switch (d_args.resp_data.val.val.num) {
     case 1:
-      get_ip_port(app->params, in_ip->value, in_port->value);
+      get_ip_port(app->params, ip_val, port_val);
+      free(ip_val);
+      free(port_val);
       if (connect_to_server(app)) {
         d->needs_destroy = true;
         app->query_args->state = S_WAIT_SERVER;

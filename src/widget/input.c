@@ -27,15 +27,16 @@ bool w_input_default_key_action(w_cb_args_t *args) {
     if (input->value_len) {
       if (input->cur_pos > 0) {
         start_pos = input->value_len-- - input->cur_pos;
-        memmove(input->value + start_pos - 1, input->value + start_pos,
-                input->value_len - start_pos + 2);
+        memmove(input->w_value + start_pos - 1, input->w_value + start_pos,
+                sizeof(wchar_t) * (input->value_len - start_pos + 2));
       } else {
-        input->value[--input->value_len] = '\0';
+        input->w_value[--input->value_len] = '\0';
       }
     }
     break;
   default:
-    if (input->value_len == input->max_len) break;
+    if (input->value_len == input->max_len)
+      break;
     long_key[0] = key;
     input->value_len++;
     if ((key & 0xC0) == 0xC0) {
@@ -48,14 +49,10 @@ bool w_input_default_key_action(w_cb_args_t *args) {
     mbstowcs(w_key, (const char *)&long_key, 2);
     if (input->cur_pos > 0) {
       start_pos = input->value_len - input->cur_pos;
-      memmove(input->value + start_pos + 1, input->value + start_pos,
-              input->value_len - start_pos);
-      input->value[start_pos] = key;
-      strcpy(input->value + start_pos, long_key);
-      input->w_value[start_pos] = w_key[0];
+      memmove(input->w_value + start_pos + 1, input->w_value + start_pos,
+              sizeof(wchar_t) * (input->value_len - start_pos));
+      input->w_value[start_pos] = key;
     } else {
-      strcpy(input->value + input->value_len, long_key);
-
       input->w_value[input->value_len - 1] = w_key[0];
       input->w_value[input->value_len] = '\0';
     }
@@ -77,7 +74,7 @@ w_input_t *w_input_init(WINDOW **win, w_t *w_parent, char *label,
   if (input->w.sz.x < t_len)
     input->w.sz.x = t_len;
   input->w.ps.x = 1;
-  input->value[0] = '\0';
+  input->w_value[0] = '\0';
   input->value_len = 0;
   input->max_len = length;
   input->is_hidden = is_hidden_value;
@@ -147,5 +144,13 @@ int32_t w_input_draw(w_input_t *input, int32_t active_id) {
   wattroff(win, A_BOLD | A_REVERSE);
   return 0;
 }
+/* Uses malloc! need to invoke free() after use of output */
+char *w_input_get_value(w_input_t *input) {
+  char *c_output = malloc(sizeof (wchar_t) * input->value_len);
+  const wchar_t *p;
+  p = input->w_value;
+  wcsrtombs(c_output, &p, input->value_len, NULL);
+  return c_output;
+}
 
-void w_input_destroy(w_input_t *btn) { free(btn); }
+void w_input_destroy(w_input_t *input) { free(input); }

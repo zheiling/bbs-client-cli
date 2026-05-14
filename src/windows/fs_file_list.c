@@ -3,7 +3,6 @@
 
 #include <dirent.h>
 #include <fcntl.h>
-#include <math.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
 #include <stddef.h>
