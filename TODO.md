@@ -18,7 +18,7 @@
 - [ ] Documentation
 
 ## Bugs:
-- [ ] Sometimes segfaults while navigating through modal menu
+- [x] Sometimes segfaults while navigating through modal menu
 
 ## Features:
 - [x] Search files
