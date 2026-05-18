@@ -45,6 +45,13 @@ int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
     app_destroy(app, exit_code);                                               \
   }
 
+#define FILE_CLEAN(app)                                                        \
+  if (app->query_args->file != NULL) {                                         \
+    FREE_MLC(app->query_args->file->name);                                     \
+    FREE_MLC(app->query_args->file->path);                                     \
+    FREE_MLC(app->query_args->file);                                           \
+  }
+
 void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
@@ -183,11 +190,7 @@ int process_query(app_t *app) {
     if (!file_upload_start(query_args)) {
       query_args->state = S_UPLOAD_FILE;
     } else {
-      if (app->query_args->file != NULL) {
-        FREE_MLC(app->query_args->file->name);
-        FREE_MLC(app->query_args->file->path)
-        FREE_MLC(app->query_args->file);
-      }
+      FILE_CLEAN(app);
       query_args->state = WAIT_CLIENT;
     }
     break;
@@ -198,6 +201,14 @@ int process_query(app_t *app) {
       query_args->state = S_UPLOAD_SERVER_FINISHES;
     } else if (res == -1) {
       /* TODO: Error */
+    } else if (res == -2) {
+      /* cancel case */
+      w_notification("Alert", dc_alert, "File %s didn't upload!",
+                     query_args->file->name);
+      FILE_CLEAN(app);
+      w_dialogue_t *d = &(app->modal);
+      d->needs_destroy = true;
+      query_args->state = WAIT_CLIENT;
     }
     break;
   case S_UPLOAD_SERVER_FINISHES:

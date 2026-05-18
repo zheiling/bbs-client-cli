@@ -4,7 +4,6 @@
 - [ ] File upload multiline description (window)
 - [ ] Separate common structures in the common.h
 - [ ] Sorting in the file list
-- [ ] More intuitive navigation between nested groups (by pressing left and right buttons)
 - [ ] Cancel upload/download
 - [x] Input: fix non-Latin letters
 - [x] Get rid of unsigned integers
@@ -30,6 +29,7 @@
 - [x] UTF-8 support
 - [ ] Check MD5 sum after download/upload
 - [ ] Hotkeys for buttons
+- [ ] Manipulation by UI-cursor
 
 ## Fixes:
 - [x] Check and fix registration and login

@@ -17,6 +17,7 @@
 #define DIALOGUE_TITLE 64
 #define DIALOGUE_TEXT 4096
 #define INPUT_TEXT DIALOGUE_TITLE
+#define PACKAGE_SIZE INBUFSIZE * 10
 
 typedef struct params {
   unsigned short port;
@@ -59,12 +60,20 @@ enum state {
   WAIT_CLIENT,
 };
 
+enum package_signal { sig_continue, sig_cancel, sig_finish, sig_pause };
+
+typedef struct {
+  enum package_signal signal;
+  size_t package_size;
+} s_file_pd_t; /* file package descriptor */
+
 typedef struct p_file {
   char *name;
   char *path;
   char *description;
   size_t size;
   size_t rest;
+  enum package_signal signal;
   int fd;
 } p_file_t;
 
@@ -85,18 +94,18 @@ typedef struct file_args {
 
 enum main_window_type {
   mw_fl_server, /* file list on the server */
-  mw_fl_local, /* local file list */
-  mw_f_desc, /* file description */
+  mw_fl_local,  /* local file list */
+  mw_f_desc,    /* file description */
 };
 
-typedef void (draw_f_t) (void *fui) ;
+typedef void(draw_f_t)(void *fui);
 
 typedef struct main_window {
   enum main_window_type type;
   void *ui; /* structure which describes window UI */
-  int32_t (*cb_b_press) (void *app, void *args); /* callback on button press */
-  void (*cb_ui_refresh) (void *app); /* refresh callback */
-  void (*reset) (void *app); /* reset state of the window */
+  int32_t (*cb_b_press)(void *app, void *args); /* callback on button press */
+  void (*cb_ui_refresh)(void *app);             /* refresh callback */
+  void (*reset)(void *app);                     /* function to reset the state of the window */
   draw_f_t *draw;
   struct action_key *b_keys;
   int32_t b_keys_len;

@@ -136,18 +136,12 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
     }
     break;
   case KEY_UP:
-    if (d->active_el->g_type == g_content &&
-        d->g_content->direction == vertical) {
-      decr_active_id(d);
-      args->resp_data.code = cbrc_none;
-    }
+    decr_active_id(d);
+    args->resp_data.code = cbrc_none;
     break;
   case KEY_DOWN:
-    if (d->active_el->g_type == g_content &&
-        d->g_content->direction == vertical) {
-      incr_active_id(d);
-      args->resp_data.code = cbrc_none;
-    }
+    incr_active_id(d);
+    args->resp_data.code = cbrc_none;
     break;
   default:
     /* run callback function */
@@ -329,7 +323,7 @@ void w_dialogue_destroy(w_dialogue_t *d, void *_app) {
   }
   delwin(d->win);
   d->win = NULL;
-  d->is_initiated = 0;
+  d->is_initiated = false;
   d->needs_destroy = false;
   app->active_callback = (w_cb_t)app->main_ui.cb_b_press;
   app->query_args->active_dialogue = NULL;
