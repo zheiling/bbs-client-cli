@@ -34,6 +34,16 @@ bool w_input_default_key_action(w_cb_args_t *args) {
       }
     }
     break;
+  case KEY_RIGHT:
+    if (input->cur_pos > 0) {
+      input->cur_pos--;
+    }
+    break;
+  case KEY_LEFT:
+    if (input->value_len > input->cur_pos) {
+      input->cur_pos++;
+    }
+    break;
   default:
     if (input->value_len == input->max_len)
       break;
@@ -48,7 +58,7 @@ bool w_input_default_key_action(w_cb_args_t *args) {
     }
     mbstowcs(w_key, (const char *)&long_key, 2);
     if (input->cur_pos > 0) {
-      start_pos = input->value_len - input->cur_pos;
+      start_pos = input->value_len - input->cur_pos - 1;
       memmove(input->w_value + start_pos + 1, input->w_value + start_pos,
               sizeof(wchar_t) * (input->value_len - start_pos));
       input->w_value[start_pos] = key;
@@ -146,7 +156,7 @@ int32_t w_input_draw(w_input_t *input, int32_t active_id) {
 }
 /* Uses malloc! need to invoke free() after use of output */
 char *w_input_get_value(w_input_t *input) {
-  char *c_output = malloc(sizeof (wchar_t) * input->value_len);
+  char *c_output = malloc(sizeof(wchar_t) * input->value_len);
   const wchar_t *p;
   p = input->w_value;
   wcsrtombs(c_output, &p, input->value_len, NULL);

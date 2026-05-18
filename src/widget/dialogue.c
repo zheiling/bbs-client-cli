@@ -11,7 +11,7 @@
 
 static void (*active_callback_backup)(w_cb_args_t *) = NULL;
 
-void incr_active_id(w_dialogue_t *d) {
+static void incr_active_id(w_dialogue_t *d) {
   w_g_el_t *active_el = NULL;
   while (true) {
     for (int i = d->active_el->id + 1;
@@ -29,7 +29,7 @@ void incr_active_id(w_dialogue_t *d) {
   }
 }
 
-void decr_active_id(w_dialogue_t *d) {
+static void decr_active_id(w_dialogue_t *d) {
   w_g_el_t *active_el = NULL;
   while (true) {
     for (int i = d->active_el->id - 1; active_el == NULL && i > 0; i--) {
@@ -59,6 +59,20 @@ void decr_active_id(w_dialogue_t *d) {
     }                                                                          \
   }
 
+static void case_callback(w_cb_args_t *args, w_cb_args_t *new_args) {
+  w_dialogue_t *d = (void *)args->element;
+  /* run callback function */
+  if (d->active_el->g_type == g_content) {
+    new_args->element = d->g_content;
+  } else {
+    new_args->element = d->g_action;
+  }
+  w_group_cb_default(new_args);
+  /* copy new result to the parental structure */
+  mempcpy(&(args->resp_data), &(new_args->resp_data),
+          sizeof(new_args->resp_data));
+}
+
 void w_dialogue_callback_default(w_cb_args_t *args) {
   w_dialogue_t *d = (void *)args->element;
   int32_t key = *((int32_t *)args->data);
@@ -79,10 +93,18 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
     args->resp_data.val.val.num = -2;
     break;
   case KEY_RIGHT:
+    if (d->active_el->type == w_input) {
+      case_callback(args, &new_args);
+      break;
+    }
     incr_active_id(d);
     args->resp_data.code = cbrc_none;
     break;
   case KEY_LEFT:
+    if (d->active_el->type == w_input) {
+      case_callback(args, &new_args);
+      break;
+    }
     decr_active_id(d);
     args->resp_data.code = cbrc_none;
     break;
@@ -129,14 +151,7 @@ void w_dialogue_callback_default(w_cb_args_t *args) {
     break;
   default:
     /* run callback function */
-    if (d->active_el->g_type == g_content) {
-      new_args.element = d->g_content;
-    } else {
-      new_args.element = d->g_action;
-    }
-    w_group_cb_default(&new_args);
-    /* copy new result to the parental structure */
-    mempcpy(&(args->resp_data), &(new_args.resp_data), sizeof(new_args.resp_data));
+    case_callback(args, &new_args);
   }
 }
 
