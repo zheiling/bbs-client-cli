@@ -191,91 +191,82 @@ int32_t file_upload_start(query_args_t *q_args) {
   return 0;
 }
 
+#define file_upload_send(send_len, package_rest, buf_indent)                   \
+  {                                                                            \
+    if (q_args->buf_used > 0) {                                                \
+      int wlen = write(q_args->sd, q_args->buf + buf_indent, send_len);        \
+      if (q_args->buf_used != wlen) {                                          \
+        /* TODO: ошибка */                                                     \
+        /* reset function before exit */                                       \
+        it_count = 0;                                                          \
+        it_interval = 0;                                                       \
+        package_rest = 0;                                                      \
+        ret = -1;                                                              \
+      } else {                                                                 \
+        it_count++;                                                            \
+        if (!(it_count % it_interval)) {                                       \
+          pb->procent = progress;                                              \
+          d->needs_update = true;                                              \
+        }                                                                      \
+        q_args->file->rest -= wlen;                                            \
+        package_rest -= wlen;                                                  \
+        q_args->buf_used -= send_len;                                          \
+        ret = 0;                                                               \
+      }                                                                        \
+    } else {                                                                   \
+      /* reset function before exit */                                         \
+      it_count = 0;                                                            \
+      it_interval = 0;                                                         \
+      package_rest = 0;                                                        \
+      ret = 1;                                                                 \
+    }                                                                          \
+  }
+
 int32_t file_upload(query_args_t *q_args) {
   static int32_t it_count = 0;
   static size_t it_interval = 0;
   static int package_rest = 0;
+  int ret = 0;
+  int buf_indent = 0;
   int send_len = q_args->buf_used;
+
+  int32_t progress =
+      (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
+  w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
+  w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   if (it_interval == 0) {
     it_interval = (q_args->file->size / INBUFSIZE / 100) * 5; /* every 1% */
     if (it_interval == 0)
       it_interval = 1;
   }
-  int32_t progress =
-      (q_args->file->size - q_args->file->rest) * 100 / q_args->file->size;
-  w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
-  w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
 
-  if (package_rest == 0) {
+  if (package_rest < send_len) {
+    if (package_rest > 0) {
+      send_len -= package_rest;
+      buf_indent = package_rest;
+      file_upload_send(package_rest, package_rest, 0);
+      if (ret) {
+        /* TODO: error case */
+      }
+    }
+
+    package_rest = PACKAGE_SIZE;
+
+    s_file_pd_t fpd = {.signal = q_args->file->signal,
+                       .package_size = package_rest};
+    write(q_args->sd, &fpd, sizeof(s_file_pd_t));
     if (q_args->file->signal == sig_cancel) {
       /* reset function before exit */
       it_count = 0;
       it_interval = 0;
       return -2;
     }
-    package_rest = PACKAGE_SIZE;
-    s_file_pd_t fpd = {.signal = q_args->file->signal,
-                       .package_size = package_rest};
-    write(q_args->sd, &fpd, sizeof(s_file_pd_t));
-  } else if (package_rest < send_len) {
-    send_len = package_rest;
   }
 
-  if (q_args->buf_used > 0) {
-    int wlen = write(q_args->sd, q_args->buf, send_len);
-    if (q_args->buf_used != wlen) {
-      /* TODO: ошибка */
-      /* reset function before exit */
-      it_count = 0;
-      it_interval = 0;
-      package_rest = 0;
-      return -1;
-    } else {
-      it_count++;
-      if (!(it_count % it_interval)) {
-        pb->procent = progress;
-        d->needs_update = true;
-      }
-      q_args->file->rest -= wlen;
-      package_rest -= wlen;
-      if (package_rest == 0) {
-        if (q_args->file->signal == sig_cancel) {
-          /* reset function before exit */
-          it_count = 0;
-          it_interval = 0;
-          return -2;
-        }
-        package_rest = PACKAGE_SIZE;
-        s_file_pd_t fpd = {.signal = q_args->file->signal,
-                           .package_size = package_rest};
-        write(q_args->sd, &fpd, sizeof(s_file_pd_t));
-        /* send the rest */
-        if (q_args->buf_used > send_len) {
-          wlen = write(q_args->sd, q_args->buf + send_len,
-                       q_args->buf_used - send_len);
-          if (q_args->buf_used != wlen) {
-            /* TODO: ошибка */
-            /* reset function before exit */
-            it_count = 0;
-            it_interval = 0;
-            package_rest = 0;
-            return -1;
-          }
-          q_args->file->rest -= wlen;
-          package_rest -= wlen;
-        }
-      }
-      q_args->buf[0] = 0;
-      q_args->buf_used = 0;
-    }
-  } else {
-    /* reset function before exit */
-    it_count = 0;
-    it_interval = 0;
-    package_rest = 0;
-    return 1;
-  }
-  return 0;
+  file_upload_send(send_len, package_rest, buf_indent);
+
+  q_args->buf[0] = 0;
+  return ret;
 }
 
 void clear_file_in_query(query_args_t *q_args) {
