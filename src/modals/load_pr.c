@@ -1,3 +1,5 @@
+#include "alert.h"
+#include "dialogue.h"
 #include "group.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -11,7 +13,13 @@ void dwn_pr_modal_cb(w_cb_args_t *args) {
     return;
   }
   app_t *app = args->app;
-  app->query_args->file->signal = sig_cancel;
+  /* TODO: forward actual file name */
+  bool response = w_bool_ask("Cancel file load", "Yes", "No", false,
+                             "You're going to cancel download\n Are you sure?",
+                             app->query_args->file->name);
+  if (response) {
+    app->query_args->file->signal = sig_cancel;
+  }
 }
 
 w_dialogue_t *m_load_pr_init(app_t *app, bool is_upload) {
