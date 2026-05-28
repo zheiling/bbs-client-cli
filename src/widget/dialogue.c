@@ -60,7 +60,7 @@ static void decr_active_id(w_dialogue_t *d) {
   }
 
 static void case_callback(w_cb_args_t *args, w_cb_args_t *new_args) {
-  w_dialogue_t *d = (void *)args->element;
+  w_dialogue_t *d = args->element;
   /* run callback function */
   if (d->active_el->g_type == g_content) {
     new_args->element = d->g_content;
@@ -74,7 +74,7 @@ static void case_callback(w_cb_args_t *args, w_cb_args_t *new_args) {
 }
 
 void w_dialogue_callback_default(w_cb_args_t *args) {
-  w_dialogue_t *d = (void *)args->element;
+  w_dialogue_t *d = args->element;
   int32_t key = *((int32_t *)args->data);
   w_cb_args_t new_args;
   memcpy(&new_args, args, sizeof(w_cb_args_t));

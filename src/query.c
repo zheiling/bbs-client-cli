@@ -45,13 +45,6 @@ int32_t process_user_input(app_t *app, w_cb_args_t *d_args);
     app_destroy(app, exit_code);                                               \
   }
 
-#define FILE_CLEAN(app)                                                        \
-  if (app->query_args->file != NULL) {                                         \
-    FREE_MLC(app->query_args->file->name);                                     \
-    FREE_MLC(app->query_args->file->path);                                     \
-    FREE_MLC(app->query_args->file);                                           \
-  }
-
 void query_loop(app_t *app) {
   query_args_t *query_args = app->query_args;
   fd_set readfds;
@@ -183,7 +176,7 @@ int process_query(app_t *app) {
   case S_FILE_LIST:
     file_list(file_args, query_args);
     break;
-  case S_FILE_DOWNLOAD:
+  case S_DOWNLOAD_FILE:
     file_download(file_args, query_args);
     break;
   case S_UPLOAD_REQUESTED:

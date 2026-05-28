@@ -101,7 +101,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
     return -2;
   }
   server_send_string(q_args, "file download [%s]\n", f_selected->name);
-  q_args->state = S_FILE_DOWNLOAD;
+  q_args->state = S_DOWNLOAD_FILE;
   free(file_path);
   return OK;
 }

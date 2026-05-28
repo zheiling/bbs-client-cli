@@ -1,12 +1,13 @@
 # TODO:
 
 ## Current:
+- [ ] Break line automatically in modal widgets
+- [ ] Cancel upload/download
+- [ ] Show download/upload progress in percentages
 - [ ] File upload multiline description (window)
 - [ ] Separate common structures in the common.h
 - [ ] Sorting in the file list
-- [ ] Cancel upload/download
-- [ ] Break line automatically in modal widgets
-- [ ] Show download/upload progress in percentages
+- [ ] Resume download
 - [x] Input: fix non-Latin letters
 - [x] Get rid of unsigned integers
 - [x] Check registration / enter server name again

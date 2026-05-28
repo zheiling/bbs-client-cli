@@ -28,7 +28,7 @@ void app_draw_modal(app_t *app) {
     case S_PRINT_SERVER_MESSAGE:
       m_server_message_init(app);
       break;
-    case S_FILE_DOWNLOAD:
+    case S_DOWNLOAD_FILE:
       m_load_pr_init(app, false);
       break;
     case S_UPLOAD_FILE:

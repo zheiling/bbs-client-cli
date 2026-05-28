@@ -1,24 +1,43 @@
+#include "../server.h"
 #include "alert.h"
 #include "dialogue.h"
 #include "group.h"
+#include "utils.h"
+#include "../windows/file_list.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <widget.h>
 
 void dwn_pr_modal_cb(w_cb_args_t *args) {
   /* only cancel action */
   int32_t key = *((int32_t *)args->data);
+  
   if (key != '\n') {
     return;
   }
+  
   app_t *app = args->app;
+  w_dialogue_t *d = &(app->modal);
   /* TODO: forward actual file name */
-  bool response = w_bool_ask("Cancel file load", "Yes", "No", false,
-                             "You're going to cancel download\n Are you sure?",
-                             app->query_args->file->name);
-  if (response) {
-    app->query_args->file->signal = sig_cancel;
+  if (app->query_args->state == S_UPLOAD_FILE) {
+    bool response = w_bool_ask("Cancel file upload", "Yes", "No", false,
+                               "You're going to cancel upload\n Are you sure?");
+    if (response) {
+      app->query_args->file->signal = sig_cancel;
+    }
+  } else if (app->query_args->state == S_DOWNLOAD_FILE) {
+    w_ui_file_list_t *fui = (w_ui_file_list_t *)app->query_args->main_ui->ui;
+    bool response =
+        w_bool_ask("Cancel file download", "Yes", "No", false,
+                   "You're going to cancel download\n Are you sure?");
+    server_send_string(app->query_args, "cancel\n");
+    FILE_CLEAN(app);
+    d->needs_destroy = true;
+    app->query_args->state = S_FILE_LIST;
+    server_send_string(app->query_args, "file list %d %d\n", fui->max_lines,
+                         fui->current_page);
   }
 }
 
