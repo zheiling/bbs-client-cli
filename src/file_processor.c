@@ -125,7 +125,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
   int32_t a_len = 0;
 
-  if (size_rest == 0)
+  if (size_rest == 0 && it_count == 0)
     size_rest = f_selected->size;
   int32_t qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
   if (qlen) {
