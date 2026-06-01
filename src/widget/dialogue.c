@@ -1,11 +1,14 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 #include <ncursesw/ncurses.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
+#include <wchar.h>
 #include <widget.h>
 #include <widget_core.h>
 
@@ -237,7 +240,11 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
   /* analyze text content */
   int32_t line_count = 0;
   int32_t line_max_len = 0;
-  line_max_len = w_get_max_line_len(d->text, &line_count);
+  wchar_t *main_text_wide = malloc(sizeof(wchar_t) * strlen(d->text));
+  size_t mwt_len;
+  u_utf8_convert_to_wide(d->text, &main_text_wide, &mwt_len);
+  line_count = w_text_divide_by_lines(
+      main_text_wide, mwt_len, d->p_coordinates->max_x * 0.77, &line_max_len);
   y += line_count;
   y += 2; /* margin for text */
 
@@ -246,8 +253,8 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
   DETECT_GROUP_SIZE(d->g_action, line_max_len, y, x);
   x += line_max_len;
 
-  x += 1; /* when uses box */
-  y += 1; /* when uses box */
+  x += 2; /* when uses box */
+  y += 2; /* when uses box */
 
   d->w.sz.x = x;
   d->w.sz.y = y;
@@ -283,7 +290,8 @@ int32_t w_dialogue_draw(w_dialogue_t *d) {
   /* text */
   wattroff(d->win, A_BOLD);
   /* mvwhline(d->win, d->w.sz.y - 3, 1, 0, d->w.sz.x - 2); */
-  w_print_multiline_text(d->win, d->text, d->w.sz.x, 2, 1, PMT_ALIGN_CENTER);
+  w_print_multiline_text_wide(d->win, main_text_wide, mwt_len, line_max_len,
+                              d->w.sz.x, 2, 0, PMT_ALIGN_CENTER);
   wattroff(d->win, A_REVERSE);
 
   if (d->g_content != NULL) {

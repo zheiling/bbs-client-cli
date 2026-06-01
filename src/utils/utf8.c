@@ -28,19 +28,19 @@ const char *u_utf8_wind_n(const char *s, int n) {
 
 int32_t u_utf8_convert_to_wide(const char *utf8_str,
                                wchar_t **restrict wide_str,
-                               size_t *restrict len) {
+                               size_t *restrict o_len) {
   // Step 1: Convert UTF-8 (MBCS) to wchar_t (wide)
   size_t wide_len =
       u_utf8_code_points_count(utf8_str); // Get required length (-1 on error)
   if (wide_len == (size_t)-1) {
-    *len = 0;
+    *o_len = 0;
     perror("mbstowcs failed");
     return 1;
   }
   *wide_str =
       malloc((wide_len + 1) * sizeof(wchar_t)); // +1 for null terminator
   mbstowcs(*wide_str, utf8_str, wide_len + 1);  // Perform conversion
-  *len = wide_len;
+  *o_len = wide_len;
   return 0;
 }
 
