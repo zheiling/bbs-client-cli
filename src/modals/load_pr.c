@@ -35,9 +35,7 @@ void dwn_pr_modal_cb(w_cb_args_t *args) {
     server_send_string(app->query_args, "cancel\n");
     FILE_CLEAN(app);
     d->needs_destroy = true;
-    app->query_args->state = S_FILE_LIST;
-    server_send_string(app->query_args, "file list %d %d\n", fui->max_lines,
-                         fui->current_page);
+    app->query_args->state = S_WAIT_SERVER_READY;
   }
 }
 

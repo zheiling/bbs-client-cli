@@ -93,6 +93,8 @@ int server_print_message_cb(app_t *app, char *line, int l_len) {
   return 0;
 }
 
+/* TODO: function that do all extraction stuff and compares the buf with a given world (in arg) */
+
 int process_server_command(char *line, int l_len, app_t *app) {
   int ws_pos = l_len;
   query_args_t *q_args = app->query_args;
@@ -187,6 +189,10 @@ void ask_uname_and_password(params_t *params) {
     free(bufptr);
     bufptr = NULL;
   }
+}
+
+void wait_server_ready(params_t *params) {
+
 }
 
 void ask_register(params_t *params, char *email) {
