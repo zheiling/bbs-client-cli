@@ -131,7 +131,7 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   if (qlen) {
     it_count++;
     if (!(it_count % it_interval)) {
-      pb->procent = progress;
+      pb->percentage = progress;
       d->needs_update = true;
     } else {
       q_args->buf_used = 0;
@@ -205,7 +205,7 @@ int32_t file_upload_start(query_args_t *q_args) {
       } else {                                                                 \
         it_count++;                                                            \
         if (!(it_count % it_interval)) {                                       \
-          pb->procent = progress;                                              \
+          pb->percentage = progress;                                              \
           d->needs_update = true;                                              \
         }                                                                      \
         q_args->file->rest -= wlen;                                            \

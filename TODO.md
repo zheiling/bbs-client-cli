@@ -1,7 +1,7 @@
 # TODO:
 
 ## Current:
-- [ ] Show download/upload progress in percentages
+- [x] Show download/upload progress in percentages
 - [ ] File upload multiline description (window)
 - [ ] Sorting in the file list
 - [ ] Resume download

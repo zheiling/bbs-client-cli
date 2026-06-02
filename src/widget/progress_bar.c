@@ -11,7 +11,7 @@ w_pgb_ui_t *w_pgb_ui_init(WINDOW **win, w_t *w_parent) {
   WINDOW *win_par = *(w_parent->w_parent->parent_win);
   w_pgb_ui_t *pb = malloc(sizeof(w_pgb_ui_t));
   w_init(&pb->w, w_parent, win, "");
-  pb->procent = 0;
+  pb->percentage = 0;
   pb->text[0] = '\0';
   pb->w.sz.y = 4;
   pb->w.sz.x = getmaxx(win_par) / 10 * 9;
@@ -25,17 +25,23 @@ void w_pgb_ui_draw(w_pgb_ui_t *pb) {
 
   wattrset(win, COLOR_PAIR(modal_color_pair));
 
+  /* top line */
   mvwhline(win, margin_y, margin_x, 0, pb->w.sz.x - 1);
 
-  float procent = pb->procent;
-  procent /= 100;
-  int32_t filled_num = procent * pb->w.sz.x;
+  int center = pb->w.sz.x / 2 - 3;
+
+  mvwprintw(win, margin_y, margin_x + center, "| %d%% |", pb->percentage);
+
+  float percentage = pb->percentage;
+  percentage /= 100;
+  int32_t filled_num = percentage * pb->w.sz.x;
   if (filled_num > 2) {
     filled_num -= 2;
   }
 
-  for (int i = 1; i < 3; i++) {
-    wattrset(win, COLOR_PAIR(1) | A_REVERSE);
+  wattrset(win, COLOR_PAIR(1) | A_REVERSE);
+
+  for (int i = 1; i < 3; i++) { /* two lines */
     mvwprintw(win, margin_y + i, margin_x + 1, "%*s", filled_num, "");
   }
 
@@ -43,12 +49,12 @@ void w_pgb_ui_draw(w_pgb_ui_t *pb) {
 
   // bottom line
   mvwhline(win, margin_y + 3, margin_x, 0, pb->w.sz.x - 1);
-  // left
+  // left corners
   mvwvline(win, margin_y, margin_x, ACS_ULCORNER, 1);
   mvwvline(win, margin_y + 1, margin_x, 0, 1);
   mvwvline(win, margin_y + 2, margin_x, 0, 1);
   mvwvline(win, margin_y + 3, margin_x, ACS_LLCORNER, 1);
-  // right
+  // right corners
   mvwvline(win, margin_y, margin_x + pb->w.sz.x - 2, ACS_URCORNER, 1);
   mvwvline(win, margin_y + 1, margin_x + pb->w.sz.x - 2, 0, 1);
   mvwvline(win, margin_y + 2, margin_x + pb->w.sz.x - 2, 0, 1);
