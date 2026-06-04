@@ -1,11 +1,12 @@
 # TODO:
 
 ## Current:
-- [x] Show download/upload progress in percentages
+- [ ] Rewrite cancel download. Use packages and check every time for a confirmation to continue download
 - [ ] File upload multiline description (window)
 - [ ] Sorting in the file list
 - [ ] Resume download
 - [ ] Separate common structures in the common.h
+- [x] Show download/upload progress in percentages
 - [x] Break line automatically in modal widgets
 - [x] Cancel upload/download
 - [x] Input: fix non-Latin letters

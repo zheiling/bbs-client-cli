@@ -216,8 +216,6 @@ int process_query(app_t *app) {
   case S_PREP_SERVER_MESSAGE:
     process_command(app, server_print_message_cb);
     break;
-  case S_WAIT_SERVER_READY:
-    /* TODO: implement */
   default:
     break;
   }
