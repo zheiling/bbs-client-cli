@@ -183,7 +183,7 @@ int process_query(app_t *app) {
     if (!file_upload_start(query_args)) {
       query_args->state = S_UPLOAD_FILE;
     } else {
-      FILE_CLEAN(app);
+      FILE_CLEAN(app->query_args->file);
       query_args->state = WAIT_CLIENT;
     }
     break;
@@ -198,7 +198,7 @@ int process_query(app_t *app) {
       /* cancel case */
       w_notification("Alert", dc_alert, "File %s didn't upload!",
                      query_args->file->name);
-      FILE_CLEAN(app);
+      FILE_CLEAN(app->query_args->file);
       w_dialogue_t *d = &(app->modal);
       d->needs_destroy = true;
       query_args->state = WAIT_CLIENT;

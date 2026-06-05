@@ -73,6 +73,9 @@ typedef struct p_file {
   char *description;
   size_t size;
   size_t rest;
+  size_t package_rest;
+  int32_t it_count;
+  size_t it_interval;
   enum package_signal signal;
   int fd;
 } p_file_t;
@@ -105,7 +108,7 @@ typedef struct main_window {
   void *ui; /* structure which describes window UI */
   int32_t (*cb_b_press)(void *app, void *args); /* callback on button press */
   void (*cb_ui_refresh)(void *app);             /* refresh callback */
-  void (*reset)(void *app);                     /* function to reset the state of the window */
+  void (*reset)(void *app); /* function to reset the state of the window */
   draw_f_t *draw;
   struct action_key *b_keys;
   int32_t b_keys_len;

@@ -10,10 +10,11 @@
     arg = NULL;                                                                \
   }
 
-#define FILE_CLEAN(app)                                                        \
-  if (app->query_args->file != NULL) {                                         \
-    FREE_MLC(app->query_args->file->name);                                     \
-    FREE_MLC(app->query_args->file->path);                                     \
-    FREE_MLC(app->query_args->file);                                           \
+#define FILE_CLEAN(file)                                                        \
+  if (file != NULL) {                                         \
+    FREE_MLC(file->name);                                     \
+    FREE_MLC(file->path);                                     \
+    FREE_MLC(file);                                           \
+    file = NULL;                                              \
   }
 #endif

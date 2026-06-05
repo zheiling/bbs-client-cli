@@ -102,61 +102,97 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
   }
   server_send_string(q_args, "file download [%s]\n", f_selected->name);
   q_args->state = S_DOWNLOAD_FILE;
+
+  q_args->file = malloc(sizeof(p_file_t));
+  q_args->file->name = f_selected->name;
+  q_args->file->rest = f_selected->size;
+  q_args->file->size = f_selected->size;
+  q_args->file->package_rest = PACKAGE_SIZE;
+  q_args->file->signal = sig_continue;
+  q_args->file->it_count = 0;
+  q_args->file->fd = f_args->file_d;
+
+  q_args->file->it_interval =
+      (f_selected->size / INBUFSIZE / 100); /* every 1% */
+  if (q_args->file->it_interval == 0)
+    q_args->file->it_interval = 1;
+
   free(file_path);
   return OK;
 }
 
+#define file_download_receive_after(qlen, q_args, f_args, d, pb)               \
+  {                                                                            \
+    if (qlen) {                                                                \
+      q_args->file->it_count++;                                                \
+      q_args->file->package_rest -= qlen;                                      \
+      if (!(q_args->file->it_count % q_args->file->it_interval)) {             \
+        pb->percentage = progress;                                             \
+        d->needs_update = true;                                                \
+      } else {                                                                 \
+        q_args->buf_used = 0;                                                  \
+      }                                                                        \
+      if (q_args->file->rest < qlen) {                                         \
+        q_args->file->rest = 0;                                                \
+      } else {                                                                 \
+        q_args->file->rest -= qlen;                                            \
+      }                                                                        \
+      if (q_args->file->rest == 0) {                                           \
+        q_args->file->it_count = 0;                                            \
+        q_args->file->it_interval = 0;                                         \
+        f_selected->size = 0;                                                  \
+        close(f_args->file_d);                                                 \
+        d->needs_destroy = true;                                               \
+        sprintf(answer, "File %s is downloaded from the server!",              \
+                f_selected->name);                                             \
+        q_args->notification = malloc(strlen(answer) + 1);                     \
+        strcpy(q_args->notification, answer);                                  \
+        free(f_selected->name);                                                \
+        server_send_string(q_args, "file list %d %d\n%n", fui->max_lines,      \
+                           fui->current_page, &a_len);                         \
+        q_args->state = S_FILE_LIST;                                           \
+      }                                                                        \
+    }                                                                          \
+  }
+
+/* TODO: revise */
 void file_download(file_args_t *f_args, query_args_t *q_args) {
   fl_item_t *f_selected = &(f_args->f_selected);
-  static int32_t it_count = 0;
-  static size_t it_interval = 0;
-
-  if (it_interval == 0) {
-    it_interval = (f_selected->size / INBUFSIZE / 100) * 5; /* every 1% */
-    if (it_interval == 0)
-      it_interval = 1;
-  }
   char answer[256];
 
-  static size_t size_rest = 0;
-  int32_t progress = (f_selected->size - size_rest) * 100 / f_selected->size;
+  int32_t progress =
+      (f_selected->size - q_args->file->rest) * 100 / f_selected->size;
   w_pgb_ui_t *pb = (w_pgb_ui_t *)q_args->progress_bar;
   w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
   int32_t a_len = 0;
+  int32_t qlen;
 
-  if (size_rest == 0 && it_count == 0)
-    size_rest = f_selected->size;
-  int32_t qlen = write(f_args->file_d, q_args->buf, q_args->buf_used);
-  if (qlen) {
-    it_count++;
-    if (!(it_count % it_interval)) {
-      pb->percentage = progress;
-      d->needs_update = true;
-    } else {
-      q_args->buf_used = 0;
-    }
-    if (size_rest < qlen) {
-      size_rest = 0;
-    } else {
-      size_rest -= qlen;
-    }
-    if (size_rest == 0) {
-      it_count = 0;
-      it_interval = 0;
-      f_selected->size = 0;
-      close(f_args->file_d);
+  int write_len = q_args->buf_used;
+
+  if (q_args->file->package_rest <= q_args->buf_used) {
+    write_len = q_args->file->package_rest;
+    qlen = write(f_args->file_d, q_args->buf, write_len);
+    file_download_receive_after(qlen, q_args, f_args, d, pb)
+        server_send_string(q_args, "continue\n");
+    if (q_args->file->signal == sig_continue) {
+      q_args->file->package_rest = PACKAGE_SIZE;
+      if (q_args->file->package_rest == q_args->buf_used) {
+        return;
+      }
+      int buf_offset = q_args->file->package_rest;
+      write_len = q_args->buf_used - q_args->file->package_rest;
+      qlen = write(f_args->file_d, q_args->buf + buf_offset, write_len);
+      file_download_receive_after(qlen, q_args, f_args, d, pb) return;
+    } else if (q_args->file->signal == sig_cancel) {
+      server_send_string(q_args, "cancel\n");
+      FILE_CLEAN(q_args->file);
       d->needs_destroy = true;
-      sprintf(answer, "File %s is downloaded from the server!",
-              f_selected->name);
-      q_args->notification = malloc(strlen(answer) + 1);
-      strcpy(q_args->notification, answer);
-      free(f_selected->name);
-      server_send_string(q_args, "file list %d %d\n%n", fui->max_lines,
-                         fui->current_page, &a_len);
-      q_args->state = S_FILE_LIST;
+      return;
     }
   }
+  qlen = write(f_args->file_d, q_args->buf, write_len);
+  file_download_receive_after(qlen, q_args, f_args, d, pb)
 }
 
 int32_t file_upload_open(char *dpath, char *fname, query_args_t *q_args) {
@@ -205,7 +241,7 @@ int32_t file_upload_start(query_args_t *q_args) {
       } else {                                                                 \
         it_count++;                                                            \
         if (!(it_count % it_interval)) {                                       \
-          pb->percentage = progress;                                              \
+          pb->percentage = progress;                                           \
           d->needs_update = true;                                              \
         }                                                                      \
         q_args->file->rest -= wlen;                                            \
