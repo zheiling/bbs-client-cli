@@ -151,6 +151,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
         server_send_string(q_args, "file list %d %d\n%n", fui->max_lines,      \
                            fui->current_page, &a_len);                         \
         q_args->state = S_FILE_LIST;                                           \
+        return;                                                                \
       }                                                                        \
     }                                                                          \
   }
@@ -174,22 +175,23 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
     write_len = q_args->file->package_rest;
     qlen = write(f_args->file_d, q_args->buf, write_len);
     file_download_receive_after(qlen, q_args, f_args, d, pb)
-        server_send_string(q_args, "continue\n");
     if (q_args->file->signal == sig_continue) {
-      q_args->file->package_rest = PACKAGE_SIZE;
-      if (q_args->file->package_rest == q_args->buf_used) {
+      server_send_string(q_args, "continue %d\n", PACKAGE_SIZE * 10);
+      if (q_args->file->package_rest == 0) {
+        q_args->file->package_rest = PACKAGE_SIZE * 10;
         return;
       }
       int buf_offset = q_args->file->package_rest;
       write_len = q_args->buf_used - q_args->file->package_rest;
       qlen = write(f_args->file_d, q_args->buf + buf_offset, write_len);
-      file_download_receive_after(qlen, q_args, f_args, d, pb) return;
+      q_args->file->package_rest = PACKAGE_SIZE * 10;
+      file_download_receive_after(qlen, q_args, f_args, d, pb);
     } else if (q_args->file->signal == sig_cancel) {
       server_send_string(q_args, "cancel\n");
       FILE_CLEAN(q_args->file);
       d->needs_destroy = true;
-      return;
     }
+    return;
   }
   qlen = write(f_args->file_d, q_args->buf, write_len);
   file_download_receive_after(qlen, q_args, f_args, d, pb)
