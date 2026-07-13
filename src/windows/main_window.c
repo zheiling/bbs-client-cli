@@ -4,6 +4,7 @@
 #include "main_window.h"
 #include "file_list.h"
 #include "fs_file_list.h"
+#include "text_edit.h"
 
 void main_window_set(app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
@@ -19,6 +20,7 @@ void main_window_set(app_t *app, enum main_window_type type) {
     w_lfl_init_win(app);
     break;
   case mw_f_desc:
+    w_te_init_win(app);
     break;
   default:
     break;
@@ -34,6 +36,7 @@ void main_window_draw(app_t *app) {
     w_lfl_draw((w_lfl_ui_t *)app->main_ui.ui);
     break;
   case mw_f_desc:
+    w_te_draw((w_te_ui_t *) app->main_ui.ui);
     break;
   }
   app_draw_bbar(app);
@@ -48,6 +51,7 @@ void main_window_destroy(app_t *app) {
     w_lfl_destroy((w_lfl_ui_t **)&(app->main_ui.ui));
     break;
   case mw_f_desc:
+    w_te_destroy((w_te_ui_t **) &(app->main_ui.ui));
     break;
   }
   MAIN_UI_RESET(app);

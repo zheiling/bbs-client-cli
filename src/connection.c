@@ -31,7 +31,7 @@ bool connect_to_server(app_t *app) {
     return false;
   }
   app->query_args->state = S_WAIT_SERVER;
-  app->params->is_connected = TRUE;
+  app->params->is_connected = true;
   app->query_args->sd = app->params->sd;
   app_draw_bars(app);
   return true;
