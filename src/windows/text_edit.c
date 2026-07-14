@@ -20,11 +20,9 @@ static void w_te_cb(w_cb_args_t *args) {
   int32_t key = *((int32_t *)args->data);
   w_te_ui_t *fui = app->query_args->main_ui->ui;
   switch (key) {
-  case '\n':
-    // TODO: new line case
-    break;
-  case '\b':
-    // TODO: new line case
+  case KEY_BACKSPACE:
+  case KEY_DL:
+    fui->text[fui->text_len--] = 0;
     break;
   default:
     fui->text[fui->text_len++] = key;
@@ -92,16 +90,14 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   fui->w.sz.y = getmaxy(app->win);
   fui->w.parent_win = &(app->win);
   /* * INIT UI * */
-
-  /* define the width for each sub window */
-  int32_t left_w_x = app->coordinates.max_x / 10 * 5;
-  int32_t right_w_x = app->coordinates.max_x - left_w_x - 2;
+  fui->win = newwin(fui->w.sz.y - 4, fui->w.sz.x - 2, 2, 1);
   return fui;
 }
 
 void w_te_reset(w_te_ui_t *fl_ui) {
   fl_ui->text[0] = 0;
-  fl_ui->scroll_pos = 0;
+  fl_ui->cur_pos.x = 0;
+  fl_ui->cur_pos.y = 0;
   fl_ui->text_len = 0;
 }
 
@@ -119,18 +115,26 @@ void w_te_draw(w_te_ui_t *fui) {
   int32_t sz_y_f = sz_y - 1; // actual size (without box)
   int32_t sz_x_f = sz_x - 1; // actual size (without box)
 
-  p_y = 1;
-  p_x = 1;
+  p_y = 0;
+  p_x = 0;
 
-  for (int i = 0; i < fui->w.sz.y; i++) {
-    mvwaddnwstr(win, p_y, p_x, fui->text + fui->w.sz.x * i, fui->w.sz.x);
+  wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD | A_REVERSE);
+
+  int i = 0;
+  for (i = 0; i < fui->w.sz.y; i++) {
+    mvwprintw(win, p_y + i, p_x, "%*s", fui->w.sz.x, "");
   }
 
-  box(fui->win, 0, 0);
+  int len_rest = fui->text_len;
+  mvwaddnwstr(win, p_y, p_x, fui->text, fui->text_len);
+
+  fui->cur_pos.y = i;
+
   p_x = 1;
 
   wattroff(win, A_BOLD);
-  curs_set(false);
+
+  curs_set(true);
 }
 
 void w_te_destroy(w_te_ui_t **fui) {

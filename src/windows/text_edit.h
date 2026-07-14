@@ -17,7 +17,10 @@ typedef struct {
     WINDOW *win;
     wchar_t text[INBUFSIZE * 10];
     int text_len;
-    int scroll_pos;
+    struct {
+        int x;
+        int y;
+    } cur_pos;
     void *file_pt; // TODO: уточнить
 } w_te_ui_t;
 

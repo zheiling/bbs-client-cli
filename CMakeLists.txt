@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 
+set(CACHE DEV_WIDGET BOOL OFF "Enable development widget mode")
+
 project(ZBBSClientTUI
     VERSION 1.0.0
 )

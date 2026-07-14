@@ -291,7 +291,6 @@ static int process_command(app_t *app, wait_server_cb *callback) {
 }
 
 void init_query_args(query_args_t *q_args, params_t *params) {
-  q_args->buf = NULL;
   q_args->sd = -1;
   q_args->state = S_N_D;
   q_args->buf_used = 0;

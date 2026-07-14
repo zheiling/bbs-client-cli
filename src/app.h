@@ -27,7 +27,7 @@ typedef struct {
   main_window_t main_ui;
 } app_t;
 
-app_t *app_init(void);
+app_t *app_init(app_t *app);
 void   app_init_nc(void);
 void   app_destroy(app_t *app, int32_t exit_code);
 void   app_draw_borders(app_t *app);

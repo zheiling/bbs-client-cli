@@ -119,7 +119,7 @@ typedef struct query_args {
   int32_t buf_used;
   p_file_t *file;
   enum state state;
-  char *buf;
+  char buf[INBUFSIZE];
   bool from_server;
   params_t *params;
   struct {

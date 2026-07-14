@@ -14,41 +14,43 @@
 
 void ac_file(WINDOW *win, int is_action_w);
 
-app_t *app_init(void) {
+app_t *app_init(app_t *app) {
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
 
   /* allocate app struct memory */
-  app_t *_app = calloc(1, sizeof(app_t));
+  if (app == NULL) {
+    app = calloc(1, sizeof(app_t));
+  }
 
   /* associate values for screen size */
-  _app->coordinates.max_x = _app->coordinates.cur_x = x_max;
-  _app->coordinates.max_y = _app->coordinates.cur_y = y_max;
+  app->coordinates.max_x = app->coordinates.cur_x = x_max;
+  app->coordinates.max_y = app->coordinates.cur_y = y_max;
 
-  _app->win = newwin(_app->coordinates.cur_y, _app->coordinates.cur_x, 0, 0);
+  app->win = newwin(app->coordinates.cur_y, app->coordinates.cur_x, 0, 0);
 
   /* dialogue */
-  _app->modal.win = NULL;
-  _app->modal.is_initiated = 0;
+  app->modal.win = NULL;
+  app->modal.is_initiated = 0;
 
   /* print top and bottom bars */
-  _app->main_ui.b_keys_len = 0;
-  app_draw_bars(_app);
+  app->main_ui.b_keys_len = 0;
+  app_draw_bars(app);
 
   /* here goes box borders */
-  app_draw_borders(_app);
+  app_draw_borders(app);
 
   /* NULL to main_ui */
-  MAIN_UI_RESET(_app);
+  MAIN_UI_RESET(app);
 
-  keypad(_app->win, TRUE);
+  keypad(app->win, TRUE);
 
   /* refresh the windows */
-  wnoutrefresh(_app->win);
+  wnoutrefresh(app->win);
   doupdate();
 
-  return _app;
+  return app;
 }
 
 void app_init_nc(void) {
