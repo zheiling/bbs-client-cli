@@ -25,6 +25,7 @@ void main_window_set(app_t *app, enum main_window_type type) {
   default:
     break;
   }
+  app_draw_bars(app);
 }
 
 void main_window_draw(app_t *app) {
@@ -36,7 +37,7 @@ void main_window_draw(app_t *app) {
     w_lfl_draw((w_lfl_ui_t *)app->main_ui.ui);
     break;
   case mw_f_desc:
-    w_te_draw((w_te_ui_t *) app->main_ui.ui);
+    w_te_draw((w_te_ui_t *)app->main_ui.ui);
     break;
   }
   app_draw_bbar(app);
@@ -51,7 +52,7 @@ void main_window_destroy(app_t *app) {
     w_lfl_destroy((w_lfl_ui_t **)&(app->main_ui.ui));
     break;
   case mw_f_desc:
-    w_te_destroy((w_te_ui_t **) &(app->main_ui.ui));
+    w_te_destroy((w_te_ui_t **)&(app->main_ui.ui));
     break;
   }
   MAIN_UI_RESET(app);

@@ -11,10 +11,12 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <wchar.h>
 
 void ac_file(WINDOW *win, int is_action_w);
 
 app_t *app_init(app_t *app) {
+  app->top_text = NULL;
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
@@ -33,13 +35,6 @@ app_t *app_init(app_t *app) {
   /* dialogue */
   app->modal.win = NULL;
   app->modal.is_initiated = 0;
-
-  /* print top and bottom bars */
-  app->main_ui.b_keys_len = 0;
-  app_draw_bars(app);
-
-  /* here goes box borders */
-  app_draw_borders(app);
 
   /* NULL to main_ui */
   MAIN_UI_RESET(app);
@@ -108,15 +103,17 @@ void app_draw_bars(app_t *app) {
     mvwprintw(app->win, app->coordinates.cur_y - 2, i, " ");
   }
 
-  /* add content to the top bar */
-  if (app->params && app->params->is_connected) {
+  if (app->top_text != NULL) {
+    mvwaddnwstr(app->win, 1, 2, app->top_text, wcslen(app->top_text));
+  } else if (app->params && app->params->is_connected) {
     int32_t ip_address = app->params->addr;
     u_char ip_addr[4];
     mempcpy(ip_addr, &ip_address, 4);
     sprintf(top_text, "Connected to %u.%u.%u.%u, user: %s", ip_addr[0],
             ip_addr[1], ip_addr[2], ip_addr[3], app->params->uname);
+    mvwprintw(app->win, 1, 2, "%s", top_text);
   }
-  mvwprintw(app->win, 1, 2, "%s", top_text);
+
   wattroff(app->win, A_REVERSE);
 
   /* add content to the bottom bar */

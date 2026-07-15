@@ -24,6 +24,7 @@ typedef struct {
   file_args_t *file_args;
   void (*active_callback)(w_cb_args_t *args);
   void *active_widget;
+  wchar_t *top_text;
   main_window_t main_ui;
 } app_t;
 

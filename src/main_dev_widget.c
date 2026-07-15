@@ -23,7 +23,6 @@
 
 int32_t m_id = 0;
 
-
 void mini_loop(app_t *app) {
   w_cb_args_t d_args = {
       .app = app, .element = NULL, .data = NULL, .resp_data.code = cbrc_none};
@@ -34,25 +33,24 @@ void mini_loop(app_t *app) {
     app_draw_modal(app);
     main_window_draw(app);
     app_refresh(app);
-  
+
     FD_ZERO(&readfds);
     FD_SET(STDIN_FILENO, &readfds);
     int maxfd = STDIN_FILENO;
-  
+
     int sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
-  
+
     if (sr == -1) {
       /* perror("select"); */
       exit(3);
     }
-  
+
     if (app->main_ui.cb_b_press != NULL && app->modal.is_initiated == false) {
       if (ERR == app->main_ui.cb_b_press(app, &d_args)) {
         w_alert("error while processing user input");
       }
     }
   }
-
 }
 
 int main(void) {
@@ -62,22 +60,23 @@ int main(void) {
   params_t params;
   p_file_t file;
 
+  init_query_args(&q_args, app.params);
+
   app.params = &params;
   app.query_args = &q_args;
   app.file_args = &fargs;
+
+  app_init_nc();
+  init_params(&params);
+  w_alert_init(&app);
+  app_init(&app);
+  
   q_args.file = &file;
   app.query_args->main_ui = &(app.main_ui);
-
   file.name = "Test file #1";
   params.is_connected = false;
   app.modal.is_initiated = false;
-
-  app_init_nc();
-  app_init(&app);
-  init_params(&params);
-  init_query_args(&q_args, app.params);
-  w_alert_init(&app);
-  app_init(&app);
+  
   main_window_set(&app, mw_f_desc);
   mini_loop(&app);
   exit(0);

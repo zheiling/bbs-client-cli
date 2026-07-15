@@ -7,7 +7,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils.h>
@@ -15,6 +17,8 @@
 
 #include "text_edit.h"
 #include "widget_core.h"
+
+/* TODO: create dynamic array of endline positions */
 
 static void w_te_cb(w_cb_args_t *args) {
   app_t *app = args->app;
@@ -24,6 +28,15 @@ static void w_te_cb(w_cb_args_t *args) {
   case KEY_BACKSPACE:
   case KEY_DL:
     fui->text[fui->text_len--] = 0;
+    break;
+  case KEY_UP:
+    fui->cur_shift_pos.y--;
+    wchar_t *nl_ptr = NULL;
+    wchar_t *line_start = fui->text;
+
+    break;
+  case KEY_DOWN:
+    fui->cur_shift_pos.y++;
     break;
   default:
     fui->text[fui->text_len++] = key;
@@ -74,6 +87,8 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
 void w_te_reset_app(void *app);
 
 w_te_ui_t *w_te_init_win(app_t *app) {
+  wchar_t top_text[INBUFSIZE];
+  int top_text_len = 0;
   w_te_ui_t *fui = malloc(sizeof(w_te_ui_t));
   app->main_ui.ui = fui;
   app->main_ui.type = mw_f_desc;
@@ -86,19 +101,24 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   app->active_callback = w_te_cb;
   fui->w.callback = w_te_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
-
+  fui->file_ptr = app->query_args->file;
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
   fui->w.parent_win = &(app->win);
   /* * INIT UI * */
   fui->win = newwin(fui->w.sz.y - 4, fui->w.sz.x - 2, 2, 1);
+  top_text_len =
+      swprintf(top_text, INBUFSIZE, L"Description: %s", fui->file_ptr->name);
+  app->top_text = malloc(sizeof(wchar_t) * (top_text_len + 1));
+  wcsncpy(app->top_text, top_text, top_text_len);
+  app->top_text[top_text_len] = 0;
   return fui;
 }
 
 void w_te_reset(w_te_ui_t *fl_ui) {
   fl_ui->text[0] = 0;
-  fl_ui->cur_pos.x = 0;
-  fl_ui->cur_pos.y = 0;
+  fl_ui->cur_shift_pos.x = 0;
+  fl_ui->cur_shift_pos.y = 0;
   fl_ui->text_len = 0;
 }
 
@@ -132,20 +152,26 @@ void w_te_draw(w_te_ui_t *fui) {
   wchar_t *nl_ptr = wcschr(cur_ptr, '\n');
 
   if (nl_ptr == NULL) {
-    mvwaddnwstr(win, p_y++, p_x, cur_ptr, fui->text_len);
+    mvwaddnwstr(win, p_y, p_x, cur_ptr, fui->text_len);
+    p_x += fui->text_len;
   } else {
     while (true) {
       mvwaddnwstr(win, p_y++, p_x, cur_ptr, nl_ptr - cur_ptr);
       cur_ptr = nl_ptr + 1;
       nl_ptr = wcschr(cur_ptr, '\n');
       if (nl_ptr == NULL) {
-        mvwaddnwstr(win, p_y++, p_x, cur_ptr, wcslen(cur_ptr));
+        int tlen = wcslen(cur_ptr);
+        mvwaddnwstr(win, p_y, p_x, cur_ptr, tlen);
+        p_x += tlen;
         break;
       }
     }
   }
 
-  fui->cur_pos.y = i;
+  fui->cur_abs_pos.y = p_y;
+  fui->cur_abs_pos.x = p_x;
+
+  wmove(win, fui->cur_abs_pos.y + fui->cur_shift_pos.y, fui->cur_abs_pos.x + fui->cur_shift_pos.x);
 
   p_x = 1;
 

@@ -44,7 +44,6 @@ int main(int argc, char **argv) {
   app.query_args = &q_args;
 
   main_window_set(&app, mw_fl_server);
-
   /* init client to connect to the server */
   app.params->sd = init_client();
 
