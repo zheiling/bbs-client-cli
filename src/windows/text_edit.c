@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils.h>
+#include <wchar.h>
 
 #include "text_edit.h"
 #include "widget_core.h"
@@ -126,7 +127,23 @@ void w_te_draw(w_te_ui_t *fui) {
   }
 
   int len_rest = fui->text_len;
-  mvwaddnwstr(win, p_y, p_x, fui->text, fui->text_len);
+
+  wchar_t *cur_ptr = fui->text;
+  wchar_t *nl_ptr = wcschr(cur_ptr, '\n');
+
+  if (nl_ptr == NULL) {
+    mvwaddnwstr(win, p_y++, p_x, cur_ptr, fui->text_len);
+  } else {
+    while (true) {
+      mvwaddnwstr(win, p_y++, p_x, cur_ptr, nl_ptr - cur_ptr);
+      cur_ptr = nl_ptr + 1;
+      nl_ptr = wcschr(cur_ptr, '\n');
+      if (nl_ptr == NULL) {
+        mvwaddnwstr(win, p_y++, p_x, cur_ptr, wcslen(cur_ptr));
+        break;
+      }
+    }
+  }
 
   fui->cur_pos.y = i;
 
