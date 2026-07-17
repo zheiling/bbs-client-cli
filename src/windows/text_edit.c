@@ -7,9 +7,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils.h>
@@ -20,27 +18,42 @@
 
 /* TODO: create dynamic array of endline positions */
 
+/*
+  Массив d_array, состоящие из элементов, описывающий строки.
+  В строках записывать: длину, номер строки.
+*/
+
 static void w_te_cb(w_cb_args_t *args) {
   app_t *app = args->app;
   int32_t key = *((int32_t *)args->data);
   w_te_ui_t *fui = app->query_args->main_ui->ui;
+  w_te_ui_line_t *line = NULL;
+
   switch (key) {
   case KEY_BACKSPACE:
   case KEY_DL:
-    fui->text[fui->text_len--] = 0;
+    fui->line[fui->line_len--] = 0;
     break;
   case KEY_UP:
     fui->cur_shift_pos.y--;
     wchar_t *nl_ptr = NULL;
-    wchar_t *line_start = fui->text;
-
+    wchar_t *line_start = fui->line;
     break;
   case KEY_DOWN:
     fui->cur_shift_pos.y++;
     break;
+  case '\n':
+    line = malloc(sizeof (w_te_ui_line_t));
+    line->text = malloc(sizeof (wchar_t ) * (fui->line_len + 1));
+    wcscpy(line->text, fui->line);
+    line->capacity = line->len = fui->line_len;
+    u_d_array_append(&(fui->lines_arr), fui->line, fui->line_len);
+    fui->line[0] = 0;
+    fui->line_len = 0;
+    break;
   default:
-    fui->text[fui->text_len++] = key;
-    fui->text[fui->text_len] = 0;
+    fui->line[fui->line_len++] = key;
+    fui->line[fui->line_len] = 0;
   }
 }
 
@@ -112,14 +125,15 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   app->top_text = malloc(sizeof(wchar_t) * (top_text_len + 1));
   wcsncpy(app->top_text, top_text, top_text_len);
   app->top_text[top_text_len] = 0;
+  u_d_arr_ptr_init(&(fui->lines_arr), INBUFSIZE);
   return fui;
 }
 
-void w_te_reset(w_te_ui_t *fl_ui) {
-  fl_ui->text[0] = 0;
-  fl_ui->cur_shift_pos.x = 0;
-  fl_ui->cur_shift_pos.y = 0;
-  fl_ui->text_len = 0;
+void w_te_reset(w_te_ui_t *fui) {
+  fui->line[0] = 0;
+  fui->cur_shift_pos.x = 0;
+  fui->cur_shift_pos.y = 0;
+  fui->line_len = 0;
 }
 
 void w_te_reset_app(void *app) {
@@ -146,32 +160,39 @@ void w_te_draw(w_te_ui_t *fui) {
     mvwprintw(win, p_y + i, p_x, "%*s", fui->w.sz.x, "");
   }
 
-  int len_rest = fui->text_len;
+  int len_rest = fui->line_len;
 
-  wchar_t *cur_ptr = fui->text;
+  wchar_t *cur_ptr = fui->line;
   wchar_t *nl_ptr = wcschr(cur_ptr, '\n');
-
-  if (nl_ptr == NULL) {
-    mvwaddnwstr(win, p_y, p_x, cur_ptr, fui->text_len);
-    p_x += fui->text_len;
-  } else {
-    while (true) {
-      mvwaddnwstr(win, p_y++, p_x, cur_ptr, nl_ptr - cur_ptr);
-      cur_ptr = nl_ptr + 1;
-      nl_ptr = wcschr(cur_ptr, '\n');
-      if (nl_ptr == NULL) {
-        int tlen = wcslen(cur_ptr);
-        mvwaddnwstr(win, p_y, p_x, cur_ptr, tlen);
-        p_x += tlen;
-        break;
-      }
-    }
+  // if (nl_ptr == NULL) {
+  //   mvwaddnwstr(win, p_y, p_x, cur_ptr, fui->line_len);
+  //   p_x += fui->line_len;
+  // } else {
+  //   while (true) {
+  //     mvwaddnwstr(win, p_y++, p_x, cur_ptr, nl_ptr - cur_ptr);
+  //     cur_ptr = nl_ptr + 1;
+  //     nl_ptr = wcschr(cur_ptr, '\n');
+  //     if (nl_ptr == NULL) {
+  //       int tlen = wcslen(cur_ptr);
+  //       mvwaddnwstr(win, p_y, p_x, cur_ptr, tlen);
+  //       p_x += tlen;
+  //       break;
+  //     }
+  //   }
+  // }
+  w_te_ui_line_t *line_arr_el = NULL;
+  for (int i = 0; i < fui->lines_arr.length; i++) {
+    line_arr_el = (w_te_ui_line_t *) fui->lines_arr.arr[i];
+    mvwaddnwstr(win, p_y++, p_x, line_arr_el->text, line_arr_el->len);
   }
+
+  mvwaddnwstr(win, p_y, p_x, fui->line, fui->line_len);
 
   fui->cur_abs_pos.y = p_y;
   fui->cur_abs_pos.x = p_x;
 
-  wmove(win, fui->cur_abs_pos.y + fui->cur_shift_pos.y, fui->cur_abs_pos.x + fui->cur_shift_pos.x);
+  wmove(win, fui->cur_abs_pos.y + fui->cur_shift_pos.y,
+        fui->cur_abs_pos.x + fui->cur_shift_pos.x);
 
   p_x = 1;
 
