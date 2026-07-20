@@ -13,10 +13,8 @@ void u_d_arr_ptr_init(d_array_ptr_t *arr, int32_t init_capacity) {
   memset(arr->arr, 0, sizeof(void *) * init_capacity);
 }
 
-/* TODO: check out the correctness */
 void u_d_array_append(d_array_ptr_t *arr, void *el_ptr, size_t el_len) {
-  void *el = malloc(el_len);
-  u_d_arr_ptr_add(arr, el, arr->length);
+  u_d_arr_ptr_add(arr, el_ptr, arr->length);
 }
 
 void u_d_arr_ptr_add(d_array_ptr_t *arr, void *ptr, int32_t idx) {

@@ -13,10 +13,16 @@
 #include <widget_core.h>
 
 typedef struct {
+  int len;
+  wchar_t *text; /* TODO: make dynamic */
+  int capacity;
+} w_te_ui_line_t;
+
+
+typedef struct {
   w_t w;
   WINDOW *win;
   wchar_t line[INBUFSIZE * 10];
-  int line_len;
   int line_cur_pos;
   struct {
     int x;
@@ -27,14 +33,9 @@ typedef struct {
     int y;
   } cur_abs_pos;
   p_file_t *file_ptr;
+  w_te_ui_line_t *current_line;
   d_array_ptr_t lines_arr;
 } w_te_ui_t;
-
-typedef struct {
-  int len;
-  wchar_t *text; /* TODO: make dynamic */
-  int capacity;
-} w_te_ui_line_t;
 
 void w_te_draw(w_te_ui_t *fl_ui);
 void w_te_destroy(w_te_ui_t **fui);
