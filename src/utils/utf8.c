@@ -55,9 +55,9 @@ int32_t u_utf8_curs_printw(WINDOW *win, int32_t *y, int32_t *x,
 
   if (multiline) {
     _y++;
-    for (int i = 1; max_len*i < nsize; i++) {
+    for (int i = 1; max_len * i < nsize; i++) {
       _x = *x;
-      mvwaddnwstr(win, _y++, _x, wline + max_len*i, max_len);
+      mvwaddnwstr(win, _y++, _x, wline + max_len * i, max_len);
     }
   }
 
@@ -66,4 +66,21 @@ int32_t u_utf8_curs_printw(WINDOW *win, int32_t *y, int32_t *x,
 
   free(wline);
   return nsize;
+}
+
+wchar_t u_utf8_get_full_letter(int key, WINDOW *win) {
+  char long_key[3];
+  int short_val_len = 1;
+  wchar_t wkey;
+  long_key[0] = key;
+  if ((key & 0xC0) == 0xC0) {
+    long_key[1] = wgetch(win);
+    long_key[2] = '\0';
+    short_val_len++;
+  } else {
+    long_key[1] = '\0';
+  }
+  mbstowcs(&wkey, (const char *)&long_key, 2);
+
+  return wkey;
 }

@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <utils.h>
@@ -16,12 +17,14 @@
 #include "text_edit.h"
 #include "widget_core.h"
 
-/* TODO: create dynamic array of endline positions */
+/* TODO: расширять capacity линии при достижении лимита */
+/* TODO: нижняя панель-индикатор */
 
-/*
-  Массив d_array, состоящие из элементов, описывающий строки.
-  В строках записывать: длину, номер строки.
-*/
+static void line_destroy_cb(void *line_arg) {
+  w_te_ui_line_t *line = line_arg;
+  free(line->text);
+  free(line);
+}
 
 static void w_te_cb(w_cb_args_t *args) {
   app_t *app = args->app;
@@ -32,15 +35,46 @@ static void w_te_cb(w_cb_args_t *args) {
   switch (key) {
   case KEY_BACKSPACE:
   case KEY_DL:
-    fui->current_line->text[fui->current_line->len--] = 0;
+    if (fui->cur_line->len > 0) {
+      if (fui->cur_line_pos == fui->cur_line->len) {
+        fui->cur_line->text[--fui->cur_line_pos] = 0;
+      } else {
+        int n = fui->cur_line->len - fui->cur_line_pos + 1;
+        memmove(fui->cur_line->text + fui->cur_line_pos - 1,
+                fui->cur_line->text + fui->cur_line_pos, n * sizeof(wchar_t));
+        fui->cur_line_pos--;
+      }
+      fui->cur_line->len--;
+    } else {
+      if (fui->cur_line_idx > 0) {
+        u_d_arr_ptr_remove_cb(&(fui->lines_arr), fui->cur_line,
+                              fui->cur_line_idx, &line_destroy_cb);
+        fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
+        fui->cur_line_pos = fui->cur_line->len;
+      }
+    }
     break;
   case KEY_UP:
-    fui->cur_shift_pos.y--;
-    wchar_t *nl_ptr = NULL;
-    wchar_t *line_start = fui->line;
+    if (fui->cur_line_idx > 0) {
+      fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
+      fui->cur_line_pos = fui->cur_line->len;
+    }
     break;
   case KEY_DOWN:
-    fui->cur_shift_pos.y++;
+    if (fui->lines_arr.arr[fui->cur_line_idx + 1] != NULL) {
+      fui->cur_line = fui->lines_arr.arr[++fui->cur_line_idx];
+      fui->cur_line_pos = fui->cur_line->len;
+    }
+    break;
+  case KEY_LEFT:
+    if (fui->cur_line_pos > 0) {
+      fui->cur_line_pos--;
+    }
+    break;
+  case KEY_RIGHT:
+    if (fui->cur_line_pos < fui->cur_line->len) {
+      fui->cur_line_pos++;
+    }
     break;
   case '\n':
     new_line = malloc(sizeof(w_te_ui_line_t));
@@ -48,13 +82,23 @@ static void w_te_cb(w_cb_args_t *args) {
     new_line->capacity = new_line->len = INBUFSIZE;
     new_line->text[0] = 0;
     new_line->len = 0;
-
     u_d_array_append(&(fui->lines_arr), new_line, sizeof(w_te_ui_line_t));
-    fui->current_line = new_line;
+    fui->cur_line = new_line;
+    fui->cur_line_idx++;
+    fui->cur_line_pos = 0;
     break;
   default:
-    fui->current_line->text[fui->current_line->len++] = key;
-    fui->current_line->text[fui->current_line->len] = 0;
+    key = u_utf8_get_full_letter(key, app->win);
+    if (fui->cur_line_pos == fui->cur_line->len) {
+      fui->cur_line->text[fui->cur_line_pos++] = key;
+      fui->cur_line->text[fui->cur_line_pos] = 0;
+    } else {
+      int n = fui->cur_line->len - fui->cur_line_pos + 1;
+      memmove(fui->cur_line->text + fui->cur_line_pos + 1,
+              fui->cur_line->text + fui->cur_line_pos, n * sizeof(wchar_t));
+      fui->cur_line->text[fui->cur_line_pos++] = key;
+    }
+    fui->cur_line->len++;
   }
 }
 
@@ -127,19 +171,16 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   wcsncpy(app->top_text, top_text, top_text_len);
   app->top_text[top_text_len] = 0;
   u_d_arr_ptr_init(&(fui->lines_arr), INBUFSIZE);
-  fui->current_line = malloc(sizeof(w_te_ui_line_t));
-  fui->current_line->text = malloc(INBUFSIZE * sizeof(wchar_t));
-  fui->current_line->len = 0;
-  fui->current_line->capacity = INBUFSIZE;
-  u_d_array_append(&(fui->lines_arr), fui->current_line, sizeof(w_te_ui_line_t));
+  fui->cur_line = malloc(sizeof(w_te_ui_line_t));
+  fui->cur_line->text = malloc(INBUFSIZE * sizeof(wchar_t));
+  fui->cur_line->len = 0;
+  fui->cur_line->capacity = INBUFSIZE;
+  u_d_array_append(&(fui->lines_arr), fui->cur_line, sizeof(w_te_ui_line_t));
+  fui->cur_line_idx = 0;
   return fui;
 }
 
-void w_te_reset(w_te_ui_t *fui) {
-  fui->line[0] = 0;
-  fui->cur_shift_pos.x = 0;
-  fui->cur_shift_pos.y = 0;
-}
+void w_te_reset(w_te_ui_t *fui) { fui->cur_line_pos = 0; }
 
 void w_te_reset_app(void *app) {
   app_t *_app = app;
@@ -165,8 +206,6 @@ void w_te_draw(w_te_ui_t *fui) {
     mvwprintw(win, p_y + i, p_x, "%*s", fui->w.sz.x, "");
   }
 
-  wchar_t *cur_ptr = fui->line;
-  wchar_t *nl_ptr = wcschr(cur_ptr, '\n');
   w_te_ui_line_t *line_arr_el = NULL;
 
   if (fui->lines_arr.length > 0) {
@@ -176,8 +215,9 @@ void w_te_draw(w_te_ui_t *fui) {
     }
   }
 
-  fui->cur_abs_pos.y = p_y;
-  fui->cur_abs_pos.x = p_x;
+  p_y--;
+
+  wmove(win, fui->cur_line_idx, fui->cur_line_pos);
 
   p_x = 1;
 

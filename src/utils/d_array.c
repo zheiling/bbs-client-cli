@@ -21,13 +21,36 @@ void u_d_arr_ptr_add(d_array_ptr_t *arr, void *ptr, int32_t idx) {
   if (idx > arr->capacity - 1) {
     int32_t new_capacity = idx * 2;
     arr->arr = realloc(arr->arr, new_capacity);
-    memset(arr->arr+arr->capacity, 0, arr->capacity - new_capacity);
+    memset(arr->arr + arr->capacity, 0, arr->capacity - new_capacity);
     arr->capacity = new_capacity;
   }
-  if (arr->fist_el == NULL) arr->fist_el = ptr;
+  if (arr->fist_el == NULL)
+    arr->fist_el = ptr;
   arr->last_el = ptr;
   arr->arr[idx] = ptr;
-  arr->length = idx+1;
+  arr->length = idx + 1;
+}
+
+void u_d_arr_ptr_remove_cb(d_array_ptr_t *arr, void *ptr, int32_t idx,
+                           u_d_arr_free_callback *callback) {
+  void *_ptr = NULL;
+  int _idx = idx;
+
+  if (idx > 0) {
+    _ptr = arr->arr[idx];
+  } else if (ptr != NULL) {
+    for (int i = 0; i < arr->length; i++) {
+      if (arr->arr[i] == ptr) {
+        _ptr = arr->arr[i];
+        _idx = i;
+      }
+    }
+  }
+
+  callback(_ptr);
+  arr->arr[_idx] = NULL;
+  arr->length--;
+  memmove(arr->arr[_idx], arr->arr[_idx+1], arr->length - _idx);
 }
 
 void u_d_arr_ptr_free(d_array_ptr_t *arr) {

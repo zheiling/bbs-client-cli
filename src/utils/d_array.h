@@ -13,7 +13,7 @@ typedef struct d_array_ptr_t {
   void *last_el;
 } d_array_ptr_t;
 
-typedef void *u_d_arr_free_callback(void *arg);
+typedef void u_d_arr_free_callback(void *arg);
 
 void u_d_arr_ptr_init(d_array_ptr_t *arr, int32_t init_capacity);
 void u_d_arr_ptr_add(d_array_ptr_t *arr, void *ptr, int32_t idx);
