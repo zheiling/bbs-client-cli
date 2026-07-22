@@ -26,7 +26,10 @@ typedef struct {
   w_te_ui_line_t *cur_line;
   int             cur_line_idx;
   int             cur_line_pos;
-  d_array_ptr_t lines_arr;
+  d_array_ptr_t   lines_arr;
+  int             lines_count;
+  int             lines_top_indent;
+  int             sym_count;
 } w_te_ui_t;
 
 void w_te_draw(w_te_ui_t *fl_ui);

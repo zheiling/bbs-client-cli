@@ -14,11 +14,13 @@
 #include <utils.h>
 #include <wchar.h>
 
+#include "d_array.h"
 #include "text_edit.h"
 #include "widget_core.h"
 
 /* TODO: расширять capacity линии при достижении лимита */
-/* TODO: нижняя панель-индикатор */
+/* TODO: check correctness of cursor navigation when concatenate and split the lines */
+#define INACTIVE_LINES 5
 
 static void line_destroy_cb(void *line_arg) {
   w_te_ui_line_t *line = line_arg;
@@ -35,45 +37,74 @@ static void w_te_cb(w_cb_args_t *args) {
   switch (key) {
   case KEY_BACKSPACE:
   case KEY_DL:
-    if (fui->cur_line->len > 0) {
-      if (fui->cur_line_pos == fui->cur_line->len) {
-        fui->cur_line->text[--fui->cur_line_pos] = 0;
-      } else {
-        int n = fui->cur_line->len - fui->cur_line_pos + 1;
-        memmove(fui->cur_line->text + fui->cur_line_pos - 1,
-                fui->cur_line->text + fui->cur_line_pos, n * sizeof(wchar_t));
-        fui->cur_line_pos--;
-      }
+    if (fui->cur_line_pos == fui->cur_line->len && fui->cur_line->len > 0) {
+      fui->cur_line->text[--fui->cur_line_pos] = 0;
       fui->cur_line->len--;
-    } else {
-      if (fui->cur_line_idx > 0) {
-        u_d_arr_ptr_remove_cb(&(fui->lines_arr), fui->cur_line,
-                              fui->cur_line_idx, &line_destroy_cb);
-        fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
+    } else if (fui->cur_line_idx > 0) {
+      new_line = fui->lines_arr.arr[fui->cur_line_idx - 1];
+      if (fui->cur_line_pos == 0 && fui->cur_line->len > 0) {
+        wcscpy(new_line->text + new_line->len, fui->cur_line->text);
         fui->cur_line_pos = fui->cur_line->len;
+        new_line->len += fui->cur_line->len;
+      } else {
+        fui->cur_line_pos = new_line->len;
       }
+
+      u_d_arr_ptr_remove_cb(&(fui->lines_arr), fui->cur_line, fui->cur_line_idx,
+                            &line_destroy_cb);
+      fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
+      fui->lines_count--;
+    } else {
+      int n = fui->cur_line->len - fui->cur_line_pos + 1;
+      memmove(fui->cur_line->text + fui->cur_line_pos - 1,
+              fui->cur_line->text + fui->cur_line_pos, n * sizeof(wchar_t));
+      fui->cur_line->len--;
+      fui->cur_line_pos--;
     }
+    fui->sym_count--;
     break;
   case KEY_UP:
     if (fui->cur_line_idx > 0) {
       fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
       fui->cur_line_pos = fui->cur_line->len;
+      if ((fui->cur_line_idx > 0) &&
+          (fui->cur_line_idx - fui->lines_top_indent == 0)) {
+        fui->lines_top_indent--;
+      }
     }
     break;
   case KEY_DOWN:
-    if (fui->lines_arr.arr[fui->cur_line_idx + 1] != NULL) {
+    if ((fui->lines_arr.arr[fui->cur_line_idx + 1] != NULL)) {
       fui->cur_line = fui->lines_arr.arr[++fui->cur_line_idx];
       fui->cur_line_pos = fui->cur_line->len;
+      if (fui->cur_line_idx >=
+          fui->lines_top_indent + fui->w.sz.y - INACTIVE_LINES) {
+        fui->lines_top_indent++;
+      }
     }
     break;
   case KEY_LEFT:
     if (fui->cur_line_pos > 0) {
       fui->cur_line_pos--;
+    } else if (fui->cur_line_idx > 0) { /* ACT LIKE KEY TOP */
+      fui->cur_line = fui->lines_arr.arr[--fui->cur_line_idx];
+      fui->cur_line_pos = fui->cur_line->len;
+      if ((fui->cur_line_idx > 0) &&
+          (fui->cur_line_idx - fui->lines_top_indent == 0)) {
+        fui->lines_top_indent--;
+      }
     }
     break;
   case KEY_RIGHT:
     if (fui->cur_line_pos < fui->cur_line->len) {
       fui->cur_line_pos++;
+    } else if ((fui->lines_arr.arr[fui->cur_line_idx + 1] != NULL)) { /* ACT LIKE KEY BOTTOM */
+      fui->cur_line = fui->lines_arr.arr[++fui->cur_line_idx];
+      fui->cur_line_pos = fui->cur_line->len;
+      if (fui->cur_line_idx >=
+          fui->lines_top_indent + fui->w.sz.y - INACTIVE_LINES) {
+        fui->lines_top_indent++;
+      }
     }
     break;
   case '\n':
@@ -82,10 +113,23 @@ static void w_te_cb(w_cb_args_t *args) {
     new_line->capacity = new_line->len = INBUFSIZE;
     new_line->text[0] = 0;
     new_line->len = 0;
-    u_d_array_append(&(fui->lines_arr), new_line, sizeof(w_te_ui_line_t));
+    if (fui->cur_line_pos != 0) {
+      u_d_arr_ptr_add(&(fui->lines_arr), new_line, fui->cur_line_idx + 1);
+      wcscpy(new_line->text, fui->cur_line->text + fui->cur_line_pos);
+      new_line->len = fui->cur_line->len - fui->cur_line_pos;
+      fui->cur_line->text[fui->cur_line_pos] = 0;
+      fui->cur_line->len -= new_line->len;
+    } else {
+      u_d_array_append(&(fui->lines_arr), new_line, sizeof(w_te_ui_line_t));
+    }
+    fui->cur_line_pos = 0;
     fui->cur_line = new_line;
     fui->cur_line_idx++;
-    fui->cur_line_pos = 0;
+    fui->sym_count++;
+    fui->lines_count++;
+    if (fui->cur_line_idx >= fui->w.sz.y - INACTIVE_LINES) {
+      fui->lines_top_indent++;
+    }
     break;
   default:
     key = u_utf8_get_full_letter(key, app->win);
@@ -98,6 +142,7 @@ static void w_te_cb(w_cb_args_t *args) {
               fui->cur_line->text + fui->cur_line_pos, n * sizeof(wchar_t));
       fui->cur_line->text[fui->cur_line_pos++] = key;
     }
+    fui->sym_count++;
     fui->cur_line->len++;
   }
 }
@@ -177,10 +222,19 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   fui->cur_line->capacity = INBUFSIZE;
   u_d_array_append(&(fui->lines_arr), fui->cur_line, sizeof(w_te_ui_line_t));
   fui->cur_line_idx = 0;
+  fui->sym_count = 0;
+  fui->lines_count = 1;
+  fui->lines_top_indent = 0;
   return fui;
 }
 
-void w_te_reset(w_te_ui_t *fui) { fui->cur_line_pos = 0; }
+void w_te_reset(w_te_ui_t *fui) {
+  fui->cur_line_pos = 0;
+  fui->sym_count = 0;
+  fui->lines_count = 1;
+  fui->lines_top_indent = 0;
+  u_d_arr_free_cb(&(fui->lines_arr), line_destroy_cb);
+}
 
 void w_te_reset_app(void *app) {
   app_t *_app = app;
@@ -202,14 +256,27 @@ void w_te_draw(w_te_ui_t *fui) {
   wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD | A_REVERSE);
 
   int i = 0;
-  for (i = 0; i < fui->w.sz.y; i++) {
+  for (i = 0; i < fui->w.sz.y - INACTIVE_LINES; i++) {
     mvwprintw(win, p_y + i, p_x, "%*s", fui->w.sz.x, "");
   }
+
+  wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD);
+
+  int len = 0;
+  mvwprintw(win, p_y + i, p_x, "LC: %d SC: %d L: %d P: %d%n", fui->lines_count,
+            fui->sym_count, fui->cur_line_idx + 1, fui->cur_line_pos + 1, &len);
+
+  mvwprintw(win, p_y + i, p_x + len, "%*s", fui->w.sz.x - len, "");
+
+  wattrset(win, COLOR_PAIR(modal_color_pair) | A_BOLD | A_REVERSE);
 
   w_te_ui_line_t *line_arr_el = NULL;
 
   if (fui->lines_arr.length > 0) {
-    for (int i = 0; i < fui->lines_arr.length; i++) {
+    for (i = fui->lines_top_indent;
+         i < fui->lines_arr.length &&
+         i < fui->lines_top_indent + fui->w.sz.y - INACTIVE_LINES;
+         i++) {
       line_arr_el = (w_te_ui_line_t *)fui->lines_arr.arr[i];
       mvwaddnwstr(win, p_y++, p_x, line_arr_el->text, line_arr_el->len);
     }
@@ -217,7 +284,7 @@ void w_te_draw(w_te_ui_t *fui) {
 
   p_y--;
 
-  wmove(win, fui->cur_line_idx, fui->cur_line_pos);
+  wmove(win, fui->cur_line_idx - fui->lines_top_indent, fui->cur_line_pos);
 
   p_x = 1;
 

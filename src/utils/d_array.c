@@ -26,6 +26,10 @@ void u_d_arr_ptr_add(d_array_ptr_t *arr, void *ptr, int32_t idx) {
   }
   if (arr->fist_el == NULL)
     arr->fist_el = ptr;
+
+  if (arr->arr[idx] != NULL) {
+    memmove(arr->arr + idx + 1, arr->arr + idx, sizeof (void *) * (arr->length - idx));
+  }
   arr->last_el = ptr;
   arr->arr[idx] = ptr;
   arr->length = idx + 1;
@@ -50,7 +54,10 @@ void u_d_arr_ptr_remove_cb(d_array_ptr_t *arr, void *ptr, int32_t idx,
   callback(_ptr);
   arr->arr[_idx] = NULL;
   arr->length--;
-  memmove(arr->arr[_idx], arr->arr[_idx+1], arr->length - _idx);
+  memmove(arr->arr + _idx, arr->arr + _idx + 1,
+          (arr->length - _idx) * sizeof(void *));
+  arr->arr[arr->length] = NULL;
+  return;
 }
 
 void u_d_arr_ptr_free(d_array_ptr_t *arr) {
@@ -60,14 +67,14 @@ void u_d_arr_ptr_free(d_array_ptr_t *arr) {
   arr->arr = NULL;
 }
 
-void u_d_arr_free_cb(d_array_ptr_t *arr, u_d_arr_free_callback *callback) {
-  for (int i = 0; i < arr->length; i++) {
-    if (arr->arr[i] != NULL) {
-      callback(arr->arr[i]);
+void u_d_arr_free_cb(d_array_ptr_t *d_arr, u_d_arr_free_callback *callback) {
+  for (int i = 0; i < d_arr->length; i++) {
+    if (d_arr->arr[i] != NULL) {
+      callback(d_arr->arr[i]);
     }
   }
-  arr->capacity = 0;
-  arr->length = 0;
-  free(arr->arr);
-  arr->arr = NULL;
+  d_arr->capacity = 0;
+  d_arr->length = 0;
+  free(d_arr->arr);
+  d_arr->arr = NULL;
 }
