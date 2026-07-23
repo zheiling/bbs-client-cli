@@ -98,7 +98,8 @@ static void w_te_cb(w_cb_args_t *args) {
   case KEY_RIGHT:
     if (fui->cur_line_pos < fui->cur_line->len) {
       fui->cur_line_pos++;
-    } else if ((fui->lines_arr.arr[fui->cur_line_idx + 1] != NULL)) { /* ACT LIKE KEY BOTTOM */
+    } else if ((fui->lines_arr.arr[fui->cur_line_idx + 1] !=
+                NULL)) { /* ACT LIKE KEY BOTTOM */
       fui->cur_line = fui->lines_arr.arr[++fui->cur_line_idx];
       fui->cur_line_pos = fui->cur_line->len;
       if (fui->cur_line_idx >=
@@ -131,6 +132,12 @@ static void w_te_cb(w_cb_args_t *args) {
       fui->lines_top_indent++;
     }
     break;
+  case KEY_F(2):
+    /* Save */
+    break;
+  case KEY_F(8):
+    /* Cancel */
+    break;
   default:
     key = u_utf8_get_full_letter(key, app->win);
     if (fui->cur_line_pos == fui->cur_line->len) {
@@ -158,6 +165,8 @@ static void w_te_cb_refresh(void *data) {
 
 static struct action_key action_keys[] = {
     {.key = "Esc", .title = "Back", .code = '\33'},
+    {.key = "F2", .title = "Save", .code = KEY_F(2)},
+    {.key = "F8", .title = "Cancel", .code = KEY_F(8)},
     {.key = "F9", .title = "Quit", .code = KEY_F(9)},
 };
 
@@ -197,7 +206,7 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   app->main_ui.type = mw_f_desc;
   app->main_ui.cb_ui_refresh = w_te_cb_refresh;
   app->main_ui.b_keys = action_keys;
-  app->main_ui.b_keys_len = 2;
+  app->main_ui.b_keys_len = 4;
   app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
   app->main_ui.reset = w_te_reset_app;
   app->main_ui.draw = (draw_f_t *)w_te_draw;
