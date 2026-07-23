@@ -19,7 +19,7 @@
 #include "widget_core.h"
 
 /* TODO: расширять capacity линии при достижении лимита */
-/* TODO: check correctness of cursor navigation when concatenate and split the lines */
+
 #define INACTIVE_LINES 5
 
 static void line_destroy_cb(void *line_arg) {
@@ -44,7 +44,7 @@ static void w_te_cb(w_cb_args_t *args) {
       new_line = fui->lines_arr.arr[fui->cur_line_idx - 1];
       if (fui->cur_line_pos == 0 && fui->cur_line->len > 0) {
         wcscpy(new_line->text + new_line->len, fui->cur_line->text);
-        fui->cur_line_pos = fui->cur_line->len;
+        fui->cur_line_pos = new_line->len;
         new_line->len += fui->cur_line->len;
       } else {
         fui->cur_line_pos = new_line->len;
