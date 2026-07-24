@@ -13,6 +13,9 @@
 #include <unistd.h>
 #include <utils.h>
 #include <wchar.h>
+#include "../server.h"
+#include "../file_processor.h"
+#include "../windows/main_window.h"
 
 #include "d_array.h"
 #include "text_edit.h"
@@ -188,6 +191,9 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
     app->query_args->file->description[text_pos] = '\03'; /* ETX symbol */
     strncpy(app->query_args->file->description + text_pos, ":END:\n",
             sizeof(":END:\n"));
+    server_send_string(app->query_args, app->query_args->file->description);
+    clear_file_in_query(app->query_args);
+    main_window_set(app, mw_fl_server);
     /* Save */
     break;
   case KEY_F(8):

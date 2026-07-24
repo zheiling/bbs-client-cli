@@ -140,13 +140,12 @@ void wait_register(query_args_t *q_args) {
 
 int upload_confirm_cb(app_t *app, char *query, int q_len) {
   if (!strncmp("finished\n", query, sizeof("finished\n") - 1)) {
-    /* TODO: DESCRIPTION HERE */
     w_notification("File upload", dc_normal,
                    "File %s is uploaded to the server!",
                    app->query_args->file->name);
-    clear_file_in_query(app->query_args);
-    app->query_args->state = S_FILE_LIST;
-    app->modal.needs_destroy = true;
+    main_window_set(app, mw_f_desc);
+    /* clear_file_in_query(app->query_args); */
+    app->query_args->state = S_WAIT_USER_DESCRIPTION;
     return 0;
   }
   return 1; /* TODO: Error case */

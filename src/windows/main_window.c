@@ -10,6 +10,9 @@ void main_window_set(app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
     main_window_destroy(app);
   }
+  if (app->modal.is_initiated) {
+    w_dialogue_destroy(&(app->modal), app);
+  }
   app->main_ui.type = type;
   switch (type) {
   case mw_fl_server:
