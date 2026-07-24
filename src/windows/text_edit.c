@@ -132,12 +132,6 @@ static void w_te_cb(w_cb_args_t *args) {
       fui->lines_top_indent++;
     }
     break;
-  case KEY_F(2):
-    /* Save */
-    break;
-  case KEY_F(8):
-    /* Cancel */
-    break;
   default:
     key = u_utf8_get_full_letter(key, app->win);
     if (fui->cur_line_pos == fui->cur_line->len) {
@@ -174,20 +168,31 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_te_ui_t *fui = (w_te_ui_t *)app->query_args->main_ui->ui;
   c = wgetch(app->win);
+  int text_pos = 0;
+  w_te_ui_line_t *arr_line = NULL;
   switch (c) {
   case KEY_F(9):
     app_destroy(app, 0);
     return OK;
-  case 'D':
-  case 'd':
-  // case '\33': /* ESC key */
-  //   if (!app->modal.is_initiated) {
-  //     server_send_string(app->query_args, "file list %d %d\n",
-  //                        fui->max_lines - 1, 1);
-  //     main_window_set(app, mw_fl_server);
-  //     d_args->element = app->main_ui.ui;
-  //     break;
-  //   }
+  case KEY_F(2):
+    /* TODO: move to description edit */
+    app->query_args->file->description =
+        malloc(sizeof(wchar_t) * (fui->sym_count + 9));
+    for (int i = 0; i < fui->lines_count; i++) {
+      arr_line = fui->lines_arr.arr[i];
+      text_pos += wcstombs(app->query_args->file->description + text_pos,
+                           arr_line->text, arr_line->len);
+      app->query_args->file->description[text_pos++] = '\n';
+    }
+    // app->query_args->file->description[--text_pos] = '\03'; /* ETX symbol */
+    app->query_args->file->description[text_pos] = '\03'; /* ETX symbol */
+    strncpy(app->query_args->file->description + text_pos, ":END:\n",
+            sizeof(":END:\n"));
+    /* Save */
+    break;
+  case KEY_F(8):
+    /* Cancel */
+    break;
   default:
     d_args->data = (void *)&c;
     app->active_callback(d_args);
@@ -303,7 +308,8 @@ void w_te_draw(w_te_ui_t *fui) {
 }
 
 void w_te_destroy(w_te_ui_t **fui) {
-  w_te_ui_t *f = *fui;
+  w_te_ui_t *_fui = *fui;
+  u_d_arr_free_cb(&(_fui->lines_arr), line_destroy_cb);
   free(*fui);
   *fui = NULL;
 }
