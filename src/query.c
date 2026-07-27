@@ -30,6 +30,7 @@
 #include "dialogue.h"
 #include "file_processor.h"
 #include "main.h"
+#include "main_window.h"
 #include "server.h"
 #include "types.h"
 
@@ -77,12 +78,18 @@ void query_loop(app_t *app) {
       }
     }
     if (query_args->state == S_NEXT_ACTION) {
-      query_args->from_server = TRUE;
-      if (ERR == process_query(app)) {
-        EXIT_APP("*** error while processing query ***", app, 1)
+      if (app->callback_after_notification != NULL) {
+        app->callback_after_notification(app);
+        app->callback_after_notification = NULL;
+        continue;
+      } else {
+        query_args->from_server = TRUE;
+        if (ERR == process_query(app)) {
+          EXIT_APP("*** error while processing query ***", app, 1)
+        }
+        query_args->state = S_WAIT_SERVER;
+        continue;
       }
-      query_args->state = S_WAIT_SERVER;
-      continue;
     } else {
       sr = select(maxfd + 1, &readfds, NULL, NULL, NULL);
       if (sr == -1) {
@@ -143,9 +150,19 @@ int upload_confirm_cb(app_t *app, char *query, int q_len) {
     w_notification("File upload", dc_normal,
                    "File %s is uploaded to the server!",
                    app->query_args->file->name);
-    clear_file_in_query(app->query_args);
-    app->query_args->state = S_FILE_LIST;
-    app->modal.needs_destroy = true;
+    int desc_answer =
+        w_bool_ask("Write file description", "Yes", "No", true,
+                   "Would you like to write description for the file %s?",
+                   app->query_args->file->name);
+    if (desc_answer) {
+      main_window_set(app, mw_f_desc);
+      app->query_args->state = S_WAIT_USER_DESCRIPTION;
+    } else {
+      server_send_string(app->query_args, "[Empty description]\n:END:\n");
+      app->query_args->state = WAIT_CLIENT;
+      main_window_set(app, mw_fl_server);
+    }
+    /* clear_file_in_query(app->query_args); */
     return 0;
   }
   return 1; /* TODO: Error case */
@@ -277,7 +294,7 @@ static int process_command(app_t *app, wait_server_cb *callback) {
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
     if (callback == NULL) {
-      process_server_command(query, qlen, app);
+      res = process_server_command(query, qlen, app);
     } else {
       res = callback(app, query, qlen);
     }
@@ -291,7 +308,6 @@ static int process_command(app_t *app, wait_server_cb *callback) {
 }
 
 void init_query_args(query_args_t *q_args, params_t *params) {
-  q_args->buf = NULL;
   q_args->sd = -1;
   q_args->state = S_N_D;
   q_args->buf_used = 0;

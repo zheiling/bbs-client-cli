@@ -10,7 +10,9 @@ It will create all necessary file structure in order to run the program correctl
 2. Build the binary running `$ make` or `$ make bbs-client`
 3. Run it by `$ make run`
 
-## Develop
+## Development
+### Widget development
+In order to switch to widget/screen development, configure cmake with `-DDEV_WIDGET=ON`
 
 ### Name conventions:
 

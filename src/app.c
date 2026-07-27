@@ -11,44 +11,46 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <wchar.h>
 
 void ac_file(WINDOW *win, int is_action_w);
 
-app_t *app_init(void) {
+app_t *app_init(app_t *app) {
+  app->top_text = NULL;
   /* get values from terminal size */
   int32_t y_max, x_max;
   getmaxyx(stdscr, y_max, x_max);
 
   /* allocate app struct memory */
-  app_t *_app = calloc(1, sizeof(app_t));
+  if (app == NULL) {
+    app = calloc(1, sizeof(app_t));
+  }
 
   /* associate values for screen size */
-  _app->coordinates.max_x = _app->coordinates.cur_x = x_max;
-  _app->coordinates.max_y = _app->coordinates.cur_y = y_max;
+  app->coordinates.max_x = app->coordinates.cur_x = x_max;
+  app->coordinates.max_y = app->coordinates.cur_y = y_max;
 
-  _app->win = newwin(_app->coordinates.cur_y, _app->coordinates.cur_x, 0, 0);
+  app->win = newwin(app->coordinates.cur_y, app->coordinates.cur_x, 0, 0);
 
   /* dialogue */
-  _app->modal.win = NULL;
-  _app->modal.is_initiated = 0;
-
-  /* print top and bottom bars */
-  _app->main_ui.b_keys_len = 0;
-  app_draw_bars(_app);
-
-  /* here goes box borders */
-  app_draw_borders(_app);
+  app->modal.win = NULL;
+  app->modal.is_initiated = 0;
 
   /* NULL to main_ui */
-  MAIN_UI_RESET(_app);
+  MAIN_UI_RESET(app);
 
-  keypad(_app->win, TRUE);
+  keypad(app->win, TRUE);
+
+  app->callback_after_notification = NULL;
+
+  app->modal.is_initiated = false;  
+  app->modal.needs_destroy = false;  
 
   /* refresh the windows */
-  wnoutrefresh(_app->win);
+  wnoutrefresh(app->win);
   doupdate();
 
-  return _app;
+  return app;
 }
 
 void app_init_nc(void) {
@@ -106,15 +108,17 @@ void app_draw_bars(app_t *app) {
     mvwprintw(app->win, app->coordinates.cur_y - 2, i, " ");
   }
 
-  /* add content to the top bar */
-  if (app->params && app->params->is_connected) {
+  if (app->top_text != NULL) {
+    mvwaddnwstr(app->win, 1, 2, app->top_text, wcslen(app->top_text));
+  } else if (app->params && app->params->is_connected) {
     int32_t ip_address = app->params->addr;
     u_char ip_addr[4];
     mempcpy(ip_addr, &ip_address, 4);
     sprintf(top_text, "Connected to %u.%u.%u.%u, user: %s", ip_addr[0],
             ip_addr[1], ip_addr[2], ip_addr[3], app->params->uname);
+    mvwprintw(app->win, 1, 2, "%s", top_text);
   }
-  mvwprintw(app->win, 1, 2, "%s", top_text);
+
   wattroff(app->win, A_REVERSE);
 
   /* add content to the bottom bar */

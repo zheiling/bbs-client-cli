@@ -52,6 +52,7 @@ enum state {
   S_ERR,
   S_NEXT_ACTION,
   S_WAIT_REGISTER_CONFIRMATION,
+  S_WAIT_USER_DESCRIPTION,
   /* Legacy */
   WAIT_SERVER_INIT,
   WAIT_SERVER,
@@ -119,7 +120,7 @@ typedef struct query_args {
   int32_t buf_used;
   p_file_t *file;
   enum state state;
-  char *buf;
+  char buf[INBUFSIZE];
   bool from_server;
   params_t *params;
   struct {

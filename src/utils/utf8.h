@@ -10,5 +10,6 @@ size_t       u_utf8_code_points_count(const char *s);
 int32_t      u_utf8_convert_to_wide(const char *utf8_str, wchar_t **restrict wide_str,
                              size_t *restrict o_len);
 int32_t      u_utf8_curs_printw(WINDOW *win, int32_t *y, int32_t *x, const char* utf8_str, int max_len, bool multiline);
+wchar_t      u_utf8_get_full_letter(int key, WINDOW *win);
 
 #endif

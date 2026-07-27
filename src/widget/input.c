@@ -16,10 +16,7 @@ bool w_input_default_key_action(w_cb_args_t *args) {
   w_g_el_t *g_el = args->active_el;
   w_input_t *input = g_el->element;
   int32_t start_pos = 0;
-  wchar_t w_key[2];
   app_t *app = args->app;
-  char long_key[3];
-  int short_val_len = 1;
 
   switch (key) {
   case KEY_BACKSPACE:
@@ -47,23 +44,14 @@ bool w_input_default_key_action(w_cb_args_t *args) {
   default:
     if (input->value_len == input->max_len)
       break;
-    long_key[0] = key;
-    input->value_len++;
-    if ((key & 0xC0) == 0xC0) {
-      long_key[1] = wgetch(app->win);
-      long_key[2] = '\0';
-      short_val_len++;
-    } else {
-      long_key[1] = '\0';
-    }
-    mbstowcs(w_key, (const char *)&long_key, 2);
+    key = u_utf8_get_full_letter(key, app->win);
     if (input->cur_pos > 0) {
       start_pos = input->value_len - input->cur_pos - 1;
       memmove(input->w_value + start_pos + 1, input->w_value + start_pos,
               sizeof(wchar_t) * (input->value_len - start_pos));
       input->w_value[start_pos] = key;
     } else {
-      input->w_value[input->value_len - 1] = w_key[0];
+      input->w_value[input->value_len - 1] = key;
       input->w_value[input->value_len] = '\0';
     }
     break;

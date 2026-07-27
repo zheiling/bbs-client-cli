@@ -146,10 +146,10 @@ int process_server_command(char *line, int l_len, app_t *app) {
     return 0;
   }
 
-  q_args->state = S_PREP_SERVER_MESSAGE;
-  server_print_message_cb(app, line, l_len);
+  if (q_args->state == S_NEXT_ACTION) return 1;
 
-  return -1;
+  q_args->state = S_PREP_SERVER_MESSAGE;
+  return server_print_message_cb(app, line, l_len);
 }
 
 void ask_uname_and_password(params_t *params) {

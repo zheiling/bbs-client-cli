@@ -22,6 +22,12 @@ endif()
 
 file(GLOB M_SOURCES "*.c")
 
+if(DEV_WIDGET) 
+  list(FILTER M_SOURCES EXCLUDE REGEX "main\\.c$")
+else()
+  list(FILTER M_SOURCES EXCLUDE REGEX "main_dev_widget\\.c$")
+endif()
+
 target_sources(zbbs-client-tui
     PRIVATE
         ${M_SOURCES}
