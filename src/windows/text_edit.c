@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "../file_processor.h"
+#include "../server.h"
+#include "../windows/main_window.h"
 #include <dirent.h>
 #include <fcntl.h>
 #include <ncursesw/ncurses.h>
@@ -13,12 +16,10 @@
 #include <unistd.h>
 #include <utils.h>
 #include <wchar.h>
-#include "../server.h"
-#include "../file_processor.h"
-#include "../windows/main_window.h"
 
 #include "d_array.h"
 #include "text_edit.h"
+#include "file_list.h"
 #include "widget_core.h"
 
 /* TODO: расширять capacity линии при достижении лимита */
@@ -40,6 +41,8 @@ static void w_te_cb(w_cb_args_t *args) {
   switch (key) {
   case KEY_BACKSPACE:
   case KEY_DL:
+    if (fui->cur_line->len == 0)
+      break;
     if (fui->cur_line_pos == fui->cur_line->len && fui->cur_line->len > 0) {
       fui->cur_line->text[--fui->cur_line_pos] = 0;
       fui->cur_line->len--;
@@ -167,6 +170,16 @@ static struct action_key action_keys[] = {
     {.key = "F9", .title = "Quit", .code = KEY_F(9)},
 };
 
+void callback_after_notification(app_t *app) {
+  clear_file_in_query(app->query_args);
+  int a_len;
+  main_window_set(app, mw_fl_server);
+  w_ui_file_list_t *fui = app->main_ui.ui;
+  server_send_string(app->query_args, "file list %d %d\n%n", fui->max_lines,
+                     fui->current_page, &a_len);
+  app->query_args->state = S_FILE_LIST;
+}
+
 static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   int32_t c;
   w_te_ui_t *fui = (w_te_ui_t *)app->query_args->main_ui->ui;
@@ -192,8 +205,8 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
     strncpy(app->query_args->file->description + text_pos, ":END:\n",
             sizeof(":END:\n"));
     server_send_string(app->query_args, app->query_args->file->description);
-    clear_file_in_query(app->query_args);
-    main_window_set(app, mw_fl_server);
+    app->query_args->state = S_WAIT_SERVER;
+    app->callback_after_notification = callback_after_notification;
     /* Save */
     break;
   case KEY_F(8):
@@ -245,6 +258,7 @@ w_te_ui_t *w_te_init_win(app_t *app) {
   fui->sym_count = 0;
   fui->lines_count = 1;
   fui->lines_top_indent = 0;
+  fui->cur_line_pos = 0;
   return fui;
 }
 

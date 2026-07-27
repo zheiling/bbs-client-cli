@@ -332,7 +332,7 @@ static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
   char *descr_begin = NULL;
   int h_len;
   char *name_begin = strchr(line, '[') + 1;
-  char *name_end = strrchr(line, ']');
+  char *name_end = strchr(line, ']');
   int name_len = name_end - name_begin;
   fl_item_t *fitem = malloc(sizeof(fl_item_t));
   sscanf(name_end, "] %zu %s%n", &(fitem->size), fowner, &h_len);

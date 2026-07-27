@@ -41,6 +41,11 @@ app_t *app_init(app_t *app) {
 
   keypad(app->win, TRUE);
 
+  app->callback_after_notification = NULL;
+
+  app->modal.is_initiated = false;  
+  app->modal.needs_destroy = false;  
+
   /* refresh the windows */
   wnoutrefresh(app->win);
   doupdate();

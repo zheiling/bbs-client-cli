@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
+#include "main.h"
 #include <modals.h>
 #include <widget.h>
-#include "main.h"
 
 static void (*active_callback_backup)(w_cb_args_t *) = NULL;
 

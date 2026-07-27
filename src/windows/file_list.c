@@ -175,7 +175,7 @@ void *w_fl_init(app_t *app) {
   app->main_ui.b_keys_len = 4;
   app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
   app->main_ui.reset = w_fl_reset_app;
-  app->main_ui.draw = (draw_f_t *) w_fl_draw;
+  app->main_ui.draw = (draw_f_t *)w_fl_draw;
   app->active_callback = w_fl_cb;
   fui->w.callback = w_fl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
@@ -227,8 +227,8 @@ void w_fl_reset(w_ui_file_list_t *fl_ui) {
 }
 
 void w_fl_reset_app(void *app) {
-  app_t *_app = (app_t *) app;
-  w_ui_file_list_t *fl_ui = (w_ui_file_list_t *) _app->main_ui.ui;
+  app_t *_app = (app_t *)app;
+  w_ui_file_list_t *fl_ui = (w_ui_file_list_t *)_app->main_ui.ui;
   w_fl_reset(fl_ui);
 }
 
@@ -314,6 +314,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     curs_set(true);
     wmove(win, p_y, p_x + p_len);
   } else {
+    curs_set(false);
     int32_t l_pad = 0;
     sprintf(p_info, "P: %d/%d F: %d L: %d%n", fui->current_page, fui->pages,
             fui->current_count, fui->full_count, &p_len);
@@ -350,7 +351,8 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       mvwprintw(i_win, p_y, p_x, "Name:  ");
 
       p_x = 8; /* 7 (size of "Name: ") + 1 */
-      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x - 2, true);
+      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x - 2,
+                         true);
       p_x = 1;
 
       size_to_text(active_el->size, size_text);
