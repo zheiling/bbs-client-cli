@@ -350,7 +350,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
       mvwprintw(i_win, p_y, p_x, "Name:  ");
 
       p_x = 8; /* 7 (size of "Name: ") + 1 */
-      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x, true);
+      u_utf8_curs_printw(i_win, &p_y, &p_x, active_el->name, sz_x - p_x - 2, true);
       p_x = 1;
 
       size_to_text(active_el->size, size_text);
