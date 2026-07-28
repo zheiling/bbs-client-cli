@@ -18,8 +18,8 @@
 #include <wchar.h>
 
 #include "d_array.h"
-#include "text_edit.h"
 #include "file_list.h"
+#include "text_edit.h"
 #include "widget_core.h"
 
 /* TODO: расширять capacity линии при достижении лимита */
@@ -210,6 +210,9 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
     /* Save */
     break;
   case KEY_F(8):
+    server_send_string(app->query_args, "[Empty description]\n:END:\n");
+    app->query_args->state = S_WAIT_SERVER;
+    app->callback_after_notification = callback_after_notification;
     /* Cancel */
     break;
   default:
