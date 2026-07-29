@@ -34,9 +34,5 @@ add_subdirectory(external/cmocka)
 add_subdirectory(test)
 
 install(
-  TARGETS zbbs-server
-)
-
-install(
   TARGETS zbbs-client-tui
 )
