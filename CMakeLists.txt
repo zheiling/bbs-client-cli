@@ -27,6 +27,16 @@ add_subdirectory(src/core)
 
 add_subdirectory(src) 
 
+# Testing
+include(CTest)
+include(cmake/OptionsCMocka.cmake)
+add_subdirectory(external/cmocka)
+add_subdirectory(test)
+
+install(
+  TARGETS zbbs-server
+)
+
 install(
   TARGETS zbbs-client-tui
 )
