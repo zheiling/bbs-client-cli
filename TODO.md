@@ -1,13 +1,16 @@
 # TODO:
 
 ## Current:
-- [ ] Sorting in the file list (local files)
-- [ ] Resume download
-- [ ] Separate common structures in the common.h
+- [ ] Sorting in the file list (local files):
+    - [ ] Testing env
+    - [ ] Test dlist
+    - [ ] Dlist sort
 
 ## Global tasks:
 - [ ] Testing
 - [ ] Documentation
+- [ ] Resume download
+- [ ] Separate common structures in the common.h
 
 ## Features:
 - [ ] Files removal

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "../app.h"
+#include "app.h"
 #include <locale.h>
 #include <ncursesw/ncurses.h>
 #include <netinet/in.h>

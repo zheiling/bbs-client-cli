@@ -4,7 +4,6 @@
 #ifndef W_LFL_H /* LOCAL FILE LIST */
 #define W_LFL_H
 
-#include "../app.h"
 #include <stddef.h>
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>

@@ -1,8 +1,9 @@
 #ifndef W_ALERT_H
 #define W_ALERT_H
 
-#include "../app.h"
+#include <common.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 void w_alert_init(app_t *app);
 void w_alert(const char *message);

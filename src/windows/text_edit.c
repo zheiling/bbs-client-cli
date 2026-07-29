@@ -1,9 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "../file_processor.h"
-#include "../server.h"
-#include "../windows/main_window.h"
 #include <dirent.h>
 #include <fcntl.h>
 #include <ncursesw/ncurses.h>
@@ -17,10 +14,15 @@
 #include <utils.h>
 #include <wchar.h>
 
+#include <core/file_processor.h>
+#include <core/server.h>
+#include <core/app.h>
+
 #include "d_array.h"
 #include "file_list.h"
 #include "text_edit.h"
 #include "widget_core.h"
+#include "main_window.h"
 
 /* TODO: расширять capacity линии при достижении лимита */
 

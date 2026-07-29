@@ -4,7 +4,6 @@
 #ifndef W_FILE_LIST_H
 #define W_FILE_LIST_H
 
-#include "../app.h"
 #include <bstrlib.h>
 #include <stdint.h>
 #include <widget_core.h>

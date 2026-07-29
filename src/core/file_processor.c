@@ -2,7 +2,6 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "alert.h"
-#include "dialogue.h"
 #include "server.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -20,10 +19,10 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
-#include <windows.h>
+#include <common.h>
+#include <windows/file_list.h>
 
 #include "file_processor.h"
-#include "main.h"
 #include "query.h"
 
 static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);

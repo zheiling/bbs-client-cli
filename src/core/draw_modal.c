@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "main.h"
 #include <modals.h>
 #include <widget.h>
 

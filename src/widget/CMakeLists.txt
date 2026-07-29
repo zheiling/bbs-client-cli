@@ -7,6 +7,8 @@ target_link_libraries(widget
         bstring
         widget_core
         utils
+        common
+        core
 )
 
 target_sources(widget

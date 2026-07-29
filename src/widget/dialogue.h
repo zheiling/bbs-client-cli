@@ -4,30 +4,13 @@
 #ifndef W_DIALOGUE_H
 #define W_DIALOGUE_H
 
-#include "../common.h"
-#include "group.h"
+#include <common.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <utils.h>
 #include <widget_core.h>
+
 #define MAX_IDS 64
-
-enum w_dialogue_color_scheme { dc_normal, dc_alert };
-
-typedef struct {
-  w_t w;
-  WINDOW *win;
-  w_group_t *g_content;
-  w_group_t *g_action;
-  w_g_el_t *active_el;
-  char text[DIALOGUE_TEXT];
-  bool is_initiated;
-  bool needs_update;
-  bool needs_destroy;
-  coordinates_t *p_coordinates;
-  enum w_dialogue_color_scheme color_scheme;
-  d_array_ptr_t id_map;
-} w_dialogue_t;
 
 void    w_dialogue_init(w_dialogue_t *d, const char title[], const char text[],
                    coordinates_t *p_coordinates);

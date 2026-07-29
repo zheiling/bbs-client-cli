@@ -20,17 +20,21 @@ elseif(
   endif()
 endif()
 
-file(GLOB M_SOURCES "*.c")
-
 if(DEV_WIDGET) 
-  list(FILTER M_SOURCES EXCLUDE REGEX "main\\.c$")
+    target_sources(zbbs-client-tui
+    PRIVATE
+        main_dev_widget.c
+)
 else()
-  list(FILTER M_SOURCES EXCLUDE REGEX "main_dev_widget\\.c$")
+  target_sources(zbbs-client-tui
+    PRIVATE
+        main.c
+)
 endif()
 
-target_sources(zbbs-client-tui
-    PRIVATE
-        ${M_SOURCES}
+add_library(common INTERFACE)
+target_sources(common
+    PUBLIC FILE_SET HEADERS FILES common.h
 )
 
 target_link_libraries(zbbs-client-tui 
@@ -41,5 +45,6 @@ target_link_libraries(zbbs-client-tui
         bstring
         windows
         utils
+        common
         ${CURSES_LIBRARIES}
 )

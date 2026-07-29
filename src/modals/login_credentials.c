@@ -6,7 +6,8 @@
 #include <unistd.h>
 
 #include <widget.h>
-#include "../server.h"
+#include <core/server.h>
+#include <core/app.h>
 
 typedef struct {
   w_button_t *element;

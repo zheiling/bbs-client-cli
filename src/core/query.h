@@ -4,8 +4,6 @@
 #ifndef QUERY_H
 #define QUERY_H
 
-#include "../app.h"
-#include "main.h"
 #include <widget.h>
 
 void query_loop(app_t *);

@@ -3,7 +3,7 @@
 
 #ifndef CONNECTION_H
 #define CONNECTION_H
-#include "main.h"
+
 #include <widget.h>
 
 bool connect_to_server(app_t *params);

@@ -1,9 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "../app.h"
+#include "app.h"
 #include "dialogue.h"
-#include "main.h"
 #include "query.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -18,7 +17,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
-#include <windows.h>
+#include <windows/file_list.h>
 
 void ask_uname_and_password(params_t *params);
 void ask_register(params_t *params, char *email);

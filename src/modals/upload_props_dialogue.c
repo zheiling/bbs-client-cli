@@ -1,15 +1,14 @@
-#include "checkbox.h"
-#include "group.h"
-#include "widget_core.h"
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
+
 #include <utils.h>
 #include <widget.h>
-
-#include "../server.h"
+#include <core/server.h>
+#include "checkbox.h"
+#include "group.h"
 
 void upload_props_dialogue_modal_cb(w_cb_args_t *args) {
   w_cb_args_t d_args;

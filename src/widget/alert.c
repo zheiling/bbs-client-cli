@@ -1,6 +1,6 @@
 #include "alert.h"
 #include "dialogue.h"
-#include "widget_core.h"
+#include <core/app.h>
 #include <ncursesw/ncurses.h>
 #include <stdarg.h>
 #include <stdint.h>

@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../app.h"
+#include <core/app.h>
+#include <utils.h>
 #include "input.h"
 #include <wchar.h>
 #include <widget_core.h>

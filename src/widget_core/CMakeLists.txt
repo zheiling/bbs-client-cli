@@ -5,6 +5,7 @@ file(GLOB M_SOURCES "*.c")
 target_link_libraries(widget_core 
     PRIVATE
         utils
+        common
 )
 
 target_sources(widget_core

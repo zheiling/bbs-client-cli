@@ -2,10 +2,8 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "file_list.h"
-#include "../app.h"
-#include "../file_processor.h"
-#include "../fs.h"
-#include "../server.h"
+#include <common.h>
+#include <core.h>
 #include "main_window.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>

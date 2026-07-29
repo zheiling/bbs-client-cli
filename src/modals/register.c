@@ -8,7 +8,7 @@
 
 #include "alert.h"
 #include "group.h"
-#include "../server.h"
+#include <core/server.h>
 
 typedef struct {
   w_button_t *element;

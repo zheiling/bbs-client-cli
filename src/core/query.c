@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "query.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ncursesw/ncurses.h>
@@ -23,13 +22,12 @@
 #include <modals.h>
 #include <widget.h>
 #include <widget_core.h>
-#include <windows.h>
 
+#include "app.h"
+#include "query.h"
 #include "alert.h"
 #include "connection.h"
-#include "dialogue.h"
 #include "file_processor.h"
-#include "main.h"
 #include "main_window.h"
 #include "server.h"
 #include "types.h"

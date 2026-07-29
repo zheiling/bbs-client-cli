@@ -8,7 +8,8 @@
 
 #include <widget_core.h>
 #include "button.h"
-#include "../app.h"
+
+#include <core/app.h>
 
 w_button_t *init_button(WINDOW **win, w_t *w_parent, char *label) {
   w_button_t *btn = malloc(sizeof(w_button_t));

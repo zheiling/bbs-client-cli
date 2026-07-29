@@ -11,6 +11,7 @@
 #include <wchar.h>
 #include <widget.h>
 #include <widget_core.h>
+#include <core/app.h>
 
 static void (*active_callback_backup)(w_cb_args_t *) = NULL;
 

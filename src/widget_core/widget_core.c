@@ -6,7 +6,6 @@
   so it is separated from the widget directory */
 
 #include "widget_core.h"
-#include "../main.h"
 #include <ncursesw/ncurses.h>
 #include <stddef.h>
 #include <stdint.h>

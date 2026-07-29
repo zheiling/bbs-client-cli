@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
-#include "alert.h"
-#include "main.h"
+#include "app.h"
+#include <widget.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <ncursesw/ncurses.h>

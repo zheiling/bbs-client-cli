@@ -14,12 +14,10 @@
 #include <widget.h>
 #include <windows.h>
 
-#include "../app.h"
+#include <core/app.h>
 #include "alert.h"
-#include "connection.h"
-// #include "file_list.h"
-#include "main.h"
-#include "query.h"
+#include <core/connection.h>
+#include <core/query.h>
 
 int32_t m_id = 0;
 

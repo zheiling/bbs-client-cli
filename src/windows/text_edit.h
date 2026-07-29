@@ -4,7 +4,6 @@
 #ifndef W_TEXT_EDIT_H /* LOCAL FILE LIST */
 #define W_TEXT_EDIT_H
 
-#include "../app.h"
 #include <ncursesw/ncurses.h>
 #include <stddef.h>
 #include <stdint.h>

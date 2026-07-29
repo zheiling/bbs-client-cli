@@ -7,28 +7,7 @@
 #include <stdint.h>
 #include <utils.h>
 #include <widget_core.h>
-
-typedef struct group_el_init_t {
-  enum w_type type;
-  bool is_default;
-  bool is_hidden_value;
-  char label[DIALOGUE_TITLE];
-  int32_t length;
-  enum w_g_dir direction;
-  union {
-    int32_t num;
-  } val;
-  struct group_el_init_t *children;
-} w_group_el_init_t;
-
-typedef struct group_t {
-  w_t w;
-  w_g_el_t *elements;
-  enum w_g_dir direction;
-  int32_t count;
-  int32_t first_id, last_id;
-  struct group_t *parent_group;
-} w_group_t;
+#include <common.h>
 
 w_group_t *w_group_init(WINDOW **win, w_t *w_parent, w_group_el_init_t *children,
                     d_array_ptr_t *id_map, enum w_g_dir dir,

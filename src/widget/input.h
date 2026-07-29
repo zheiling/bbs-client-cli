@@ -4,7 +4,6 @@
 #ifndef W_INPUT_H
 #define W_INPUT_H
 
-#include "../main.h"
 #include <stdint.h>
 #include <widget_core.h>
 

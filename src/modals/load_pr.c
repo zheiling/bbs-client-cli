@@ -1,14 +1,14 @@
-#include "../server.h"
-#include "../windows/file_list.h"
-#include "alert.h"
-#include "dialogue.h"
-#include "group.h"
-#include "utils.h"
+#include <core/server.h>
+#include <windows/file_list.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <widget.h>
+
+#include "alert.h"
+#include "dialogue.h"
+#include "group.h"
 
 void dwn_pr_modal_cb(w_cb_args_t *args) {
   /* only cancel action */

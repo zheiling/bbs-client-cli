@@ -15,9 +15,11 @@
 #include <unistd.h>
 #include <utils.h>
 
-#include "../file_processor.h"
-#include "../fs.h"
-#include "../server.h"
+#include <core/file_processor.h>
+#include <core/fs.h>
+#include <core/server.h>
+#include <core/app.h>
+
 #include "alert.h"
 #include "fs_file_list.h"
 #include "main_window.h"

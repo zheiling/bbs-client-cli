@@ -6,6 +6,9 @@
 #include "fs_file_list.h"
 #include "text_edit.h"
 
+#include <core/app.h>
+#include <widget/dialogue.h>
+
 void main_window_set(app_t *app, enum main_window_type type) {
   if (app->main_ui.ui != NULL) {
     main_window_destroy(app);

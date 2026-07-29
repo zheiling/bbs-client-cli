@@ -2,13 +2,13 @@ add_library(windows STATIC)
 
 file(GLOB M_SOURCES "*.c")
 
-target_link_directories(windows 
-    PRIVATE 
-        "../widget/" 
-        "../widget_core/" 
-        "../lib/" 
-        "../utils/"
-)
+# target_link_directories(windows 
+#     PRIVATE 
+#         "../widget/" 
+#         "../widget_core/" 
+#         "../lib/" 
+#         "../utils/"
+# )
 
 target_link_libraries(windows 
     PRIVATE
@@ -16,6 +16,8 @@ target_link_libraries(windows
         widget_core
         bstring
         utils
+        core
+        common
 )
 
 target_sources(windows

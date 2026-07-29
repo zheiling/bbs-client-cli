@@ -4,7 +4,8 @@
 #include <ncursesw/ncurses.h>
 #include <widget.h>
 #include <widget_core.h>
-#include "../connection.h"
+#include <core/connection.h>
+#include <core/app.h>
 #include "group.h"
 
 typedef struct {
