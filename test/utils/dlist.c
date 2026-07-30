@@ -93,6 +93,37 @@ void test__init__add_and_iterate(void **state) {
   assert_memory_equal(dl_t3, &t3, sizeof(test_t));
 }
 
+bool _sort(void *_a, void *_b) {
+  test_t *a = _a;
+  test_t *b = _b;
+
+  return a->num > b->num;
+}
+
+void test__init__insert_sort(void **state) {
+  test_t t1 = {.buf = "TEST BUF", .num = 123, .text = LOREM_IPSUM};
+  test_t t2 = {.buf = "TEST 1 BUF", .num = 11, .text = "RAND 1 TEXT"};
+  test_t t3 = {.buf = "TEST 2 BUF", .num = 22, .text = "RAND 2 TEXT"};
+  test_t t4 = {.buf = "TEST 3 BUF", .num = 23, .text = "RAND 3 TEXT"};
+
+  dlist_t *dlist = dlist_init(NULL, test_t);
+
+  dlist_insert_sort(dlist, &t1, test_t, _sort);
+  dlist_insert_sort(dlist, &t2, test_t, _sort);
+  dlist_insert_sort(dlist, &t3, test_t, _sort);
+  dlist_insert_sort(dlist, &t4, test_t, _sort);
+
+  test_t *dl_t1 = dlist_get_current(dlist);
+  test_t *dl_t4 = dlist_it_prev(dlist);
+  test_t *dl_t3 = dlist_it_prev(dlist);
+  test_t *dl_t2 = dlist_it_prev(dlist);
+
+  assert_memory_equal(dl_t1, &t1, sizeof(test_t));
+  assert_memory_equal(dl_t2, &t2, sizeof(test_t));
+  assert_memory_equal(dl_t3, &t3, sizeof(test_t));
+  assert_memory_equal(dl_t4, &t4, sizeof(test_t));
+}
+
 int setup(void **state) { return 0; }
 int tear_down(void **state) { return 0; }
 
@@ -102,6 +133,7 @@ int main(int argc, char **argv) {
       cmocka_unit_test(test__init__add_several_times),
       cmocka_unit_test(test__init__add_several_times_prepend),
       cmocka_unit_test(test__init__add_and_iterate),
+      cmocka_unit_test(test__init__insert_sort),
 
   };
 
