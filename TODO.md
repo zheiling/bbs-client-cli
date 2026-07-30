@@ -2,8 +2,8 @@
 
 ## Current:
 - [ ] Sorting in the file list (local files):
-    - [ ] Testing env
-    - [ ] Test dlist
+    - [x] Testing env
+    - [x] Test dlist
     - [ ] Dlist sort
 
 ## Global tasks:
