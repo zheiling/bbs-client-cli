@@ -1,6 +1,8 @@
 #include <cmocka.h>
+#include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <time.h>
 #include <utils/dlist.h>
 
 typedef struct {
@@ -84,7 +86,7 @@ void test__init__add_and_iterate(void **state) {
   dlist_add(dlist, &t2, test_t, false);
   dlist_add(dlist, &t3, test_t, false);
 
-  test_t *dl_t3 = dlist_get_current(dlist);
+  test_t *dl_t3 = dlist_it_prev(dlist);
   test_t *dl_t2 = dlist_it_prev(dlist);
   test_t *dl_t1 = dlist_it_prev(dlist);
 
@@ -100,28 +102,34 @@ bool _sort(void *_a, void *_b) {
   return a->num > b->num;
 }
 
-void test__init__insert_sort(void **state) {
-  test_t t1 = {.buf = "TEST BUF", .num = 123, .text = LOREM_IPSUM};
-  test_t t2 = {.buf = "TEST 1 BUF", .num = 11, .text = "RAND 1 TEXT"};
-  test_t t3 = {.buf = "TEST 2 BUF", .num = 22, .text = "RAND 2 TEXT"};
-  test_t t4 = {.buf = "TEST 3 BUF", .num = 23, .text = "RAND 3 TEXT"};
+#define T_BUF "TEST BUF "
+#define T_TEXT "RAND TEXT "
+#define T_IT_NUM 120
 
+void test__init__insert_sort(void **state) {
+  srand(time(NULL));
+
+  test_t t = {.text = T_TEXT};
   dlist_t *dlist = dlist_init(NULL, test_t);
 
-  dlist_insert_sort(dlist, &t1, test_t, _sort);
-  dlist_insert_sort(dlist, &t2, test_t, _sort);
-  dlist_insert_sort(dlist, &t3, test_t, _sort);
-  dlist_insert_sort(dlist, &t4, test_t, _sort);
+  for (int i = 0; i < T_IT_NUM; i++) {
+    sprintf(t.buf, "%s %d", T_BUF, i);
+    t.num = rand();
+    dlist_insert_sort(dlist, &t, test_t, _sort);
+  }
 
-  test_t *dl_t1 = dlist_get_current(dlist);
-  test_t *dl_t4 = dlist_it_prev(dlist);
-  test_t *dl_t3 = dlist_it_prev(dlist);
-  test_t *dl_t2 = dlist_it_prev(dlist);
+  test_t *t1, *t2;
 
-  assert_memory_equal(dl_t1, &t1, sizeof(test_t));
-  assert_memory_equal(dl_t2, &t2, sizeof(test_t));
-  assert_memory_equal(dl_t3, &t3, sizeof(test_t));
-  assert_memory_equal(dl_t4, &t4, sizeof(test_t));
+  t2 = dlist_it_prev(dlist);
+  t1 = dlist_it_prev(dlist);
+
+  assert_int_in_range(t2->num, t1->num, INT_MAX);\
+  
+  for (int i = T_IT_NUM - 2; i > 0; i--) {
+    t2 = t1;
+    t1 = dlist_it_prev(dlist);
+    assert_int_in_range(t2->num, t1->num, INT_MAX);
+  }
 }
 
 int setup(void **state) { return 0; }
