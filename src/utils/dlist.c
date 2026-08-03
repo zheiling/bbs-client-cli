@@ -6,16 +6,19 @@
 
 #include "dlist.h"
 
-/* TODO: Test for dlist_remove_by_ptr */
+/* 
+  Uses *add* when needs to make a full copy of the element.
+  Uses *insert* when operates with nodes.
+*/
 
-dlist_t *_dlist_init(void *el_ptr, int el_siz) {
+dlist_t *_dlist_init(void *el_ptr, int el_siz, dblist_add_cb_t add_cb) {
   dlist_t *dlist = malloc(sizeof(dlist_t));
   dlist->len = 0;
   dlist->current = NULL;
   dlist->start = NULL;
 
   if (el_ptr != NULL) {
-    _dlist_add(dlist, el_ptr, el_siz, false);
+    _dlist_add(dlist, el_ptr, el_siz, add_cb, false);
   }
 
   return dlist;
@@ -49,11 +52,11 @@ void _dlist_insert_end(dlist_t *dlist, dlist_node_t *new_node) {
   dlist->len++;
 }
 
-void _dlist_insert_sort(dlist_t *dlist, void *el_ptr, int el_siz,
-                        dblist_sort_cb_t *cb) {
+void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
+                        dblist_sort_cb_t cb, dblist_add_cb_t add_cb) {
   dlist_node_t *node = malloc(sizeof(dlist_node_t));
   node->el_ptr = malloc(el_siz);
-  memcpy(node->el_ptr, el_ptr, el_siz);
+  add_cb(node->el_ptr, el_ptr);
 
   dlist_node_t *dlist_item = dlist->start;
   bool res = true;
@@ -82,10 +85,10 @@ void _dlist_insert_sort(dlist_t *dlist, void *el_ptr, int el_siz,
   }
 }
 
-void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz, bool prepend) {
+void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz, dblist_add_cb_t *add_cb, bool prepend) {
   dlist_node_t *node = malloc(sizeof(dlist_node_t));
   node->el_ptr = malloc(el_siz);
-  memcpy(node->el_ptr, el_ptr, el_siz);
+  add_cb(node->el_ptr, el_ptr);
 
   if (dlist->start == NULL) {
     node->previous = NULL;
@@ -109,20 +112,23 @@ void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz, bool prepend) {
 }
 
 dlist_node_t *find_node_by_ptr(dlist_t *dlist, void *el_ptr) {
-  dlist_node_t *el = dlist->start;
+  dlist_node_t *node = dlist->start;
   do {
-    if (el->el_ptr == el_ptr) break;
-  } while ((el = el->next) != NULL);
-  if (el->el_ptr == el_ptr) return el_ptr;
+    if (node->el_ptr == el_ptr) break;
+  } while ((node = node->next) != NULL);
+  if (node->el_ptr == el_ptr) return node;
   return NULL;
 }
 
 int dlist_remove_by_ptr(dlist_t *dlist, void *el_ptr, dblist_rm_cb_t cb) {
   dlist_node_t *node = find_node_by_ptr(dlist, el_ptr);
   if (node == NULL) return -1;
-  cb(node->el_ptr);
   node->next->previous = node->previous;
   node->previous->next = node->next;
+  dlist->len--;
+  if (node->next == NULL) dlist->current = node->previous;
+  if (node->previous == NULL) dlist->start = node->next;
+  cb(node->el_ptr);
   free(node);
   return 1;
 }
