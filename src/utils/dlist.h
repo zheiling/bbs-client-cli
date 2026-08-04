@@ -32,6 +32,7 @@ void *dlist_it_next(dlist_t *dlist);
 void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
                         dblist_sort_cb_t cb, dblist_add_cb_t add_cb);
 int   dlist_remove_by_ptr(dlist_t *dlist, void *el_ptr, dblist_rm_cb_t cb);
+int   dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb);
 
 #define dlist_init(el_ptr, el_def, add_cb)                                     \
   _dlist_init(el_ptr, sizeof(el_def), add_cb)

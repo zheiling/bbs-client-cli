@@ -42,7 +42,7 @@ void test__init(void **state) {
   assert_ptr_equal(dt_ptr->text, LOREM_IPSUM);
 }
 
-void test__init__add_several_times(void **state) {
+void test__add_several_times(void **state) {
   test_t t1 = {.buf = "TEST BUF", .num = 123, .text = LOREM_IPSUM};
   test_t t2 = {.buf = "TEST 1 BUF", .num = 11, .text = "RAND 1 TEXT"};
   test_t t3 = {.buf = "TEST 2 BUF", .num = 22, .text = "RAND 2 TEXT"};
@@ -64,7 +64,7 @@ void test__init__add_several_times(void **state) {
   assert_memory_equal(dl_t3, &t3, sizeof(test_t));
 }
 
-void test__init__add_several_times_prepend(void **state) {
+void test__add_several_times_prepend(void **state) {
   test_t t1 = {.buf = "TEST BUF", .num = 123, .text = LOREM_IPSUM};
   test_t t2 = {.buf = "TEST 1 BUF", .num = 11, .text = "RAND 1 TEXT"};
   test_t t3 = {.buf = "TEST 2 BUF", .num = 22, .text = "RAND 2 TEXT"};
@@ -86,7 +86,7 @@ void test__init__add_several_times_prepend(void **state) {
   assert_memory_equal(dl_t3, &t3, sizeof(test_t));
 }
 
-void test__init__add_and_iterate(void **state) {
+void test__add_and_iterate(void **state) {
   test_t t1 = {.buf = "TEST BUF", .num = 123, .text = LOREM_IPSUM};
   test_t t2 = {.buf = "TEST 1 BUF", .num = 11, .text = "RAND 1 TEXT"};
   test_t t3 = {.buf = "TEST 2 BUF", .num = 22, .text = "RAND 2 TEXT"};
@@ -117,7 +117,7 @@ bool _sort(void *_a, void *_b) {
 #define T_TEXT "RAND TEXT "
 #define T_IT_NUM 120
 
-void test__init__insert_sort(void **state) {
+void test__insert_sort(void **state) {
   srand(time(NULL));
 
   test_t t = {.text = T_TEXT};
@@ -152,7 +152,7 @@ bool delete_cb(void *el_ptr) {
   return 1;
 }
 
-void test__init__remove_by_ptr(void **state) {
+void test__remove_by_ptr(void **state) {
   test_t ta = {.buf = "TEST A", .num = 123, .text = "TEXT A"};
   test_t tb = {.buf = "TEST B", .num = 456, .text = "TEXT B"};
   test_t tc = {.buf = "TEST C", .num = 789, .text = "TEXT C"};
@@ -176,18 +176,46 @@ void test__init__remove_by_ptr(void **state) {
   assert_int_equal(c_ptr->num, 789);
 }
 
+int clean_db_call_times = 0;
+
+bool clean_db(void *ptr) {
+  free(ptr);
+  clean_db_call_times++;
+  return 1;
+}
+
+void test__clear_list(void **state) {
+  test_t ta = {.buf = "TEST A", .num = 123, .text = "TEXT A"};
+  test_t tb = {.buf = "TEST B", .num = 456, .text = "TEXT B"};
+  test_t tc = {.buf = "TEST C", .num = 789, .text = "TEXT C"};
+
+  dlist_t *dlist = dlist_init(NULL, int, NULL);
+
+  tlist_add(dlist, &ta, false);
+  tlist_add(dlist, &tb, false);
+  tlist_add(dlist, &tc, false);
+
+  assert_int_equal(dlist->len, 3);
+  dlist_clear_list(dlist, clean_db);
+  assert_int_equal(dlist->len, 0);
+  assert_ptr_equal(dlist->current, NULL);
+  assert_ptr_equal(dlist->start, NULL);
+  assert_int_equal(clean_db_call_times, 3);
+  clean_db_call_times = 0;
+}
+
 int setup(void **state) { return 0; }
 int tear_down(void **state) { return 0; }
 
 int main(int argc, char **argv) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test__init),
-      cmocka_unit_test(test__init__add_several_times),
-      cmocka_unit_test(test__init__add_several_times_prepend),
-      cmocka_unit_test(test__init__add_and_iterate),
-      cmocka_unit_test(test__init__insert_sort),
-      cmocka_unit_test(test__init__remove_by_ptr),
-
+      cmocka_unit_test(test__add_several_times),
+      cmocka_unit_test(test__add_several_times_prepend),
+      cmocka_unit_test(test__add_and_iterate),
+      cmocka_unit_test(test__insert_sort),
+      cmocka_unit_test(test__remove_by_ptr),
+      cmocka_unit_test(test__clear_list),
   };
 
   return cmocka_run_group_tests(tests, setup, tear_down);

@@ -6,7 +6,7 @@
 
 #include "dlist.h"
 
-/* 
+/*
   Uses *add* when needs to make a full copy of the element.
   Uses *insert* when operates with nodes.
 */
@@ -24,7 +24,8 @@ dlist_t *_dlist_init(void *el_ptr, int el_siz, dblist_add_cb_t add_cb) {
   return dlist;
 }
 
-void _dlist_insert(dlist_t *dlist, dlist_node_t *new_el, dlist_node_t *prev_node) {
+void _dlist_insert(dlist_t *dlist, dlist_node_t *new_el,
+                   dlist_node_t *prev_node) {
   if (prev_node != NULL) {
     new_el->next = prev_node->next;
     prev_node->next->previous = new_el;
@@ -53,7 +54,7 @@ void _dlist_insert_end(dlist_t *dlist, dlist_node_t *new_node) {
 }
 
 void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
-                        dblist_sort_cb_t cb, dblist_add_cb_t add_cb) {
+                     dblist_sort_cb_t cb, dblist_add_cb_t add_cb) {
   dlist_node_t *node = malloc(sizeof(dlist_node_t));
   node->el_ptr = malloc(el_siz);
   add_cb(node->el_ptr, el_ptr);
@@ -85,7 +86,8 @@ void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
   }
 }
 
-void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz, dblist_add_cb_t *add_cb, bool prepend) {
+void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz,
+                dblist_add_cb_t *add_cb, bool prepend) {
   dlist_node_t *node = malloc(sizeof(dlist_node_t));
   node->el_ptr = malloc(el_siz);
   add_cb(node->el_ptr, el_ptr);
@@ -114,24 +116,50 @@ void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz, dblist_add_cb_t *add_c
 dlist_node_t *find_node_by_ptr(dlist_t *dlist, void *el_ptr) {
   dlist_node_t *node = dlist->start;
   do {
-    if (node->el_ptr == el_ptr) break;
+    if (node->el_ptr == el_ptr)
+      break;
   } while ((node = node->next) != NULL);
-  if (node->el_ptr == el_ptr) return node;
+  if (node->el_ptr == el_ptr)
+    return node;
   return NULL;
 }
 
 int dlist_remove_by_ptr(dlist_t *dlist, void *el_ptr, dblist_rm_cb_t cb) {
   dlist_node_t *node = find_node_by_ptr(dlist, el_ptr);
-  if (node == NULL) return -1;
+  if (node == NULL)
+    return -1;
   node->next->previous = node->previous;
   node->previous->next = node->next;
   dlist->len--;
-  if (node->next == NULL) dlist->current = node->previous;
-  if (node->previous == NULL) dlist->start = node->next;
+  if (node->next == NULL)
+    dlist->current = node->previous;
+  if (node->previous == NULL)
+    dlist->start = node->next;
   cb(node->el_ptr);
   free(node);
   return 1;
 }
+
+int dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb) {
+  dlist_node_t *current = dlist->start;
+  dlist_node_t *next = NULL;
+
+  do {
+    cb(current->el_ptr);
+    next = current->next;
+    free(current);
+    current = next;
+  } while (current != NULL);
+
+  dlist->len = 0;
+  dlist->current = NULL;
+  dlist->start = NULL;
+  dlist->pointer = NULL;
+
+  return 1;
+}
+
+/* Iterators */
 
 void *dlist_it_prev(dlist_t *dlist) {
   dlist_node_t *cur_ptr = dlist->pointer;
