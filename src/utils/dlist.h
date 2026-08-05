@@ -13,7 +13,7 @@ typedef struct dlist_node_t {
 typedef struct dlist_t {
   dlist_node_t *start;
   dlist_node_t *current;
-  dlist_node_t *pointer;
+  dlist_node_t *work_pointer;
   size_t len;
 } dlist_t;
 
@@ -33,13 +33,19 @@ void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
                         dblist_sort_cb_t cb, dblist_add_cb_t add_cb);
 int   dlist_remove_by_ptr(dlist_t *dlist, void *el_ptr, dblist_rm_cb_t cb);
 int   dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb);
+dlist_node_t *dlist_wind_fwd(dlist_t *dlist, int count);
+dlist_node_t *dlist_wind_bwd(dlist_t *dlist, int count);
 
 #define dlist_init(el_ptr, el_def, add_cb)                                     \
   _dlist_init(el_ptr, sizeof(el_def), add_cb)
 #define dlist_add(dlist, el_ptr, el_def, add_cb, prepend)                      \
   _dlist_add(dlist, el_ptr, sizeof(el_def), add_cb, prepend)
 #define dlist_get_current(dlist) dlist->current->el_ptr
+#define dlist_get_working_point(dlist) dlist->current->el_ptr
 #define dlist_add_sort(dlist, el_ptr, el_typ, sort_cb, add_cb)                           \
   _dlist_add_sort(dlist, el_ptr, sizeof(el_typ), sort_cb, add_cb)
+#define dlist_reset_wp_to_st(dlist, st_ptr) dlist->work_pointer = st_ptr
+#define dlist_get_ptr(node_ptr) node_ptr->el_ptr
+#define dlist_set_wp(dlist, node_ptr) dlist->work_pointer = node_ptr
 
 #endif

@@ -4,6 +4,7 @@
 #ifndef W_LFL_H /* LOCAL FILE LIST */
 #define W_LFL_H
 
+#include "dlist.h"
 #include <stddef.h>
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>
@@ -22,9 +23,6 @@ typedef struct fs_fl_item {
 
 typedef struct {
     w_t w;
-    w_lfl_item_t *current;
-    w_lfl_item_t *start;
-    w_lfl_item_t *page_start;
     int32_t current_idx;
     int32_t max_lines;
     int32_t cur_page;
@@ -33,6 +31,9 @@ typedef struct {
     WINDOW *win_info;
     WINDOW *win_list;
     char *d_path;
+    dlist_t *f_list;
+    dlist_node_t *page_start;
+    dlist_node_t *fl_selected;
 } w_lfl_ui_t;
 
 void        w_lfl_draw(w_lfl_ui_t *fl_ui);

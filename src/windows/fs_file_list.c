@@ -15,15 +15,22 @@
 #include <unistd.h>
 #include <utils.h>
 
+#include <core/app.h>
 #include <core/file_processor.h>
 #include <core/fs.h>
 #include <core/server.h>
-#include <core/app.h>
 
 #include "alert.h"
+#include "dlist.h"
 #include "fs_file_list.h"
 #include "main_window.h"
 #include "widget_core.h"
+
+#define fl_add(dlist, el_ptr, prepend)                                         \
+  dlist_add_sort(dlist, el_ptr, w_lfl_item_t, fl_add_cb, prepend)
+#define fl_add_sort(dlist, el_ptr)                                             \
+  dlist_add_sort(dlist, el_ptr, w_lfl_item_t, fl_add_sort_cb, fl_add_cb)
+#define fl_clear(f_list) dlist_clear_list(f_list, fl_clear_cb)
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
 
@@ -46,27 +53,34 @@ struct fl_args {
   u_char d_type;
 };
 
-static void fl_add(w_lfl_item_t **f_start, w_lfl_item_t **f_current,
-                   struct fl_args *fargs) {
-  w_lfl_item_t *c_item = malloc(sizeof(w_lfl_item_t));
-  c_item->name = malloc(strlen(fargs->name) + 1);
-  strcpy(c_item->name, fargs->name);
-  c_item->size = fargs->size;
-  c_item->next = NULL;
-  c_item->d_type = fargs->d_type;
-  if (fargs->path != NULL) {
-    c_item->path = malloc(strlen(fargs->path) + 1);
-    strcpy(c_item->path, fargs->path);
-  }
-  if (*f_start == NULL) {
-    c_item->prev = NULL;
-    *f_start = c_item;
-    *f_current = c_item;
+static bool fl_add_cb(void *_dst, void *_src) {
+  w_lfl_item_t *dst = _dst;
+  w_lfl_item_t *src = src;
+  memcpy(dst, src, sizeof(w_lfl_item_t));
+  dst->name = malloc(strlen(src->name) + 1);
+  strcpy(src->name, dst->name);
+  if (src->path != NULL) {
+    dst->path = malloc(strlen(src->path) + 1);
+    strcpy(dst->path, src->path);
   } else {
-    c_item->prev = *f_current;
-    (*f_current)->next = c_item;
-    *f_current = c_item;
+    dst->path = NULL;
   }
+  return 1;
+}
+
+static bool fl_add_sort_cb(void *_a, void *_b) {
+  w_lfl_item_t *a = _a;
+  w_lfl_item_t *b = _b;
+  /* TODO: do real comparison */
+  return true;
+}
+
+static bool fl_clear_cb(void *el_ptr) {
+  w_lfl_item_t *el = el_ptr;
+  free(el->path);
+  free(el->name);
+  free(el);
+  return 1;
 }
 
 static void lfl_clear(w_lfl_item_t **start, w_lfl_item_t **arg_current) {
@@ -90,75 +104,68 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
   char name[257];
   char d_name[257];
   char l_path[INBUFSIZE];
-  struct fl_args f_args;
+  w_lfl_item_t f_args;
   ssize_t r = 0;
   fui->files_num = 0;
-
-  w_lfl_item_t *d_start = NULL, *d_current = NULL; /* directories */
-  w_lfl_item_t *f_start = NULL, *f_current = NULL; /* files */
 
   dir = opendir(path);
   if (!dir)
     return 1;
   if (fui->d_path != NULL) {
     free(fui->d_path);
-    lfl_clear(&(fui->start), &(fui->current));
+    fl_clear(fui->f_list);
   }
   fui->d_path = malloc(strlen(path) + 1);
   strcpy(fui->d_path, path);
   while ((dent = readdir(dir)) != NULL) {
     f_args.path = NULL;
     if ((f_args.d_type = dent->d_type) == DT_DIR) {
+      /* -> DIRECTORIES */
       if (!strcmp(dent->d_name, "..")) {
         w_lfl_item_t *t_st = NULL, *t_cur = NULL;
         sprintf(name, "/%s", dent->d_name);
         f_args.name = name;
         f_args.size = 0;
-        fl_add(&t_st, &t_cur, &f_args);
+        f_args.d_type = dent->d_type;
+        fl_add(fui->f_list, &f_args, true);
         fui->files_num++;
-        /* Always put .. at the beginning */
-        t_st->next = d_start;
-        d_start = t_st;
-        if (d_current == NULL)
-          d_current = t_cur;
-        continue;
       }
       /* Hide directories with dot-beginnings */
       if (!strncmp(dent->d_name, ".", 1))
         continue;
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
-      fl_add(&d_start, &d_current, &f_args);
       f_args.size = 0;
+      f_args.d_type = dent->d_type;
+      fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
+      /* <- DIRECTORIES */
     } else if (f_args.d_type == DT_LNK) {
+      /* -> LINKS */
       sprintf(name, "%s/%s", fui->d_path, dent->d_name);
       r = readlink(name, l_path, INBUFSIZE);
       sprintf(name, "->/%s", dent->d_name);
       f_args.name = name;
       f_args.path = l_path;
       f_args.size = 0;
-      fl_add(&d_start, &d_current, &f_args);
+      f_args.d_type = dent->d_type;
+      fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
+      /* <- LINKS */
     } else {
+      /* -> FILES */
       /* Hide files with dot-beginnings */
       if (!strncmp(dent->d_name, ".", 1))
         continue;
       f_args.name = dent->d_name;
       f_args.size = get_file_size(dent->d_name);
-      fl_add(&f_start, &f_current, &f_args);
+      f_args.d_type = dent->d_type;
+      fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
-      sprintf(name, "%s", dent->d_name);
+      /* <- FILES */
     }
   }
-  if (d_current != NULL)
-    d_current->next = f_start;
-  if (f_start != NULL)
-    f_start->prev = d_current;
 
-  fui->start = d_start;
-  fui->page_start = d_start;
-  fui->current = d_start;
   fui->cur_page = 1;
   fui->pages_num = fui->files_num / fui->max_lines;
   if (fui->files_num % fui->max_lines) {
@@ -172,8 +179,9 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
   char *selection = NULL;
   size_t dp_current;
   char n_path[INBUFSIZE];
-  if (fui->current->d_type == DT_DIR) {
-    if (!strcmp("/..", fui->current->name)) {
+  w_lfl_item_t *current_item = dlist_get_current(fui->f_list);
+  if (current_item->d_type == DT_DIR) {
+    if (!strcmp("/..", current_item->name)) {
       strcpy(n_path, fui->d_path);
       bash_case = strrchr(n_path, '/');
       if (bash_case != NULL) {
@@ -185,60 +193,44 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
       }
     } else {
       dp_current = strlen(fui->d_path);
-      selection = fui->current->name + 1;
+      selection = current_item->name + 1;
       sprintf(n_path, "%s/%s", fui->d_path, selection);
       if (get_files_from_fs(fui, n_path)) {
         w_alert("Can't open the folder!");
         return;
       }
     }
-    fui->current = fui->start;
     fui->current_idx = 0;
     resp_data->code = cbrc_none;
     w_lfl_draw(fui);
-  } else if (fui->current->d_type == DT_REG) {
+  } else if (current_item->d_type == DT_REG) {
     resp_data->code = cbrp_val;
     resp_data->val.type = val_num;
     resp_data->val.val.num = 1;
-  } else if (fui->current->d_type == DT_LNK) {
-    strcpy(n_path, fui->current->path);
+  } else if (current_item->d_type == DT_LNK) {
+    strcpy(n_path, current_item->path);
     if (get_files_from_fs(fui, n_path)) {
       w_alert("Can't open the link!");
       return;
     }
-    fui->current = fui->start;
     fui->current_idx = 0;
     resp_data->code = cbrc_none;
     w_lfl_draw(fui);
   }
 }
 
-/* next page */
 static void page_next(w_lfl_ui_t *fui) {
-  int count = fui->max_lines;
-  w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page < fui->pages_num) {
-    for (; count >= 0; count--) {
-      n_page_item = n_page_item->next;
-    }
+    dlist_node_t *n_page_item = dlist_wind_fwd(fui->f_list, fui->max_lines);
     fui->cur_page++;
     fui->page_start = n_page_item;
     fui->current_idx = 0;
-    fui->current = n_page_item;
   }
 }
-
-/* previous page */
 static void page_previous(w_lfl_ui_t *fui) {
-  int count = fui->max_lines;
-  w_lfl_item_t *n_page_item = fui->page_start;
   if (fui->cur_page > 1) {
-    for (; count >= 0; count--) {
-      n_page_item = n_page_item->prev;
-    }
+    dlist_node_t *n_page_item = dlist_wind_bwd(fui->f_list, fui->max_lines);
     fui->cur_page--;
-    fui->current =
-        fui->page_start->prev; /* the last element of the previous page */
     fui->page_start = n_page_item;
     fui->current_idx = fui->max_lines;
   }
@@ -249,32 +241,24 @@ static void w_lfl_cb(w_cb_args_t *args) {
   int32_t key = *((int32_t *)args->data);
   bool is_cur_p = 0; /* current page */
   app_t *app = (app_t *)args->app;
+  dlist_node_t *flwp = fui->f_list->work_pointer;
+  dlist_set_wp(fui->f_list, fui->fl_selected);
   switch (key) {
   case KEY_DOWN:
     is_cur_p = (fui->current_idx % fui->max_lines || fui->current_idx == 0);
-    if (fui->current->next != NULL) {
-      if (is_cur_p) {
-        if (fui->current_idx < fui->max_lines) {
-          fui->current = fui->current->next;
-          fui->current_idx++;
-        }
-      } else { /* is_cur_p */
-        page_next(fui);
-      }
-    } else
-      break; /* fui->current->next != NULL */
+    if (is_cur_p) {
+      dlist_wind_fwd(fui->f_list, fui->max_lines);
+    } else { /* is_cur_p */
+      page_next(fui);
+    }
     w_lfl_draw(fui);
     break;
   case KEY_UP:
-    if (fui->current->prev != NULL) {
-      if (fui->current_idx > 0) {
-        fui->current = fui->current->prev;
-        fui->current_idx--;
-      } else {
-        page_previous(fui);
-      }
-    } else
-      break;
+    if (fui->current_idx > 0) {
+      dlist_wind_bwd(fui->f_list, fui->max_lines);
+    } else {
+      page_next(fui);
+    }
     w_lfl_draw(fui);
     break;
   case KEY_NPAGE:
@@ -287,24 +271,25 @@ static void w_lfl_cb(w_cb_args_t *args) {
     open_selected_item(fui, &(args->resp_data));
     break;
   }
+  dlist_reset_wp_to_st(fui->f_list, flwp);
 }
 
 w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
-  w_lfl_ui_t *fl_ui = malloc(sizeof(w_lfl_ui_t));
+  w_lfl_ui_t *fui = malloc(sizeof(w_lfl_ui_t));
   WINDOW *win_par = *(w_parent->w_parent->parent_win);
-  w_init(&(fl_ui->w), w_parent, win, "");
-  fl_ui->current_idx = 0;
-  fl_ui->win_info = NULL;
-  fl_ui->d_path = NULL;
+  w_init(&(fui->w), w_parent, win, "");
+  fui->current_idx = 0;
+  fui->win_info = NULL;
+  fui->d_path = NULL;
   char *path = get_current_dir_name();
-  get_files_from_fs(fl_ui, path);
-  fl_ui->current = fl_ui->start;
-  fl_ui->w.callback = w_lfl_cb;
-  fl_ui->w.sz.x = getmaxx(win_par) / 10 * 8;
-  fl_ui->w.sz.y = getmaxy(win_par) / 10 * 8;
-  fl_ui->max_lines = 0; /* detects on the first draw */
-  fl_ui->cur_page = 1;
-  return fl_ui;
+  get_files_from_fs(fui, path);
+  fui->f_list = dlist_init(NULL, w_lfl_item_t, NULL);
+  fui->w.callback = w_lfl_cb;
+  fui->w.sz.x = getmaxx(win_par) / 10 * 8;
+  fui->w.sz.y = getmaxy(win_par) / 10 * 8;
+  fui->max_lines = 0; /* detects on the first draw */
+  fui->cur_page = 1;
+  return fui;
 }
 
 static void w_lfl_cb_refresh(void *data) {
@@ -349,7 +334,8 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   if (d_args->resp_data.code == cbrp_val &&
       d_args->resp_data.val.type == val_num &&
       d_args->resp_data.val.val.num == 1) {
-    file_upload_open(fui->d_path, fui->current->name, app->query_args);
+    file_upload_open(fui->d_path, fui->f_list->work_pointer->el_ptr,
+                     app->query_args);
     app->query_args->state = S_UPLOAD_PARAMS;
   }
   return OK;
@@ -366,7 +352,7 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   app->main_ui.b_keys_len = 2;
   app->main_ui.cb_b_press = (w_cb_press_t)process_user_input;
   app->main_ui.reset = w_lfl_reset_app;
-  app->main_ui.draw = (draw_f_t *) w_lfl_draw;
+  app->main_ui.draw = (draw_f_t *)w_lfl_draw;
   app->active_callback = w_lfl_cb;
   fui->w.callback = w_lfl_cb;
   w_init(&(fui->w), NULL, &(app->win), "");
@@ -377,6 +363,7 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   fui->w.sz.y = getmaxy(app->win);
   fui->cur_page = 1;
   fui->w.parent_win = &(app->win);
+  fui->f_list = dlist_init(NULL, w_lfl_item_t, NULL);
   /* * INIT UI * */
 
   /* define the width for each sub window */
@@ -394,18 +381,17 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   /* get files */
   char *path = get_current_dir_name();
   get_files_from_fs(fui, path);
-  fui->current = fui->start;
   return fui;
 }
 
-void w_lfl_reset(w_lfl_ui_t *fl_ui) {
-  fl_ui->current_idx = 0;
-  lfl_clear(&(fl_ui->start), &(fl_ui->current));
+void w_lfl_reset(w_lfl_ui_t *fui) {
+  fui->current_idx = 0;
+  fl_clear(fui->f_list);
 }
 
 void w_lfl_reset_app(void *app) {
   app_t *_app = app;
-  w_lfl_ui_t *fl_ui = (w_lfl_ui_t *) _app->main_ui.ui;
+  w_lfl_ui_t *fl_ui = (w_lfl_ui_t *)_app->main_ui.ui;
   w_lfl_reset(fl_ui);
 }
 
@@ -419,8 +405,9 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
   p_y = 1;
   p_x = 1;
-  w_lfl_item_t *el = fui->page_start;
-  w_lfl_item_t *active_el = fui->page_start;
+  dlist_reset_wp_to_st(fui->f_list, fui->page_start);
+  w_lfl_item_t *el = dlist_get_ptr(fui->page_start);
+  w_lfl_item_t *active_el = dlist_get_ptr(fui->fl_selected);
 
   box(fui->win_list, 0, 0);
   box(fui->win_info, 0, 0);
@@ -430,7 +417,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       p_y++;
       continue;
     }
-    if (el == fui->current) {
+    if (el == fui->fl_selected->el_ptr) {
       wattrset(win, A_BOLD | A_REVERSE);
       active_el = el;
     }
@@ -440,11 +427,11 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");
     }
-    if (el == fui->current) {
+    if (el == fui->fl_selected->el_ptr) {
       wattroff(win, A_BOLD | A_REVERSE);
     }
     p_y++;
-  } while ((el = el->next) != NULL && p_y < sz_y_f);
+  } while ((el = dlist_it_next(fui->f_list)) != NULL && p_y < sz_y_f);
 
   p_x = 1;
 
@@ -484,7 +471,7 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
 void w_lfl_destroy(w_lfl_ui_t **fui) {
   w_lfl_ui_t *f = *fui;
-  lfl_clear(&(f->start), &(f->current));
+  fl_clear(f->f_list);
   free(*fui);
   *fui = NULL;
 }

@@ -33,7 +33,7 @@ void _dlist_insert(dlist_t *dlist, dlist_node_t *new_el,
     prev_node->next = new_el;
     if (new_el->next == NULL) {
       dlist->current = new_el;
-      dlist->pointer = new_el;
+      dlist->work_pointer = new_el;
     }
   } else {
     new_el->next = dlist->start;
@@ -49,7 +49,7 @@ void _dlist_insert_end(dlist_t *dlist, dlist_node_t *new_node) {
   new_node->previous = dlist->current;
   new_node->next = NULL;
   dlist->current = new_node;
-  dlist->pointer = new_node;
+  dlist->work_pointer = new_node;
   dlist->len++;
 }
 
@@ -66,7 +66,7 @@ void _dlist_add_sort(dlist_t *dlist, void *el_ptr, int el_siz,
     dlist->current = node;
     node->next = NULL;
     node->previous = NULL;
-    dlist->pointer = node;
+    dlist->work_pointer = node;
     dlist->len++;
     return;
   }
@@ -97,7 +97,7 @@ void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz,
     node->next = NULL;
     dlist->start = node;
     dlist->current = node;
-    dlist->pointer = node;
+    dlist->work_pointer = node;
   } else if (prepend) {
     node->previous = NULL;
     node->next = dlist->start;
@@ -108,7 +108,7 @@ void _dlist_add(dlist_t *dlist, void *el_ptr, int el_siz,
     node->next = NULL;
     dlist->current->next = node;
     dlist->current = node;
-    dlist->pointer = node;
+    dlist->work_pointer = node;
   }
   dlist->len++;
 }
@@ -154,7 +154,7 @@ int dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb) {
   dlist->len = 0;
   dlist->current = NULL;
   dlist->start = NULL;
-  dlist->pointer = NULL;
+  dlist->work_pointer = NULL;
 
   return 1;
 }
@@ -162,17 +162,37 @@ int dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb) {
 /* Iterators */
 
 void *dlist_it_prev(dlist_t *dlist) {
-  dlist_node_t *cur_ptr = dlist->pointer;
-  if (dlist->pointer->previous != NULL) {
-    dlist->pointer = dlist->pointer->previous;
+  dlist_node_t *cur_ptr = dlist->work_pointer;
+  if (dlist->work_pointer->previous != NULL) {
+    dlist->work_pointer = dlist->work_pointer->previous;
   }
   return cur_ptr->el_ptr;
 }
 
 void *dlist_it_next(dlist_t *dlist) {
-  dlist_node_t *cur_ptr = dlist->pointer;
-  if (dlist->pointer->next != NULL) {
-    dlist->pointer = dlist->pointer->next;
+  dlist_node_t *cur_ptr = dlist->work_pointer;
+  if (dlist->work_pointer->next != NULL) {
+    dlist->work_pointer = dlist->work_pointer->next;
   }
   return cur_ptr->el_ptr;
+}
+
+dlist_node_t *dlist_wind_fwd(dlist_t *dlist, int count) {
+  dlist_node_t *cur_ptr = dlist->work_pointer;
+
+  for (int i = 0; i < count && cur_ptr != NULL; i++) {
+    cur_ptr = cur_ptr->next;
+  }
+  dlist->work_pointer = cur_ptr;
+  return cur_ptr;
+}
+
+dlist_node_t *dlist_wind_bwd(dlist_t *dlist, int count) {
+  dlist_node_t *cur_ptr = dlist->work_pointer;
+
+  for (int i = 0; i < count && cur_ptr != NULL; i++) {
+    cur_ptr = cur_ptr->previous;
+  }
+  dlist->work_pointer = cur_ptr;
+  return cur_ptr;
 }
