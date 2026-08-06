@@ -44,8 +44,8 @@ dlist_node_t *dlist_wind_bwd(dlist_t *dlist, int count);
 #define dlist_get_working_point(dlist) dlist->current->el_ptr
 #define dlist_add_sort(dlist, el_ptr, el_typ, sort_cb, add_cb)                           \
   _dlist_add_sort(dlist, el_ptr, sizeof(el_typ), sort_cb, add_cb)
-#define dlist_reset_wp_to_st(dlist, st_ptr) dlist->work_pointer = st_ptr
 #define dlist_get_ptr(node_ptr) node_ptr->el_ptr
 #define dlist_set_wp(dlist, node_ptr) dlist->work_pointer = node_ptr
+#define dlist_get_wp(dlist) dlist->work_pointer
 
 #endif

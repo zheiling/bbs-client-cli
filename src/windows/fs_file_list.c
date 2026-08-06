@@ -27,12 +27,14 @@
 #include "widget_core.h"
 
 #define fl_add(dlist, el_ptr, prepend)                                         \
-  dlist_add_sort(dlist, el_ptr, w_lfl_item_t, fl_add_cb, prepend)
+  dlist_add(dlist, el_ptr, w_lfl_item_t, fl_add_cb, prepend)
 #define fl_add_sort(dlist, el_ptr)                                             \
   dlist_add_sort(dlist, el_ptr, w_lfl_item_t, fl_add_sort_cb, fl_add_cb)
 #define fl_clear(f_list) dlist_clear_list(f_list, fl_clear_cb)
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
+
+/* TODO: solve problem with selection */
 
 static size_t get_file_size(char *path) {
   int fd = open(path, O_RDONLY);
@@ -55,10 +57,16 @@ struct fl_args {
 
 static bool fl_add_cb(void *_dst, void *_src) {
   w_lfl_item_t *dst = _dst;
-  w_lfl_item_t *src = src;
+  w_lfl_item_t *src = _src;
   memcpy(dst, src, sizeof(w_lfl_item_t));
   dst->name = malloc(strlen(src->name) + 1);
-  strcpy(src->name, dst->name);
+  strcpy(dst->name, src->name);
+
+  if (src->d_name != NULL) {
+    dst->d_name = malloc(strlen (src->d_name) + 1);
+    strcpy(dst->d_name, src->d_name);
+  }
+
   if (src->path != NULL) {
     dst->path = malloc(strlen(src->path) + 1);
     strcpy(dst->path, src->path);
@@ -79,6 +87,7 @@ static bool fl_clear_cb(void *el_ptr) {
   w_lfl_item_t *el = el_ptr;
   free(el->path);
   free(el->name);
+  free(el->d_name);
   free(el);
   return 1;
 }
@@ -125,16 +134,19 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
         w_lfl_item_t *t_st = NULL, *t_cur = NULL;
         sprintf(name, "/%s", dent->d_name);
         f_args.name = name;
+        f_args.d_name = dent->d_name;
         f_args.size = 0;
         f_args.d_type = dent->d_type;
         fl_add(fui->f_list, &f_args, true);
         fui->files_num++;
+        continue;
       }
       /* Hide directories with dot-beginnings */
       if (!strncmp(dent->d_name, ".", 1))
         continue;
       sprintf(name, "/%s", dent->d_name);
       f_args.name = name;
+      f_args.d_name = dent->d_name;
       f_args.size = 0;
       f_args.d_type = dent->d_type;
       fl_add_sort(fui->f_list, &f_args);
@@ -149,6 +161,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       f_args.path = l_path;
       f_args.size = 0;
       f_args.d_type = dent->d_type;
+      f_args.d_name = NULL;
       fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
       /* <- LINKS */
@@ -160,6 +173,7 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       f_args.name = dent->d_name;
       f_args.size = get_file_size(dent->d_name);
       f_args.d_type = dent->d_type;
+      f_args.d_name = NULL;
       fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
       /* <- FILES */
@@ -171,6 +185,8 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
   if (fui->files_num % fui->max_lines) {
     fui->pages_num++;
   }
+  fui->page_start = fui->f_list->start;
+  fui->fl_selected = fui->f_list->start;
   return 0;
 }
 
@@ -241,13 +257,13 @@ static void w_lfl_cb(w_cb_args_t *args) {
   int32_t key = *((int32_t *)args->data);
   bool is_cur_p = 0; /* current page */
   app_t *app = (app_t *)args->app;
-  dlist_node_t *flwp = fui->f_list->work_pointer;
+  dlist_node_t *flwp = dlist_get_wp(fui->f_list);
   dlist_set_wp(fui->f_list, fui->fl_selected);
   switch (key) {
   case KEY_DOWN:
     is_cur_p = (fui->current_idx % fui->max_lines || fui->current_idx == 0);
     if (is_cur_p) {
-      dlist_wind_fwd(fui->f_list, fui->max_lines);
+      fui->fl_selected = dlist_it_next(fui->f_list);
     } else { /* is_cur_p */
       page_next(fui);
     }
@@ -255,7 +271,7 @@ static void w_lfl_cb(w_cb_args_t *args) {
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
-      dlist_wind_bwd(fui->f_list, fui->max_lines);
+      fui->fl_selected = dlist_it_prev(fui->f_list);
     } else {
       page_next(fui);
     }
@@ -271,7 +287,7 @@ static void w_lfl_cb(w_cb_args_t *args) {
     open_selected_item(fui, &(args->resp_data));
     break;
   }
-  dlist_reset_wp_to_st(fui->f_list, flwp);
+  dlist_set_wp(fui->f_list, flwp);
 }
 
 w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
@@ -405,8 +421,8 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
 
   p_y = 1;
   p_x = 1;
-  dlist_reset_wp_to_st(fui->f_list, fui->page_start);
-  w_lfl_item_t *el = dlist_get_ptr(fui->page_start);
+  dlist_set_wp(fui->f_list, fui->page_start);
+  w_lfl_item_t *el = dlist_it_next(fui->f_list);
   w_lfl_item_t *active_el = dlist_get_ptr(fui->fl_selected);
 
   box(fui->win_list, 0, 0);

@@ -163,18 +163,20 @@ int dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb) {
 
 void *dlist_it_prev(dlist_t *dlist) {
   dlist_node_t *cur_ptr = dlist->work_pointer;
-  if (dlist->work_pointer->previous != NULL) {
+  if (cur_ptr != NULL) {
     dlist->work_pointer = dlist->work_pointer->previous;
-  }
-  return cur_ptr->el_ptr;
+    return cur_ptr->el_ptr;
+  } 
+  return NULL;
 }
 
 void *dlist_it_next(dlist_t *dlist) {
   dlist_node_t *cur_ptr = dlist->work_pointer;
-  if (dlist->work_pointer->next != NULL) {
+  if (cur_ptr != NULL) {
     dlist->work_pointer = dlist->work_pointer->next;
-  }
-  return cur_ptr->el_ptr;
+    return cur_ptr->el_ptr;
+  } 
+  return NULL;
 }
 
 dlist_node_t *dlist_wind_fwd(dlist_t *dlist, int count) {
