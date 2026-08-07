@@ -4,7 +4,9 @@
 - [ ] Sorting in the file list (local files):
     - [x] Testing env
     - [x] Test dlist
-    - [ ] Dlist sort
+    - [x] Dlist sort
+    - [ ] Bug: when returning back from the link
+    - [ ] Better compatibility with Cyrillic symbols (use wchar_t everywhere)
 
 ## Global tasks:
 - [ ] Testing

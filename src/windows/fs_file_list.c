@@ -22,6 +22,7 @@
 
 #include "alert.h"
 #include "dlist.h"
+#include "file_list.h"
 #include "fs_file_list.h"
 #include "main_window.h"
 #include "widget_core.h"
@@ -33,8 +34,6 @@
 #define fl_clear(f_list) dlist_clear_list(f_list, fl_clear_cb)
 
 // void w_fl_reset(w_lfl_ui_t *fl_ui);
-
-/* TODO: solve problem with selection */
 
 static size_t get_file_size(char *path) {
   int fd = open(path, O_RDONLY);
@@ -63,7 +62,7 @@ static bool fl_add_cb(void *_dst, void *_src) {
   strcpy(dst->name, src->name);
 
   if (src->d_name != NULL) {
-    dst->d_name = malloc(strlen (src->d_name) + 1);
+    dst->d_name = malloc(strlen(src->d_name) + 1);
     strcpy(dst->d_name, src->d_name);
   }
 
@@ -76,11 +75,36 @@ static bool fl_add_cb(void *_dst, void *_src) {
   return 1;
 }
 
+static int _strcmp(char *a, char *b) {
+  char abuf[256];
+  char bbuf[256];
+
+  int c = 0;
+
+  for (int i = 0; a[i] != '\0'; i++) {
+    abuf[i] = a[i] & ~32; /* case non-sensitive for Latin characters */
+  }
+
+  for (int i = 0; b[i] != '\0'; i++) {
+    bbuf[i] = b[i] & ~32;
+  }
+  return strcmp(abuf, bbuf);
+}
+
 static bool fl_add_sort_cb(void *_a, void *_b) {
   w_lfl_item_t *a = _a;
   w_lfl_item_t *b = _b;
-  /* TODO: do real comparison */
-  return true;
+  int res = 0;
+  if ((a->d_type == b->d_type) && a->d_type == DT_DIR) {
+    res = _strcmp(a->d_name, b->d_name);
+  } else if (a->d_type == DT_DIR) {
+    return false;
+  } else if (b->d_type == DT_DIR) {
+    return true;
+  } else {
+    res = _strcmp(a->name, b->name);
+  }
+  return res > 0 ? true : false;
 }
 
 static bool fl_clear_cb(void *el_ptr) {
@@ -195,9 +219,9 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
   char *selection = NULL;
   size_t dp_current;
   char n_path[INBUFSIZE];
-  w_lfl_item_t *current_item = dlist_get_current(fui->f_list);
-  if (current_item->d_type == DT_DIR) {
-    if (!strcmp("/..", current_item->name)) {
+  w_lfl_item_t *selected_item = fui->fl_selected->el_ptr;
+  if (selected_item->d_type == DT_DIR) {
+    if (!strcmp("/..", selected_item->name)) {
       strcpy(n_path, fui->d_path);
       bash_case = strrchr(n_path, '/');
       if (bash_case != NULL) {
@@ -209,7 +233,7 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
       }
     } else {
       dp_current = strlen(fui->d_path);
-      selection = current_item->name + 1;
+      selection = selected_item->name + 1;
       sprintf(n_path, "%s/%s", fui->d_path, selection);
       if (get_files_from_fs(fui, n_path)) {
         w_alert("Can't open the folder!");
@@ -219,12 +243,12 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
     fui->current_idx = 0;
     resp_data->code = cbrc_none;
     w_lfl_draw(fui);
-  } else if (current_item->d_type == DT_REG) {
+  } else if (selected_item->d_type == DT_REG) {
     resp_data->code = cbrp_val;
     resp_data->val.type = val_num;
     resp_data->val.val.num = 1;
-  } else if (current_item->d_type == DT_LNK) {
-    strcpy(n_path, current_item->path);
+  } else if (selected_item->d_type == DT_LNK) {
+    strcpy(n_path, selected_item->path);
     if (get_files_from_fs(fui, n_path)) {
       w_alert("Can't open the link!");
       return;
@@ -237,17 +261,22 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
 
 static void page_next(w_lfl_ui_t *fui) {
   if (fui->cur_page < fui->pages_num) {
-    dlist_node_t *n_page_item = dlist_wind_fwd(fui->f_list, fui->max_lines);
+    dlist_node_t *n_page_item =
+        dlist_wind_fwd(fui->f_list, fui->page_start, fui->max_lines);
     fui->cur_page++;
     fui->page_start = n_page_item;
+    fui->fl_selected = n_page_item;
     fui->current_idx = 0;
   }
 }
 static void page_previous(w_lfl_ui_t *fui) {
+  dlist_node_t *last_node = fui->page_start->previous;
   if (fui->cur_page > 1) {
-    dlist_node_t *n_page_item = dlist_wind_bwd(fui->f_list, fui->max_lines);
+    dlist_node_t *n_page_item =
+        dlist_wind_bwd(fui->f_list, fui->page_start, fui->max_lines);
     fui->cur_page--;
     fui->page_start = n_page_item;
+    fui->fl_selected = last_node;
     fui->current_idx = fui->max_lines;
   }
 }
@@ -263,7 +292,10 @@ static void w_lfl_cb(w_cb_args_t *args) {
   case KEY_DOWN:
     is_cur_p = (fui->current_idx % fui->max_lines || fui->current_idx == 0);
     if (is_cur_p) {
-      fui->fl_selected = dlist_it_next(fui->f_list);
+      if (fui->fl_selected->next != NULL) {
+        fui->fl_selected = fui->fl_selected->next;
+        fui->current_idx++;
+      }
     } else { /* is_cur_p */
       page_next(fui);
     }
@@ -271,9 +303,12 @@ static void w_lfl_cb(w_cb_args_t *args) {
     break;
   case KEY_UP:
     if (fui->current_idx > 0) {
-      fui->fl_selected = dlist_it_prev(fui->f_list);
+      if (fui->fl_selected->previous != NULL) {
+        fui->fl_selected = fui->fl_selected->previous;
+        fui->current_idx--;
+      }
     } else {
-      page_next(fui);
+      page_previous(fui);
     }
     w_lfl_draw(fui);
     break;
@@ -350,8 +385,8 @@ static int32_t process_user_input(app_t *app, w_cb_args_t *d_args) {
   if (d_args->resp_data.code == cbrp_val &&
       d_args->resp_data.val.type == val_num &&
       d_args->resp_data.val.val.num == 1) {
-    file_upload_open(fui->d_path, fui->f_list->work_pointer->el_ptr,
-                     app->query_args);
+    w_lfl_item_t *file = dlist_get_ptr(fui->fl_selected);
+    file_upload_open(fui->d_path, file->name, app->query_args);
     app->query_args->state = S_UPLOAD_PARAMS;
   }
   return OK;

@@ -179,22 +179,22 @@ void *dlist_it_next(dlist_t *dlist) {
   return NULL;
 }
 
-dlist_node_t *dlist_wind_fwd(dlist_t *dlist, int count) {
-  dlist_node_t *cur_ptr = dlist->work_pointer;
+dlist_node_t *dlist_wind_fwd(dlist_t *dlist, dlist_node_t *start, int count) {
+  dlist_node_t *new_ptr = start;
 
-  for (int i = 0; i < count && cur_ptr != NULL; i++) {
-    cur_ptr = cur_ptr->next;
+  for (int i = 0; i <= count && new_ptr != NULL; i++) {
+    new_ptr = new_ptr->next;
   }
-  dlist->work_pointer = cur_ptr;
-  return cur_ptr;
+  dlist->work_pointer = new_ptr;
+  return new_ptr;
 }
 
-dlist_node_t *dlist_wind_bwd(dlist_t *dlist, int count) {
-  dlist_node_t *cur_ptr = dlist->work_pointer;
+dlist_node_t *dlist_wind_bwd(dlist_t *dlist, dlist_node_t *start, int count) {
+  dlist_node_t *new_ptr = start;
 
-  for (int i = 0; i < count && cur_ptr != NULL; i++) {
-    cur_ptr = cur_ptr->previous;
+  for (int i = 0; i <= count && new_ptr != NULL; i++) {
+    new_ptr = new_ptr->previous;
   }
-  dlist->work_pointer = cur_ptr;
-  return cur_ptr;
+  dlist->work_pointer = new_ptr;
+  return new_ptr;
 }
