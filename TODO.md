@@ -6,7 +6,7 @@
     - [x] Test dlist
     - [x] Dlist sort
     - [ ] Bug: when returning back from the link
-    - [ ] Better compatibility with Cyrillic symbols (use wchar_t everywhere)
+    - [x] Better compatibility with Cyrillic symbols (use wchar_t everywhere)
 
 ## Global tasks:
 - [ ] Testing

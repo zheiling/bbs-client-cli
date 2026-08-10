@@ -19,10 +19,10 @@
 #include <core/file_processor.h>
 #include <core/fs.h>
 #include <core/server.h>
+#include <wchar.h>
 
 #include "alert.h"
 #include "dlist.h"
-#include "file_list.h"
 #include "fs_file_list.h"
 #include "main_window.h"
 #include "widget_core.h"
@@ -58,12 +58,14 @@ static bool fl_add_cb(void *_dst, void *_src) {
   w_lfl_item_t *dst = _dst;
   w_lfl_item_t *src = _src;
   memcpy(dst, src, sizeof(w_lfl_item_t));
-  dst->name = malloc(strlen(src->name) + 1);
-  strcpy(dst->name, src->name);
+  if (src->name != NULL) {
+    dst->name = malloc(strlen(src->name) + 1);
+    strcpy(dst->name, src->name);
+  }
 
-  if (src->d_name != NULL) {
-    dst->d_name = malloc(strlen(src->d_name) + 1);
-    strcpy(dst->d_name, src->d_name);
+  if (src->w_name != NULL) {
+    dst->w_name = malloc((wcslen(src->w_name) + 1) * sizeof(wchar_t));
+    wcscpy(dst->w_name, src->w_name);
   }
 
   if (src->path != NULL) {
@@ -75,9 +77,9 @@ static bool fl_add_cb(void *_dst, void *_src) {
   return 1;
 }
 
-static int _strcmp(char *a, char *b) {
-  char abuf[256];
-  char bbuf[256];
+static int _strcmp(wchar_t *a, wchar_t *b) {
+  wchar_t abuf[256];
+  wchar_t bbuf[256];
 
   int c = 0;
 
@@ -88,54 +90,46 @@ static int _strcmp(char *a, char *b) {
   for (int i = 0; b[i] != '\0'; i++) {
     bbuf[i] = b[i] & ~32;
   }
-  return strcmp(abuf, bbuf);
+  return wcscmp(abuf, bbuf);
 }
 
 static bool fl_add_sort_cb(void *_a, void *_b) {
   w_lfl_item_t *a = _a;
   w_lfl_item_t *b = _b;
+  wchar_t *a_w_name = a->w_name;
+  wchar_t *b_w_name = b->w_name;
+  int a_m = 0, b_m = 0;
   int res = 0;
-  if ((a->d_type == b->d_type) && a->d_type == DT_DIR) {
-    res = _strcmp(a->d_name, b->d_name);
-  } else if (a->d_type == DT_DIR) {
-    return false;
-  } else if (b->d_type == DT_DIR) {
-    return true;
-  } else {
-    res = _strcmp(a->name, b->name);
-  }
-  return res > 0 ? true : false;
+  if (a->d_type == DT_DIR || (a->d_type == DT_LNK && a->w_name[2] == '/'))
+    a_m |= 1;
+  if (b->d_type == DT_DIR || (b->d_type == DT_LNK && b->w_name[2] == '/'))
+    b_m |= 1;
+
+  if (a_m != b_m)
+    return b_m > a_m;
+
+  if (a->d_type == DT_LNK)
+    a_w_name += 2;
+  if (b->d_type == DT_LNK)
+    b_w_name += 2;
+  res = _strcmp(a_w_name, b_w_name);
+  return res > 0;
 }
 
 static bool fl_clear_cb(void *el_ptr) {
   w_lfl_item_t *el = el_ptr;
   free(el->path);
   free(el->name);
-  free(el->d_name);
+  free(el->w_name);
   free(el);
   return 1;
-}
-
-static void lfl_clear(w_lfl_item_t **start, w_lfl_item_t **arg_current) {
-  if (*start == NULL)
-    return;
-  w_lfl_item_t *next, *current;
-  current = *start;
-
-  do {
-    next = current->next;
-    free(current->name);
-    free(current);
-  } while ((current = next) != NULL);
-  *start = NULL;
-  *arg_current = NULL;
 }
 
 static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
   DIR *dir;
   struct dirent *dent;
   char name[257];
-  char d_name[257];
+  wchar_t w_d_name[257];
   char l_path[INBUFSIZE];
   w_lfl_item_t f_args;
   ssize_t r = 0;
@@ -156,9 +150,9 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       /* -> DIRECTORIES */
       if (!strcmp(dent->d_name, "..")) {
         w_lfl_item_t *t_st = NULL, *t_cur = NULL;
-        sprintf(name, "/%s", dent->d_name);
-        f_args.name = name;
-        f_args.d_name = dent->d_name;
+        wcscpy(w_d_name, L"/..");
+        f_args.name = dent->d_name;
+        f_args.w_name = w_d_name;
         f_args.size = 0;
         f_args.d_type = dent->d_type;
         fl_add(fui->f_list, &f_args, true);
@@ -168,9 +162,10 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       /* Hide directories with dot-beginnings */
       if (!strncmp(dent->d_name, ".", 1))
         continue;
-      sprintf(name, "/%s", dent->d_name);
-      f_args.name = name;
-      f_args.d_name = dent->d_name;
+      mbstowcs(w_d_name + 1, dent->d_name, 255);
+      w_d_name[0] = '/';
+      f_args.name = dent->d_name;
+      f_args.w_name = w_d_name;
       f_args.size = 0;
       f_args.d_type = dent->d_type;
       fl_add_sort(fui->f_list, &f_args);
@@ -180,12 +175,13 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       /* -> LINKS */
       sprintf(name, "%s/%s", fui->d_path, dent->d_name);
       r = readlink(name, l_path, INBUFSIZE);
-      sprintf(name, "->/%s", dent->d_name);
-      f_args.name = name;
+      wcsncpy(w_d_name, L"->/", 3);
+      mbstowcs(w_d_name + 3, dent->d_name, 253);
+      f_args.name = dent->d_name;
+      f_args.w_name = w_d_name;
       f_args.path = l_path;
       f_args.size = 0;
       f_args.d_type = dent->d_type;
-      f_args.d_name = NULL;
       fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
       /* <- LINKS */
@@ -195,9 +191,10 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       if (!strncmp(dent->d_name, ".", 1))
         continue;
       f_args.name = dent->d_name;
+      mbstowcs(w_d_name, dent->d_name, 256);
+      f_args.w_name = w_d_name;
       f_args.size = get_file_size(dent->d_name);
       f_args.d_type = dent->d_type;
-      f_args.d_name = NULL;
       fl_add_sort(fui->f_list, &f_args);
       fui->files_num++;
       /* <- FILES */
@@ -221,7 +218,7 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
   char n_path[INBUFSIZE];
   w_lfl_item_t *selected_item = fui->fl_selected->el_ptr;
   if (selected_item->d_type == DT_DIR) {
-    if (!strcmp("/..", selected_item->name)) {
+    if (!strcmp("..", selected_item->name)) {
       strcpy(n_path, fui->d_path);
       bash_case = strrchr(n_path, '/');
       if (bash_case != NULL) {
@@ -473,7 +470,10 @@ void w_lfl_draw(w_lfl_ui_t *fui) {
       active_el = el;
     }
     p_x = 1;
-    p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x_f - 1, false);
+    mvwaddnwstr(win, p_y, p_x, el->w_name, sz_x_f - 1);
+    p_x += wcslen(el->w_name);
+    /* p_x += u_utf8_curs_printw(win, &p_y, &p_x, el->name, sz_x_f - 1, false);
+     */
     int pad = sz_x_f - p_x;
     if (pad >= 0) {
       mvwprintw(win, p_y, p_x, "%*s", pad, "");

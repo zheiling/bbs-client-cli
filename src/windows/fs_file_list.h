@@ -6,6 +6,7 @@
 
 #include "dlist.h"
 #include <stddef.h>
+#include <wchar.h>
 #include <widget_core.h>
 #include <ncursesw/ncurses.h>
 #include <stdint.h>
@@ -14,10 +15,8 @@
 typedef struct fs_fl_item {
   char *name;
   char *path;
-  char *d_name;
+  wchar_t *w_name;
   size_t size;
-  struct fs_fl_item *next;
-  struct fs_fl_item *prev;
   u_char d_type;
 } w_lfl_item_t;
 
