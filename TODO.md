@@ -1,13 +1,5 @@
 # TODO:
 
-## Current:
-- [ ] Sorting in the file list (local files):
-    - [x] Testing env
-    - [x] Test dlist
-    - [x] Dlist sort
-    - [ ] Bug: when returning back from the link
-    - [x] Better compatibility with Cyrillic symbols (use wchar_t everywhere)
-
 ## Global tasks:
 - [ ] Testing
 - [ ] Documentation

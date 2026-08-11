@@ -30,6 +30,7 @@ typedef struct {
     WINDOW *win_info;
     WINDOW *win_list;
     char *d_path;
+    char *d_path_previous;
     dlist_t *f_list;
     dlist_node_t *page_start;
     dlist_node_t *fl_selected;

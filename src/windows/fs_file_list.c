@@ -175,6 +175,9 @@ static int get_files_from_fs(w_lfl_ui_t *fui, char *path) {
       /* -> LINKS */
       sprintf(name, "%s/%s", fui->d_path, dent->d_name);
       r = readlink(name, l_path, INBUFSIZE);
+      for (int i = 1; l_path[r - 1] == '/'; i++) {
+        l_path[r - 1] = '\0';
+      }
       wcsncpy(w_d_name, L"->/", 3);
       mbstowcs(w_d_name + 3, dent->d_name, 253);
       f_args.name = dent->d_name;
@@ -220,12 +223,21 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
   if (selected_item->d_type == DT_DIR) {
     if (!strcmp("..", selected_item->name)) {
       strcpy(n_path, fui->d_path);
-      bash_case = strrchr(n_path, '/');
-      if (bash_case != NULL) {
-        *bash_case = '\0';
-        if (get_files_from_fs(fui, n_path)) {
+      if (fui->d_path_previous != NULL) {
+        if (get_files_from_fs(fui, fui->d_path_previous)) {
           w_alert("Can't open the folder!");
           return;
+        }
+        free(fui->d_path_previous);
+        fui->d_path_previous = NULL;
+      } else {
+        bash_case = strrchr(n_path, '/');
+        if (bash_case != NULL) {
+          *bash_case = '\0';
+          if (get_files_from_fs(fui, n_path)) {
+            w_alert("Can't open the folder!");
+            return;
+          }
         }
       }
     } else {
@@ -246,6 +258,8 @@ static void open_selected_item(w_lfl_ui_t *fui, w_cbrp_data *resp_data) {
     resp_data->val.val.num = 1;
   } else if (selected_item->d_type == DT_LNK) {
     strcpy(n_path, selected_item->path);
+    fui->d_path_previous = malloc(sizeof(char) * (strlen(fui->d_path) + 1));
+    strcpy(fui->d_path_previous, fui->d_path);
     if (get_files_from_fs(fui, n_path)) {
       w_alert("Can't open the link!");
       return;
@@ -337,6 +351,7 @@ w_lfl_ui_t *w_lfl_init(WINDOW **win, w_t *w_parent) {
   fui->w.sz.y = getmaxy(win_par) / 10 * 8;
   fui->max_lines = 0; /* detects on the first draw */
   fui->cur_page = 1;
+  fui->d_path_previous = NULL;
   return fui;
 }
 
@@ -429,6 +444,7 @@ w_lfl_ui_t *w_lfl_init_win(app_t *app) {
   /* get files */
   char *path = get_current_dir_name();
   get_files_from_fs(fui, path);
+  fui->d_path_previous = NULL;
   return fui;
 }
 
