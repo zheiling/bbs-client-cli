@@ -2,8 +2,10 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "alert.h"
+#include "dlist.h"
 #include "server.h"
 #include <arpa/inet.h>
+#include <common.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <stddef.h>
@@ -19,28 +21,24 @@
 #include <termios.h>
 #include <unistd.h>
 #include <widget.h>
-#include <common.h>
 #include <windows/file_list.h>
 
 #include "file_processor.h"
 #include "query.h"
 
-static void fl_add(fl_item_t **cur, fl_item_t **start, char *fname);
-fl_item_t *fl_select(fl_item_t *start, int num);
+static void fl_add(dlist_t *fl_list, char *q_line);
 void fl_clear(fl_item_t **start, fl_item_t **current);
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
   int32_t qlen;
   char *query = NULL;
-  static char qbuf[INBUFSIZE * 2];
+  static char q_buf[INBUFSIZE * 2];
   static int32_t qbuf_used = 0;
   w_ui_file_list_t *fui = (w_ui_file_list_t *)q_args->main_ui->ui;
   w_dialogue_t *d = (w_dialogue_t *)q_args->active_dialogue;
-  fui->start = &(f_args->l_start);
-  fui->current = &(f_args->l_current);
 
   if (qbuf_used == 0)
-    qbuf[0] = 0;
+    q_buf[0] = 0;
 
   while ((qlen = query_extract_from_buf(q_args->buf, &(q_args->buf_used),
                                         &query))) {
@@ -55,16 +53,16 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
       q_args->state = WAIT_CLIENT;
       break;
     }
-    strcat(qbuf, query);
-    qbuf_used += strlen(qbuf);
-    if (strchr(qbuf, '\n') == NULL)
+    strcat(q_buf, query);
+    qbuf_used += strlen(q_buf);
+    if (strchr(q_buf, '\n') == NULL)
       continue;
-    fl_add(&(f_args->l_current), &(f_args->l_start), qbuf);
+    fl_add(f_args->f_list, q_buf);
     fui->current_count++;
     free(query);
     query = NULL;
     qbuf_used = 0;
-    qbuf[0] = 0;
+    q_buf[0] = 0;
   }
 }
 
@@ -74,7 +72,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
   struct stat st = {0};
 
-  l_selected = fl_select(f_args->l_start, idx);
+  l_selected = NULL; /* TODO: FIX */
 
   if (l_selected == NULL) {
     return -1;
@@ -173,8 +171,8 @@ void file_download(file_args_t *f_args, query_args_t *q_args) {
   if (q_args->file->package_rest <= q_args->buf_used) {
     write_len = q_args->file->package_rest;
     qlen = write(f_args->file_d, q_args->buf, write_len);
-    file_download_receive_after(qlen, q_args, f_args, d, pb)
-    if (q_args->file->signal == sig_continue) {
+    file_download_receive_after(qlen, q_args, f_args, d,
+                                pb) if (q_args->file->signal == sig_continue) {
       server_send_string(q_args, "continue %d\n", PACKAGE_SIZE * 10);
       if (q_args->file->package_rest == 0) {
         q_args->file->package_rest = PACKAGE_SIZE * 10;
@@ -316,66 +314,77 @@ void clear_file_in_query(query_args_t *q_args) {
   q_args->file = NULL;
 }
 
-void init_file_args(file_args_t *f_args) {
+void init_file_args(file_args_t *f_args, app_t *app) {
+  w_ui_file_list_t *fui = NULL;
   f_args->file_d = 0;
   f_args->f_selected.name = NULL;
-  f_args->f_selected.next = NULL;
   f_args->f_selected.size = 0;
   f_args->l_current = NULL;
   f_args->l_start = NULL;
+  if (app->main_ui.type == mw_fl_server) {
+    fui = app->main_ui.ui;
+    if (fui != NULL) {
+      f_args->f_list = fui->f_list;
+    }
+  }
 }
 
-/* work with file list */
-static void fl_add(fl_item_t **cur, fl_item_t **start, char *line) {
+static void fl_q_extract(fl_item_t *f, char *line) {
   char fowner[32];
   char *descr_begin = NULL;
   int h_len;
   char *name_begin = strchr(line, '[') + 1;
   char *name_end = strchr(line, ']');
   int name_len = name_end - name_begin;
-  fl_item_t *fitem = malloc(sizeof(fl_item_t));
-  sscanf(name_end, "] %zu %s%n", &(fitem->size), fowner, &h_len);
-  /* file name */
-  fitem->name = malloc((sizeof(char)) * (name_len + 1));
-  strncpy(fitem->name, name_begin, name_len);
-  fitem->name[name_len] = 0;
-  /* file owner */
-  fitem->owner = malloc((sizeof(char)) * (strlen(fowner) + 1));
-  strcpy(fitem->owner, fowner);
-  /* file description */
+  sscanf(name_end, "] %zu %s%n", &(f->size), fowner, &h_len);
+  strncpy(f->name, name_begin, name_len);
+  f->name[name_len] = 0;
+  strcpy(f->owner, fowner);
   descr_begin = name_end + h_len + 1;
   if (strcmp(descr_begin, "\n")) {
     int d_len = strlen(line) - h_len;
-    fitem->description = malloc((sizeof(char)) * (d_len));
-    strcpy(fitem->description, descr_begin); // +1 to escape the dividing \32
+    strcpy(f->description, descr_begin); // +1 to escape the dividing \32
     for (int i = 0; i < d_len; i++) {
-      if (fitem->description[i] == '\a') {
-        fitem->description[i] = '\n';
+      if (f->description[i] == '\a') {
+        f->description[i] = '\n';
       }
     }
   } else {
-    fitem->description = NULL;
+    f->description = NULL;
   }
-  /* fitem->description[strlen(line + line_pos)] = 0; */
-  fitem->next = NULL;
-  if (*cur != NULL) {
-    (*cur)->next = fitem;
-  } else {
-    *start = fitem;
-  }
-  *cur = fitem;
 }
 
-fl_item_t *fl_select(fl_item_t *start, int num) {
-  fl_item_t *current = start;
-  for (; num != 1; num--) {
-    if (current->next != NULL) {
-      current = current->next;
-    } else {
-      return NULL;
-    }
-  }
-  return current;
+static bool fl_add_cb(void *_dst, void *_src) {
+  fl_item_t *dst = _dst;
+  fl_item_t *src = _src;
+
+  dst->size = src->size;
+
+  dst->description = malloc(sizeof(char) * (strlen(src->description) + 1));
+  strcpy(dst->description, src->description);
+
+  dst->name = malloc(sizeof(char) * (strlen(src->name) + 1));
+  strcpy(dst->name, src->name);
+
+  dst->owner = malloc(sizeof(char) * (strlen(src->owner) + 1));
+  strcpy(dst->owner, src->owner);
+  return true;
+}
+
+/* work with file list */
+static void fl_add(dlist_t *fl_list, char *q_line) {
+  fl_item_t f_item;
+  char f_description[INBUFSIZE * 100];
+  char f_owner[256];
+  char f_name[256];
+  f_item.description = f_description;
+  f_item.owner = f_owner;
+  f_item.name = f_name;
+  f_item.size = 0;
+
+  fl_q_extract(&f_item, q_line);
+
+  dlist_add(fl_list, &f_item, fl_item_t, fl_add_cb, false);
 }
 
 void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
@@ -385,7 +394,6 @@ void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
   current = *start;
 
   do {
-    next = current->next;
     free(current->description);
     free(current->name);
     free(current);

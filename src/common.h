@@ -4,6 +4,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include "dlist.h"
 #include <d_array.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
@@ -27,7 +28,7 @@ typedef struct {
 
 #define MAIN_UI_RESET(app)                                                     \
   app->main_ui.ui = NULL;                                                      \
-  app->main_ui.cb_ui_refresh = NULL;                                              \
+  app->main_ui.cb_ui_refresh = NULL;                                           \
   app->main_ui.cb_b_press = NULL;                                              \
   app->main_ui.b_keys = NULL;                                                  \
   app->main_ui.b_keys_len = 0;
@@ -44,7 +45,6 @@ typedef struct fl_item {
   char *name;
   char *description;
   char *owner;
-  struct fl_item *next;
 } fl_item_t;
 
 enum main_window_type {
@@ -66,14 +66,13 @@ typedef struct main_window {
   int32_t b_keys_len;
 } main_window_t;
 
-
 typedef struct file_args {
   int file_d;
   fl_item_t f_selected;
   fl_item_t *l_start;
   fl_item_t *l_current;
+  dlist_t *f_list;
 } file_args_t;
-
 
 typedef struct params {
   unsigned short port;

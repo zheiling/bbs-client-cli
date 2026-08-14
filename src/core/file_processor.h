@@ -8,7 +8,7 @@
 
 void file_list(file_args_t *f_args, query_args_t *q_args);
 void file_download(file_args_t *f_args, query_args_t *q_args);
-void init_file_args(file_args_t *fargs);
+void init_file_args(file_args_t *fargs, app_t *app);
 int file_upload_request(char *, query_args_t *q_args);
 int file_upload_start(query_args_t *q_args);
 int file_upload(query_args_t *q_args);

@@ -4,6 +4,7 @@
 #include "file_list.h"
 #include <common.h>
 #include <core.h>
+#include "dlist.h"
 #include "main_window.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>
@@ -191,6 +192,11 @@ void *w_fl_init(app_t *app) {
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
 
+  fui->f_list = dlist_init(NULL, fl_item_t, NULL);
+  if (app->file_args != NULL) {
+    app->file_args->f_list = fui->f_list;
+  }
+
   /* * INIT UI * */
 
   /* define the width for each sub window */
@@ -240,8 +246,8 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   sz_x -= 1;                 /* do not count the borders */
   p_y = 1;
   p_x = 1;
-  fl_item_t *el = NULL;
-  fl_item_t *active_el = NULL;
+  fl_item_t *el = dlist_it_next(fui->f_list);
+  fl_item_t *active_el = dlist_get_ptr(fui->f_selected);
   int32_t cur_el_idx = 0;
 
   box(fui->win_list, 0, 0);
@@ -279,7 +285,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     }
     p_y++;
     cur_el_idx++;
-  } while ((el = el->next) != NULL && p_y < sz_y_f);
+  } while ((el = dlist_it_next(fui->f_list)) != NULL && p_y < sz_y_f);
 
   p_x = 1;
   int32_t p_len;

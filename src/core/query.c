@@ -54,7 +54,7 @@ void query_loop(app_t *app) {
   w_cb_args_t d_args = {
       .app = app, .element = NULL, .data = NULL, .resp_data.code = cbrc_none};
 
-  init_file_args(&file_args);
+  init_file_args(&file_args, app);
   query_args->sd = sd;
   app->file_args = &file_args;
 

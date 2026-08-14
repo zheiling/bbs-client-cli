@@ -4,6 +4,7 @@
 #ifndef W_FILE_LIST_H
 #define W_FILE_LIST_H
 
+#include "dlist.h"
 #include <bstrlib.h>
 #include <stdint.h>
 #include <widget_core.h>
@@ -12,6 +13,8 @@ typedef struct {
   w_t w;
   fl_item_t **current;
   fl_item_t **start;
+  dlist_t *f_list;
+  dlist_node_t *f_selected;
   int32_t current_idx;
   int32_t current_count;
   int32_t full_count;
