@@ -2,10 +2,10 @@
 /* Copyright (c) 2026 Oleksandr Zhylin */
 
 #include "file_list.h"
+#include "main_window.h"
+#include "dlist.h"
 #include <common.h>
 #include <core.h>
-#include "dlist.h"
-#include "main_window.h"
 #include <bstrlib.h>
 #include <ncursesw/ncurses.h>
 #include <stdbool.h>
@@ -216,13 +216,13 @@ void *w_fl_init(app_t *app) {
 }
 
 void w_fl_destroy(w_ui_file_list_t **fui) {
-  fl_clear((*fui)->start, (*fui)->current);
+  fl_clear((*fui)->f_list);
   free(*fui);
   *fui = NULL;
 }
 
 void w_fl_reset(w_ui_file_list_t *fl_ui) {
-  fl_clear(fl_ui->start, fl_ui->current);
+  fl_clear(fl_ui->f_list);
   fl_ui->current_idx = 0;
   fl_ui->current_page = 0;
   fl_ui->pages = 0;
@@ -255,11 +255,6 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   fl_item_t *active_el = dlist_get_ptr(fui->f_selected);
   int32_t cur_el_idx = 0;
   box(fui->win_list, 0, 0);
-
-  if (fui->start != NULL) {
-    el = *(fui->start);
-    active_el = el;
-  }
 
   if (fui->activate_last) {
     fui->current_idx = fui->max_lines - 1;
@@ -297,7 +292,7 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   int32_t p_len;
 
   if (!fui->active_search && fui->search_key->slen > 0 &&
-      *(fui->start) == NULL) {
+      fui->f_list->start == NULL) {
     bstring text = bfromStatic("[No data to show]");
     for (; p_y < (sz_y_f / 2); p_y++) {
       mvwprintw(win, p_y, p_x, "%*s", sz_x - 1, "");

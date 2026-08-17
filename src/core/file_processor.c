@@ -27,7 +27,10 @@
 #include "query.h"
 
 static void fl_add(dlist_t *fl_list, char *q_line);
-void fl_clear(fl_item_t **start, fl_item_t **current);
+static bool fl_rm_cb(void *_ptr);
+
+
+void fl_clear(dlist_t *dlist) { dlist_clear_list(dlist, fl_rm_cb); }
 
 void file_list(file_args_t *f_args, query_args_t *q_args) {
   int32_t qlen;
@@ -68,7 +71,8 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
 
 static bool fl_add_cb(void *_dst, void *_src);
 
-int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, fl_item_t *l_selected) {
+int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args,
+                       fl_item_t *l_selected) {
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
   struct stat st = {0};
@@ -89,7 +93,7 @@ int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, fl_item_t *l_s
   f_selected->name = NULL;
   sprintf(file_path, "%s/%s", DOWNLOADS_DIR, l_selected->name);
   f_selected->name = strdup(l_selected->name);
-  fl_clear(&f_args->l_start, &f_args->l_current);
+  fl_clear(f_args->f_list);
   f_args->file_d = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
   if (f_args->file_d == -1) {
     server_send_string(q_args, "error: %s\n", f_selected->name);
@@ -378,6 +382,18 @@ static bool fl_add_cb(void *_dst, void *_src) {
   return true;
 }
 
+static bool fl_rm_cb(void *_ptr) {
+  fl_item_t *ptr = _ptr;
+  if (ptr->description != NULL)
+    free(ptr->description);
+  if (ptr->name != NULL)
+    free(ptr->name);
+  if (ptr->owner != NULL)
+    free(ptr->owner);
+  free(ptr);
+  return true;
+}
+
 /* work with file list */
 static void fl_add(dlist_t *fl_list, char *q_line) {
   fl_item_t f_item;
@@ -392,21 +408,4 @@ static void fl_add(dlist_t *fl_list, char *q_line) {
   fl_q_extract(&f_item, q_line);
 
   dlist_add(fl_list, &f_item, fl_item_t, fl_add_cb, false);
-}
-
-void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
-  if (*start == NULL)
-    return;
-  fl_item_t *next, *current;
-  current = *start;
-
-  do {
-    if (current->description != NULL) {
-      free(current->description);
-    }
-    free(current->name);
-    free(current);
-  } while ((current = next) != NULL);
-  *start = NULL;
-  *arg_current = NULL;
 }
