@@ -14,8 +14,9 @@
 #include <widget.h>
 #include <windows.h>
 
-#include <core/app.h>
 #include "alert.h"
+#include "core/file_processor.h"
+#include <core/app.h>
 #include <core/connection.h>
 #include <core/query.h>
 
@@ -27,6 +28,7 @@ int main(int argc, char **argv) {
   app_t app;
   params_t params;
   query_args_t q_args;
+  file_args_t file_args;
 
   app_init_nc();
 
@@ -42,6 +44,7 @@ int main(int argc, char **argv) {
   app.query_args = &q_args;
 
   main_window_set(&app, mw_fl_server);
+  init_file_args(&file_args, &app);
   /* init client to connect to the server */
   app.params->sd = init_client();
 

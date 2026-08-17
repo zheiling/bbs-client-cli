@@ -50,13 +50,10 @@ void query_loop(app_t *app) {
   int32_t sd = app->params->sd;
   size_t qlen;
   int sr;
-  static file_args_t file_args;
   w_cb_args_t d_args = {
       .app = app, .element = NULL, .data = NULL, .resp_data.code = cbrc_none};
 
-  init_file_args(&file_args, app);
   query_args->sd = sd;
-  app->file_args = &file_args;
 
   for (;;) {
     /* update screen */

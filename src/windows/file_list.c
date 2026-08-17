@@ -57,6 +57,8 @@ static void w_fl_cb(w_cb_args_t *args) {
   case KEY_DOWN:
     if (fui->current_idx < fui->current_count - 1) {
       fui->current_idx++;
+      if (fui->f_selected == NULL) fui->f_selected = fui->f_list->start;
+      fui->f_selected = fui->f_selected->next;
     } else if (fui->current_page < fui->pages) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %d %d\n", q_prefix,
@@ -69,6 +71,7 @@ static void w_fl_cb(w_cb_args_t *args) {
   case KEY_UP:
     if (fui->current_idx > 0) {
       fui->current_idx--;
+      fui->f_selected = fui->f_selected->previous;
     } else if (fui->current_page > 1) {
       app->query_args->state = S_FILE_LIST;
       server_send_string(app->query_args, "%s %d %d\n", q_prefix,
@@ -110,7 +113,7 @@ static void w_fl_cb(w_cb_args_t *args) {
                        1);
     w_fl_reset(fui);
   case '\n':
-    ui_file_select(app->file_args, app->query_args, fui->current_idx + 1);
+    ui_file_select(app->file_args, app->query_args, dlist_get_ptr(fui->f_selected));
     break;
   }
 }
@@ -187,12 +190,11 @@ void *w_fl_init(app_t *app) {
   fui->activate_last = false;
   fui->active_search = false;
   fui->search_key = bfromcstrrangealloc(12, 64, "");
-  fui->start = NULL;
-  fui->current = NULL;
   fui->w.sz.x = getmaxx(app->win);
   fui->w.sz.y = getmaxy(app->win);
 
   fui->f_list = dlist_init(NULL, fl_item_t, NULL);
+  fui->f_selected = NULL;
   if (app->file_args != NULL) {
     app->file_args->f_list = fui->f_list;
   }
@@ -246,10 +248,12 @@ void w_fl_draw(w_ui_file_list_t *fui) {
   sz_x -= 1;                 /* do not count the borders */
   p_y = 1;
   p_x = 1;
+
+  dlist_node_t *wp_bac = dlist_get_wp(fui->f_list);
+  dlist_set_wp(fui->f_list, fui->f_list->start);
   fl_item_t *el = dlist_it_next(fui->f_list);
   fl_item_t *active_el = dlist_get_ptr(fui->f_selected);
   int32_t cur_el_idx = 0;
-
   box(fui->win_list, 0, 0);
 
   if (fui->start != NULL) {
@@ -286,6 +290,8 @@ void w_fl_draw(w_ui_file_list_t *fui) {
     p_y++;
     cur_el_idx++;
   } while ((el = dlist_it_next(fui->f_list)) != NULL && p_y < sz_y_f);
+
+  dlist_set_wp(fui->f_list, wp_bac);
 
   p_x = 1;
   int32_t p_len;

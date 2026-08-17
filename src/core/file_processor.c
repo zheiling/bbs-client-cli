@@ -66,19 +66,20 @@ void file_list(file_args_t *f_args, query_args_t *q_args) {
   }
 }
 
-int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, int32_t idx) {
-  fl_item_t *l_selected; /* from the list */
+static bool fl_add_cb(void *_dst, void *_src);
+
+int32_t ui_file_select(file_args_t *f_args, query_args_t *q_args, fl_item_t *l_selected) {
   fl_item_t *f_selected =
       &(f_args->f_selected); /* new copy of file struct (list be cleared) */
   struct stat st = {0};
-
-  l_selected = NULL; /* TODO: FIX */
 
   if (l_selected == NULL) {
     return -1;
   }
 
   memcpy(f_selected, l_selected, sizeof(fl_item_t));
+
+  fl_add_cb(f_selected, l_selected);
 
   if (stat(DOWNLOADS_DIR, &st) == -1) {
     mkdir(DOWNLOADS_DIR, 0700);
@@ -315,7 +316,7 @@ void clear_file_in_query(query_args_t *q_args) {
 }
 
 void init_file_args(file_args_t *f_args, app_t *app) {
-  w_ui_file_list_t *fui = NULL;
+  w_ui_file_list_t *fui = app->main_ui.ui;
   f_args->file_d = 0;
   f_args->f_selected.name = NULL;
   f_args->f_selected.size = 0;
@@ -327,6 +328,8 @@ void init_file_args(file_args_t *f_args, app_t *app) {
       f_args->f_list = fui->f_list;
     }
   }
+  f_args->f_list = fui->f_list;
+  app->file_args = f_args;
 }
 
 static void fl_q_extract(fl_item_t *f, char *line) {
@@ -360,8 +363,12 @@ static bool fl_add_cb(void *_dst, void *_src) {
 
   dst->size = src->size;
 
-  dst->description = malloc(sizeof(char) * (strlen(src->description) + 1));
-  strcpy(dst->description, src->description);
+  if (src->description != NULL) {
+    dst->description = malloc(sizeof(char) * (strlen(src->description) + 1));
+    strcpy(dst->description, src->description);
+  } else {
+    dst->description = NULL;
+  }
 
   dst->name = malloc(sizeof(char) * (strlen(src->name) + 1));
   strcpy(dst->name, src->name);
@@ -394,7 +401,9 @@ void fl_clear(fl_item_t **start, fl_item_t **arg_current) {
   current = *start;
 
   do {
-    free(current->description);
+    if (current->description != NULL) {
+      free(current->description);
+    }
     free(current->name);
     free(current);
   } while ((current = next) != NULL);
