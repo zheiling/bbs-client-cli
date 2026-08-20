@@ -1,8 +1,6 @@
 # TODO:
 
 ## Current:
-- [ ] Integration of double-linked file list in file_list (files from server)
-- [ ] Check search option
 
 ## Future:
 - [ ] File catalogs (or tags)

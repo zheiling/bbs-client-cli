@@ -45,7 +45,7 @@ static void w_fl_cb(w_cb_args_t *args) {
       }
       server_send_string(app->query_args, "%s %d %d\n", q_prefix,
                          fui->max_lines, 1);
-      w_fl_reset(fui);
+      fl_clear(fui->f_list);
     } else {
       bconchar(fui->search_key, key);
       w_fl_draw(fui);
