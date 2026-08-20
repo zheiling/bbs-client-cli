@@ -144,6 +144,8 @@ int dlist_clear_list(dlist_t *dlist, dblist_rm_cb_t cb) {
   dlist_node_t *current = dlist->start;
   dlist_node_t *next = NULL;
 
+  if (current == NULL) return 1;
+
   do {
     cb(current->el_ptr);
     next = current->next;
